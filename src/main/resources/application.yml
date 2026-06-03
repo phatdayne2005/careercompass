@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: CareerCompass
+
+  # ====== DATABASE ======
+  # Credentials lấy từ env var (DB_USERNAME, DB_PASSWORD).
+  # Default cho dev local: root / 123456. Khi deploy prod set env var thật.
+  datasource:
+    url: jdbc:mysql://localhost:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ====== JPA / HIBERNATE ======
+  jpa:
+    hibernate:
+      ddl-auto: update           # dev: tự tạo/cập nhật bảng từ @Entity. Prod KHÔNG dùng.
+    show-sql: true               # in SQL ra console (để học + debug)
+    open-in-view: false          # tắt OSIV để tránh N+1 query ngầm khi render view
+    properties:
+      hibernate:
+        format_sql: true         # format SQL cho đẹp
+
+  # ====== THYMELEAF ======
+  thymeleaf:
+    cache: false                 # dev: sửa HTML không cần restart
+
+# ====== SERVER ======
+server:
+  port: 8080
+
+# ====== LOG ======
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE   # in cả tham số bind vào câu SQL
