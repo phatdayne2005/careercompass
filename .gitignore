@@ -56,3 +56,6 @@ application-*-local.yml
 *.pem
 *.key
 secrets/
+
+### Context riêng tư cho Claude Code (không chia sẻ với nhóm) ###
+CLAUDE.md
