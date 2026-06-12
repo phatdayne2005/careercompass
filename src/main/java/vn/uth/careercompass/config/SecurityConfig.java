@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import vn.uth.careercompass.kernel.service.CustomOidcUserService;
 
 @Configuration
 public class SecurityConfig {
@@ -15,10 +16,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, CustomOidcUserService customOidcUserService) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/", "/login", "/register", "/forgot", "/css/**", "/js/**").permitAll()
+                    .requestMatchers("/", "/login", "/register", "/forgot", "/oauth2/**", "/css/**", "/js/**").permitAll()
                     .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                     .requestMatchers("/counselor", "/counselor/**").hasRole("COUNSELOR")
                     .anyRequest().authenticated()
@@ -28,6 +29,13 @@ public class SecurityConfig {
                     .loginPage("/login")
                     .defaultSuccessUrl("/", true)
                     .permitAll()
+                )
+
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .userInfoEndpoint(userInfo ->
+                                userInfo.oidcUserService(customOidcUserService))
                 )
 
                 .logout(logout -> logout
