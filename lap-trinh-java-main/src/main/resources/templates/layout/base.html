@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Layout chung cho toàn app.
+  - head(title): mảnh <head> tham số hoá (Tailwind CDN + font Inter + meta).
+  - brand(icon, accent): logo CareerCompass dùng lại cho mọi trang auth.
+-->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">CareerCompass</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+<!-- Logo thương hiệu: viên kim cương tím + chữ CareerCompass -->
+<div th:fragment="brand" class="flex items-center gap-2">
+    <span class="inline-block w-3.5 h-3.5 rotate-45 rounded-[3px] bg-gradient-to-br from-violet-400 to-violet-600"></span>
+    <span class="text-base font-bold text-white tracking-tight">CareerCompass</span>
+</div>
+
+</body>
+</html>
