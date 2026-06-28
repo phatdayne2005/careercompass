@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import vn.uth.careercompass.admin.entity.CareerRole;
 
 import java.time.LocalDateTime;
 
@@ -42,8 +43,11 @@ public class User {
     @Column(length = 255)
     private String transcriptPath;
     private Double gpa;
-    /** [STUB-P7] FK tới career_roles.id. Sẽ refactor thành @ManyToOne CareerRole khi P7 hoàn thành. */
-    private Long targetRoleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "career_role_id")
+    private CareerRole careerRole;
+
     @Column(nullable = false)
     @NotNull
     @Builder.Default

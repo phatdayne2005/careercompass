@@ -9,6 +9,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${title}">CareerCompass</title>
+    <!-- CSRF Tokens for Spring Security -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!-- Thư viện HTMX toàn cục -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,6 +27,15 @@
                 }
             }
         }
+        
+        // Tự động gán CSRF Token vào request header của HTMX
+        document.addEventListener('htmx:configRequest', (event) => {
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            if (csrfHeader && csrfToken) {
+                event.detail.headers[csrfHeader] = csrfToken;
+            }
+        });
     </script>
 </head>
 <body>

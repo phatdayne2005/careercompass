@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head(title='Quản Lý Người Dùng - CareerCompass')}"></head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
+ 
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 p-6">
+        <div>
+            <!-- Brand Logo -->
+            <div class="mb-8 flex justify-center">
+                <div th:replace="~{layout/base :: brand}"></div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5">
+                <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/users" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-violet-600 text-white font-semibold shadow-lg shadow-violet-500/20 transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Quản lý User
+                </a>
+            </nav>
+        </div>
+        
+        <!-- User Section Footer -->
+        <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold text-sm">AD</div>
+                <div class="truncate">
+                    <p class="text-xs font-semibold text-slate-200">System Admin</p>
+                    <p class="text-[10px] text-slate-500 truncate">admin@gmail.com</p>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+            </form>
+        </div>
+    </aside>
+ 
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 p-10 overflow-y-auto">
+        <!-- Header -->
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-white font-sans">Quản Lý Thành Viên</h1>
+                <p class="text-sm text-slate-400 mt-1">Quản lý trạng thái khóa/mở khóa tài khoản sinh viên/cố vấn và phân chia vai trò hệ thống.</p>
+            </div>
+        </header>
+ 
+        <!-- USER TABLE -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-800">
+                    <thead class="bg-slate-950/80">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Họ Tên & Email</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Ngày đăng ký</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Định Hướng Nghề</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Vai trò (Role)</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 bg-slate-900/50">
+                        <tr th:each="user : ${users}" class="hover:bg-slate-800/30 transition-all duration-100">
+                            <!-- Name & Email -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400 font-bold" th:text="${#strings.substring(user.fullName, 0, 1)}">U</div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-white" th:text="${user.fullName}">User Fullname</p>
+                                        <p class="text-xs text-slate-500" th:text="${user.email}">user@email.com</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <!-- Created Date -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-400" th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                            <!-- Target Career Role -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${user.careerRoleName}" class="px-2.5 py-1 text-xs font-medium rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/10" th:text="${user.careerRoleName}">Role Name</span>
+                                <span th:unless="${user.careerRoleName}" class="text-xs text-slate-600 font-medium">Chưa định hướng</span>
+                            </td>
+                            <!-- Role Switcher Form -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/change-role'}" method="post" class="inline-block">
+                                    <select name="roleName" onchange="this.form.submit()" class="bg-slate-950 text-slate-200 border border-slate-850 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 cursor-pointer">
+                                        <option th:each="r : ${roles}" 
+                                                th:value="${r.name()}" 
+                                                th:text="${r.name()}" 
+                                                th:selected="${r.name() == user.roleName}">ROLE</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <!-- Action button cell using HTMX (replaced by fragments/user-row-actions) -->
+                            <td th:replace="~{admin/fragments/user-row-actions :: user-row-actions}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
