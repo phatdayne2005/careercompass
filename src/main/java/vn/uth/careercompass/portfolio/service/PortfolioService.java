@@ -3,9 +3,7 @@ package vn.uth.careercompass.portfolio.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -27,9 +25,7 @@ public class PortfolioService {
     public List<ProjectRepository> syncGithubRepositories(String githubUsername) {
         Long mockUserId = 1L; 
 
-        Optional<?> profileOptional = gitHubProfileRepository.findByUserId(mockUserId);
-        GitHubProfile profile = profileOptional
-                .map(profileObj -> (GitHubProfile) profileObj)
+        GitHubProfile profile = gitHubProfileRepository.findByUserId(mockUserId)
                 .orElseGet(() -> createGitHubProfile(githubUsername));
 
         String githubApiUrl = "https://api.github.com/users/" + githubUsername + "/repos";
@@ -60,7 +56,7 @@ public class PortfolioService {
                         .aiSummary(aiSummaryText) 
                         .build();
 
-                savedRepos.add(saveProjectRepository(repository));
+                savedRepos.add(projectRepositoryRepository.save(repository));
             }
         }
         return savedRepos;
@@ -72,19 +68,7 @@ public class PortfolioService {
                 .userId(mockUserId)
                 .githubUsername(githubUsername)
                 .build();
-        return saveGitHubProfile(profile);
-    }
-
-    @SuppressWarnings("unchecked")
-    private GitHubProfile saveGitHubProfile(GitHubProfile profile) {
-        CrudRepository rawRepository = (CrudRepository) gitHubProfileRepository;
-        return (GitHubProfile) rawRepository.save(profile);
-    }
-
-    @SuppressWarnings("unchecked")
-    private ProjectRepository saveProjectRepository(ProjectRepository repository) {
-        CrudRepository rawRepository = (CrudRepository) projectRepositoryRepository;
-        return (ProjectRepository) rawRepository.save(repository);
+        return gitHubProfileRepository.save(profile);
     }
 
     private String fetchReadmeContent(String username, String repoName) {

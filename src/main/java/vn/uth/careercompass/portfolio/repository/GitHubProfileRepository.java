@@ -4,11 +4,12 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import vn.uth.careercompass.portfolio.entity.GitHubProfile;
 
 @Repository
-public interface GitHubProfileRepository extends JpaRepository<GitHubProfileRepository, Long> {
+public interface GitHubProfileRepository extends JpaRepository<GitHubProfile, Long> {
 
-    Optional<GitHubProfileRepository> findByUserId(Long userId);
+    Optional<GitHubProfile> findByUserId(Long userId);
     
     boolean existsByGithubUsername(String githubUsername);
 }

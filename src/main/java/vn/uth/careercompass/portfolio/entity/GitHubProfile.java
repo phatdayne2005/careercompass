@@ -32,10 +32,9 @@ public class GitHubProfile {
     @Column(name = "github_username", nullable = false, unique = true)
     private String githubUsername;
 
-    // store user id reference instead of direct User entity to avoid missing User class symbol
     @Column(name = "user_id")
     private Long userId;
 
-    @OneToMany(mappedBy = "githubProfile", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = Object.class)
-    private List<Object> repositories;
+    @OneToMany(mappedBy = "githubProfile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectRepository> repositories;
 }
