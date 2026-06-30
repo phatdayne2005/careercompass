@@ -31,5 +31,38 @@
     <span class="text-base font-bold text-white tracking-tight">CareerCompass</span>
 </div>
 
+<nav th:fragment="appNav(active)" class="h-[86px] bg-[#080d19] border-b border-white/[0.02]">
+    <div class="h-full px-11 flex items-center justify-between">
+        <a th:href="@{/}" class="flex items-center gap-3">
+            <span class="inline-block w-4 h-4 rotate-45 rounded-[3px] bg-[#a78bfa]"></span>
+            <span class="text-[25px] leading-none font-extrabold tracking-[-0.02em] text-[#b99cff]">CareerCompass</span>
+        </a>
+
+        <div class="hidden lg:flex items-center gap-11 text-[20px] font-semibold text-[#95a1b3]">
+            <a th:href="@{/}" class="transition hover:text-slate-100"
+               th:classappend="${active == 'dashboard'} ? ' text-slate-100' : ''">Dashboard</a>
+            <a href="#" class="transition hover:text-slate-100">AI Mentor</a>
+            <a th:href="@{/roadmap}" class="flex items-center gap-4 transition hover:text-slate-100"
+               th:classappend="${active == 'roadmap'} ? ' text-slate-100' : ''">
+                <span th:if="${active == 'roadmap'}" class="w-3.5 h-3.5 rounded-full bg-[#98a7bd]"></span>
+                <span>Roadmap</span>
+            </a>
+            <a th:href="@{/skill-gap}" class="flex items-center gap-4 transition hover:text-slate-100"
+               th:classappend="${active == 'skill-gap'} ? ' text-slate-100' : ''">
+                <span th:if="${active == 'skill-gap'}" class="w-3.5 h-3.5 rounded-full bg-[#98a7bd]"></span>
+                <span>Skill Gap</span>
+            </a>
+            <a href="#" class="transition hover:text-slate-100">Market Pulse</a>
+            <a th:href="@{/portfolio/manage}" class="transition hover:text-slate-100">E-Portfolio</a>
+        </div>
+
+        <form th:action="@{/logout}" method="post" class="hidden sm:block">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="w-12 h-12 rounded-full bg-[#46556a] hover:bg-[#56677f] transition"
+                    aria-label="Đăng xuất"></button>
+        </form>
+    </div>
+</nav>
+
 </body>
 </html>
