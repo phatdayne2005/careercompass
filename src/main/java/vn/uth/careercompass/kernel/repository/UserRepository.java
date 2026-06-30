@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.entity.RoleName;
  
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.Optional;
  
@@ -21,4 +23,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
  
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.role LEFT JOIN FETCH u.careerRole")
     List<User> findAllWithRoleAndCareerRole();
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.role LEFT JOIN FETCH u.careerRole " +
+           "WHERE LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    List<User> searchUsers(@Param("keyword") String keyword);
 }

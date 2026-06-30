@@ -7,10 +7,15 @@ import org.springframework.stereotype.Repository;
 import vn.uth.careercompass.kernel.entity.ActivityLog;
 import vn.uth.careercompass.kernel.entity.User;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
     List<ActivityLog> findByUserOrderByCreatedAtDesc(User user);
     Page<ActivityLog> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
+
+    @Transactional
+    void deleteByUser(User user);
 }

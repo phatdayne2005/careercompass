@@ -18,8 +18,14 @@ public class AdminUserController {
     private final AdminUserService adminUserService;
  
     @GetMapping("/admin/users")
-    public String listUsers(java.security.Principal principal, Model model) {
-        List<UserAdminDto> users = adminUserService.getAllUsers();
+    public String listUsers(@RequestParam(required = false) String keyword, java.security.Principal principal, Model model) {
+        List<UserAdminDto> users;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            users = adminUserService.searchUsers(keyword.trim());
+            model.addAttribute("keyword", keyword.trim());
+        } else {
+            users = adminUserService.getAllUsers();
+        }
         model.addAttribute("users", users);
         model.addAttribute("roles", RoleName.values());
         model.addAttribute("currentUserEmail", principal != null ? principal.getName() : "");
@@ -37,6 +43,12 @@ public class AdminUserController {
     @PostMapping("/admin/users/{id}/change-role")
     public String changeRole(@PathVariable Long id, @RequestParam String roleName) {
         adminUserService.changeUserRole(id, roleName);
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/admin/users/{id}/delete")
+    public String deleteUser(@PathVariable Long id) {
+        adminUserService.deleteUser(id);
         return "redirect:/admin/users";
     }
 }

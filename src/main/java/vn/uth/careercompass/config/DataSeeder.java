@@ -14,6 +14,16 @@ import vn.uth.careercompass.kernel.repository.UserRepository;
 import vn.uth.careercompass.admin.entity.*;
 import vn.uth.careercompass.admin.repository.*;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import vn.uth.careercompass.config.dto.RoadmapJson;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +40,12 @@ public class DataSeeder implements CommandLineRunner {
     private final CareerRoleRepository careerRoleRepository;
     private final LearningResourceRepository learningResourceRepository;
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(5, r -> {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        return t;
+    });
+
     @Value("${app.admin.email}")
     String adminEmail;
     @Value("${app.admin.password}")
@@ -45,9 +61,30 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (learningResourceRepository.count() <= 4) {
+            System.out.println("🔄 Phát hiện dữ liệu cũ chưa được cào tài liệu học tập. Đang tự động làm sạch DB...");
+            
+            // 1. Gỡ tham chiếu CareerRole của User
+            userRepository.findAll().forEach(u -> {
+                if (u.getCareerRole() != null) {
+                    u.setCareerRole(null);
+                    userRepository.save(u);
+                }
+            });
+            
+            // 2. Xóa các bảng liên quan đến Lộ trình
+            learningResourceRepository.deleteAll();
+            skillNodeRepository.deleteAll();
+            skillTreeTemplateRepository.deleteAll();
+            careerRoleRepository.deleteAll();
+            
+            System.out.println("✅ Đã làm sạch DB cũ thành công. Tiến hành seed lại toàn bộ...");
+        }
+
         seedRoles();
         seedSkills(); // goi seed skills truoc
         CareerRole defaultRole = seedRoadmaps(); // goi seed lo trinh mau va lay ra vai tro mac dinh
+        seedRoadmapsFromFolder();
 
         // Seed cac tai khoai mau
         seedUser(RoleName.ADMIN, "System Admin", adminEmail, adminPassword, null);
@@ -77,8 +114,14 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUser(RoleName roleName, String fullName, String email, String password, CareerRole targetRole) {
-        if (userRepository.existsByEmail(email))
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            if (user.getCareerRole() == null && targetRole != null) {
+                user.setCareerRole(targetRole);
+                userRepository.save(user);
+            }
             return;
+        }
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalStateException("Chưa seed Role " + roleName));
         userRepository.save(User.builder()
@@ -214,7 +257,196 @@ public class DataSeeder implements CommandLineRunner {
         learningResourceRepository.save(javaResource1);
         learningResourceRepository.save(javaResource2);
         return backendRole;
+    }
 
+    private void seedRoadmapsFromFolder() {
+        try {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources("classpath:data/*.json");
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            for (Resource resource : resources) {
+                try {
+                    RoadmapJson data = mapper.readValue(resource.getInputStream(), RoadmapJson.class);
+                    if (data.getTitle() == null || data.getTitle().getPage() == null) {
+                        continue;
+                    }
+
+                    String roleName = data.getTitle().getPage();
+
+                    // Check if CareerRole is already seeded
+                    if (careerRoleRepository.findByName(roleName).isPresent()) {
+                        System.out.println("⏭️ Lộ trình " + roleName + " đã tồn tại, bỏ qua.");
+                        continue;
+                    }
+
+                    CareerRole careerRole = careerRoleRepository.save(
+                            CareerRole.builder()
+                                    .name(roleName)
+                                    .description(data.getDescription())
+                                    .expectedSalaryRange("15,000,000 - 40,000,000 VND")
+                                    .marketDemand("High")
+                                    .build()
+                    );
+
+                    SkillTreeTemplate template = skillTreeTemplateRepository.save(
+                            SkillTreeTemplate.builder()
+                                    .name("Lộ trình " + roleName)
+                                    .description("Khung chương trình đào tạo chuẩn cào từ roadmap.sh")
+                                    .careerRole(careerRole)
+                                    .build()
+                    );
+
+                    Map<String, RoadmapJson.NodeInfo> nodesMap = new HashMap<>();
+                    Map<String, List<String>> incomingEdgesMap = new HashMap<>();
+
+                    for (RoadmapJson.NodeInfo node : data.getNodes()) {
+                        nodesMap.put(node.getId(), node);
+                    }
+
+                    for (RoadmapJson.EdgeInfo edge : data.getEdges()) {
+                        incomingEdgesMap.computeIfAbsent(edge.getTarget(), k -> new ArrayList<>()).add(edge.getSource());
+                    }
+
+                    Map<String, SkillNode> createdNodesMap = new HashMap<>();
+
+                    for (RoadmapJson.NodeInfo node : data.getNodes()) {
+                        if ("topic".equals(node.getType()) || "subtopic".equals(node.getType())) {
+                            String skillName = node.getData().getLabel();
+                            if (skillName == null || skillName.trim().isEmpty()) continue;
+
+                            Skill skill = skillRepository.findByName(skillName)
+                                    .orElseGet(() -> skillRepository.save(
+                                            Skill.builder()
+                                                    .name(skillName)
+                                                    .category(node.getType().toUpperCase())
+                                                    .build()
+                                    ));
+
+                            SkillNode skillNode = SkillNode.builder()
+                                    .skillTreeTemplate(template)
+                                    .skill(skill)
+                                    .level(1)
+                                    .build();
+
+                            SkillNode savedNode = skillNodeRepository.save(skillNode);
+                            createdNodesMap.put(node.getId(), savedNode);
+
+                            String roadmapSlug = data.getSlug();
+                            if (roadmapSlug == null || roadmapSlug.trim().isEmpty()) {
+                                roadmapSlug = resource.getFilename().replace(".json", "");
+                            }
+                            seedResourcesForNode(roadmapSlug, node.getId(), savedNode);
+                        }
+                    }
+
+                    for (Map.Entry<String, SkillNode> entry : createdNodesMap.entrySet()) {
+                        String nodeId = entry.getKey();
+                        SkillNode currentSkillNode = entry.getValue();
+
+                        SkillNode parentSkillNode = findParentTopicNode(nodeId, incomingEdgesMap, nodesMap, createdNodesMap);
+                        if (parentSkillNode != null) {
+                            currentSkillNode.setParentNode(parentSkillNode);
+                            currentSkillNode.setLevel(parentSkillNode.getLevel() + 1);
+                            skillNodeRepository.save(currentSkillNode);
+                        }
+                    }
+
+                    System.out.println("🚀 Đã seed thành công lộ trình " + roleName + " với " + createdNodesMap.size() + " kỹ năng!");
+
+                } catch (Exception e) {
+                    System.err.println("Lỗi khi seed file " + resource.getFilename() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("Lỗi quét thư mục data/*.json: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private SkillNode findParentTopicNode(
+            String nodeId,
+            Map<String, List<String>> incomingEdgesMap,
+            Map<String, RoadmapJson.NodeInfo> nodesMap,
+            Map<String, SkillNode> createdNodesMap) {
+
+        List<String> parents = incomingEdgesMap.get(nodeId);
+        if (parents == null || parents.isEmpty()) {
+            return null;
+        }
+
+        for (String parentId : parents) {
+            RoadmapJson.NodeInfo parentNode = nodesMap.get(parentId);
+            if (parentNode == null) continue;
+
+            if (("topic".equals(parentNode.getType()) || "subtopic".equals(parentNode.getType()))
+                    && createdNodesMap.containsKey(parentId)) {
+                return createdNodesMap.get(parentId);
+            }
+
+            SkillNode ancestor = findParentTopicNode(parentId, incomingEdgesMap, nodesMap, createdNodesMap);
+            if (ancestor != null) {
+                return ancestor;
+            }
+        }
+        return null;
+    }
+
+    private void seedResourcesForNode(String roadmapSlug, String nodeId, SkillNode skillNode) {
+        if (roadmapSlug == null || roadmapSlug.trim().isEmpty()) {
+            return;
+        }
+
+        executorService.submit(() -> {
+            try {
+                String cleanSlug = roadmapSlug.toLowerCase().trim();
+                String urlString = "https://roadmap.sh/" + cleanSlug + "/" + nodeId + ".json";
+
+                java.net.URL url = new java.net.URL(urlString);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+                conn.setConnectTimeout(3000);
+                conn.setReadTimeout(3000);
+
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode rootNode = mapper.readTree(conn.getInputStream());
+
+                    JsonNode resourcesNode = rootNode.get("resources");
+                    if (resourcesNode != null && resourcesNode.isArray()) {
+                        List<LearningResource> resourcesToSave = new ArrayList<>();
+                        for (JsonNode resNode : resourcesNode) {
+                            String type = resNode.has("type") ? resNode.get("type").asText() : "DOCUMENTATION";
+                            String title = resNode.has("title") ? resNode.get("title").asText() : "";
+                            String resUrl = resNode.has("url") ? resNode.get("url").asText() : "";
+
+                            if (title.isEmpty() || resUrl.isEmpty()) continue;
+                            if ("roadmap".equalsIgnoreCase(type)) continue;
+
+                            LearningResource learningResource = LearningResource.builder()
+                                    .skillNode(skillNode)
+                                    .title(title)
+                                    .url(resUrl)
+                                    .resourceType(type.toUpperCase())
+                                    .description("Tài liệu học tập cào tự động từ roadmap.sh")
+                                    .build();
+                            resourcesToSave.add(learningResource);
+                        }
+
+                        if (!resourcesToSave.isEmpty()) {
+                            learningResourceRepository.saveAll(resourcesToSave);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Lỗi cào tài liệu cho Node ID: " + nodeId + " trong lộ trình: " + roadmapSlug + " -> " + e.getMessage());
+            }
+        });
     }
 
 }

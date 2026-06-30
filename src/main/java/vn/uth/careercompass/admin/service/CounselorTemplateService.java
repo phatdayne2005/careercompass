@@ -13,6 +13,7 @@ import vn.uth.careercompass.admin.repository.LearningResourceRepository;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
 import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
+import vn.uth.careercompass.kernel.repository.UserRepository;
  
 import java.util.List;
  
@@ -24,6 +25,7 @@ public class CounselorTemplateService {
     private final SkillRepository skillRepository;
     private final LearningResourceRepository resourceRepository;
     private final CareerRoleRepository careerRoleRepository;
+    private final UserRepository userRepository;
  
     public List<SkillTreeTemplate> getAllTemplates() {
         try {
@@ -264,7 +266,35 @@ public class CounselorTemplateService {
         try {
             SkillTreeTemplate template = templateRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
+            
+            // 1. Phá vỡ quan hệ cha-con tự liên kết (self-referential) trên các SkillNode
+            List<SkillNode> nodes = nodeRepository.findAllByTemplateIdWithRelations(id);
+            for (SkillNode node : nodes) {
+                node.setParentNode(null);
+                nodeRepository.save(node);
+            }
+            nodeRepository.flush(); // Đẩy các cập nhật NULL xuống DB trước
+
+            CareerRole role = template.getCareerRole();
+
+            // 2. Gỡ tham chiếu CareerRole của User để tránh lỗi khóa ngoại
+            if (role != null) {
+                userRepository.findAll().forEach(u -> {
+                    if (role.equals(u.getCareerRole())) {
+                        u.setCareerRole(null);
+                        userRepository.save(u);
+                    }
+                });
+            }
+
+            // 3. Xóa Template (sẽ Cascade xóa tất cả SkillNode và LearningResource tương ứng)
             templateRepository.delete(template);
+            templateRepository.flush();
+
+            // 4. Xóa CareerRole
+            if (role != null) {
+                careerRoleRepository.delete(role);
+            }
         } catch (Exception e) {
             System.err.println("Lỗi khi xóa lộ trình ID " + id + ": " + e.getMessage());
             throw new RuntimeException("Xóa lộ trình thất bại!", e);
