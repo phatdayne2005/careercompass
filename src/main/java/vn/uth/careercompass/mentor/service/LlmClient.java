@@ -1,6 +1,7 @@
 package vn.uth.careercompass.mentor.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -15,33 +16,35 @@ public class LlmClient {
     @Value("${llm.api-key}")
     private String apiKey;
 
-    @Value("${llm.model:gpt-4o-mini}")
+    @Value("${llm.model:gemini-2.5-flash}")
     private String model;
 
     public LlmClient() {
         this.restClient = RestClient.builder()
-                .baseUrl("https://api.openai.com/v1")
+                .baseUrl("https://generativelanguage.googleapis.com/v1beta")
                 .build();
     }
 
     public String ask(String prompt) {
         Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "messages", List.of(
-                        Map.of("role", "user", "content", prompt)
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", prompt)
+                        ))
                 )
         );
 
         Map<String, Object> response = restClient.post()
-                .uri("/chat/completions")
-                .header("Authorization", "Bearer " + apiKey)
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .uri("/models/{model}:generateContent", model)
+                .header("x-goog-api-key", apiKey)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .retrieve()
                 .body(Map.class);
 
-        var choices = (List<Map<String, Object>>) response.get("choices");
-        var message = (Map<String, Object>) choices.get(0).get("message");
-        return (String) message.get("content");
+        var candidates = (List<Map<String, Object>>) response.get("candidates");
+        var content = (Map<String, Object>) candidates.get(0).get("content");
+        var parts = (List<Map<String, Object>>) content.get("parts");
+        return (String) parts.get(0).get("text");
     }
 }
