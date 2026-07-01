@@ -83,3 +83,6 @@ app:
   base-url: ${BASE_URL:http://localhost:8080}
 
 
+llm:
+  api-key: ${GEMINI_API_KEY}
+  model: gemini-2.5-flash
