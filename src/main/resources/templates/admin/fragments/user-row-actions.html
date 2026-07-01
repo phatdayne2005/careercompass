@@ -1,0 +1,37 @@
+<td th:fragment="user-row-actions" th:id="'user-actions-' + ${user.id}" class="px-6 py-4 whitespace-nowrap text-sm text-right" xmlns:th="http://www.thymeleaf.org">
+    <!-- HTMX Button to lock/unlock user status -->
+    <!-- If the user in the row is the currently logged-in user, disable self-locking -->
+    <span th:if="${user.email == currentUserEmail}" 
+          class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/40 text-slate-500 border border-slate-850 cursor-not-allowed inline-flex items-center gap-1.5"
+          title="Bạn không thể tự khóa tài khoản của chính mình">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <span>Tài Khoản Của Bạn</span>
+    </span>
+
+    <!-- HTMX Button to lock/unlock user status -->
+    <button th:unless="${user.email == currentUserEmail}"
+            th:attr="hx-post='/admin/users/' + ${user.id} + '/toggle-status', hx-target='#user-actions-' + ${user.id}, hx-swap='outerHTML'"
+            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all duration-150 border cursor-pointer inline-flex items-center gap-1.5"
+            th:classappend="${user.enabled} ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'">
+        
+        <!-- Icon corresponding to status -->
+        <svg th:if="${user.enabled}" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <svg th:unless="${user.enabled}" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+
+        <span th:text="${user.enabled} ? 'Khóa Tài Khoản' : 'Mở Khóa'"></span>
+    </button>
+
+    <!-- Form to delete user -->
+    <form th:unless="${user.email == currentUserEmail}"
+          th:action="@{'/admin/users/' + ${user.id} + '/delete'}"
+          method="post"
+          class="inline-block ml-2"
+          th:data-confirm-msg="|Bạn có chắc chắn muốn xóa tài khoản ${user.fullName} (${user.email})? Hành động này cũng sẽ xóa toàn bộ kỹ năng định hướng và lịch sử hoạt động của người dùng này và không thể hoàn tác!|"
+          onsubmit="return confirm(this.getAttribute('data-confirm-msg'))">
+        <button type="submit"
+                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-md border cursor-pointer inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-400 border-rose-500/20 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-150">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>Xóa</span>
+        </button>
+    </form>
+</td>

@@ -1,10 +1,12 @@
 package vn.uth.careercompass.kernel.web.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.security.Principal;
+import java.util.Collection;
 
 /**
  * [STUB - tạm cho P1 test] Trang đích "/" sau khi đăng nhập.
@@ -16,10 +18,20 @@ import java.security.Principal;
 public class HomeController {
 
     @GetMapping("/")
-    public String home(Principal principal, Model model) {
-        // principal = người dùng đang đăng nhập (Spring Security tự inject).
-        // principal.getName() trả về email (vì getUsername() của ta là email).
-        model.addAttribute("email", principal != null ? principal.getName() : "khách");
+    public String home(Authentication authentication, Model model) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+            for (GrantedAuthority authority : authorities) {
+                String role = authority.getAuthority();
+                if ("ROLE_ADMIN".equals(role)) {
+                    return "redirect:/admin";
+                } else if ("ROLE_COUNSELOR".equals(role)) {
+                    return "redirect:/counselor/templates";
+                }
+            }
+        }
+        
+        model.addAttribute("email", authentication != null ? authentication.getName() : "khách");
         return "home";
     }
 }

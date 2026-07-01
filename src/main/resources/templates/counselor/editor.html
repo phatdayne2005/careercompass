@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head(title='Thiết Lập Lộ Trình - CareerCompass')}"></head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
+ 
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 p-6">
+        <div>
+            <!-- Brand Logo -->
+            <div class="mb-8 flex justify-center">
+                <div th:replace="~{layout/base :: brand}"></div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5">
+                <a href="/counselor/templates" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-violet-600 text-white font-semibold shadow-lg shadow-violet-500/20 transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                    Quản lý Lộ Trình
+                </a>
+            </nav>
+        </div>
+        
+        <!-- User Section Footer -->
+        <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold text-sm">CS</div>
+                <div class="truncate">
+                    <p class="text-xs font-semibold text-slate-200">Cố Vấn Học Tập</p>
+                    <p class="text-[10px] text-slate-500 truncate">counselor@gmail.com</p>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
+            </form>
+        </div>
+    </aside>
+ 
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 p-10 overflow-y-auto flex flex-col">
+        <!-- Header -->
+        <header class="mb-8 flex items-center gap-3">
+            <a href="/counselor/templates" class="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl transition-all text-slate-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </a>
+            <div>
+                <h1 class="text-2xl font-extrabold text-white" th:text="'Thiết lập: ' + ${template.name}">Lộ trình</h1>
+                <p class="text-xs text-slate-400 mt-0.5" th:text="${template.description}">Mô tả lộ trình mẫu...</p>
+            </div>
+        </header>
+ 
+        <!-- TWO COLUMN LAYOUT -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
+            
+            <!-- LEFT COLUMN: Tree roadmap list & Add form -->
+            <section id="editor-left-pane" th:fragment="editor-left-pane" class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <h2 class="text-lg font-bold text-white">Cấu Trúc Cây Kỹ Năng</h2>
+                    <span class="text-xs text-slate-500 font-semibold" th:text="${nodes.size()} + ' Nút'">0 Nút</span>
+                </div>
+ 
+                <!-- Dynamic Tree View Area -->
+                <div id="tree-view" th:fragment="tree-view" class="space-y-3">
+                    <div th:if="${nodes.isEmpty()}" class="py-8 text-center text-sm text-slate-500 border border-dashed border-slate-800 rounded-xl">
+                        Chưa có nút kỹ năng nào. Hãy bắt đầu thêm nút đầu tiên bên dưới!
+                    </div>
+ 
+                    <div th:each="node : ${nodes}" 
+                         class="group flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-850 hover:border-violet-500/30 transition-all duration-150"
+                         th:style="'margin-left: ' + (${node.level - 1} * 24) + 'px;'">
+                        
+                        <div class="flex items-center gap-3">
+                            <!-- Bullet Indicator -->
+                            <span class="w-2.5 h-2.5 rotate-45 rounded-[2px]"
+                                  th:classappend="${node.level == 1} ? 'bg-violet-500' : (${node.level == 2} ? 'bg-blue-500' : 'bg-pink-500')"></span>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-bold text-slate-200 group-hover:text-white transition-colors" th:text="${node.skill.name}">Java Core</h4>
+                                    <span class="px-1.5 py-0.5 text-[9px] font-semibold bg-slate-800 text-slate-400 rounded" th:text="'Lvl ' + ${node.level}">Lvl 1</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mt-0.5" 
+                                   th:text="${node.parentNode != null} ? 'Yêu cầu trước: ' + ${node.parentNode.skill.name} : 'Nút gốc (Root)'">Nút gốc</p>
+                            </div>
+                        </div>
+ 
+                        <!-- Row Actions -->
+                        <div class="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <!-- Details button -->
+                            <button th:attr="hx-get='/counselor/nodes/' + ${node.id} + '/details', hx-target='#node-details', hx-swap='outerHTML'"
+                                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 border border-slate-755 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer">
+                                Tài liệu
+                            </button>
+                             <!-- Delete button -->
+                            <button th:attr="hx-delete='/counselor/templates/' + ${template.id} + '/nodes/' + ${node.id}, hx-target='#editor-left-pane', hx-swap='outerHTML'"
+                                    class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+ 
+                <!-- Add Node Form -->
+                <div class="border-t border-slate-850 pt-6">
+                    <h3 class="text-sm font-bold text-slate-200 mb-4">Thêm Nút Kỹ Năng Mới</h3>
+                    <form th:attr="hx-post='/counselor/templates/' + ${template.id} + '/nodes', hx-target='#editor-left-pane', hx-swap='outerHTML'"
+                          class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Skill Dropdown -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Chọn Kỹ năng sẵn có</label>
+                                <select name="skillId" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-violet-500 focus:outline-none">
+                                    <option value="">-- Chọn kỹ năng --</option>
+                                    <option th:each="sk : ${allSkills}" th:value="${sk.id}" th:text="${sk.name} + ' (' + ${sk.category} + ')'">Skill</option>
+                                </select>
+                            </div>
+                            <!-- Custom Skill Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Hoặc nhập Kỹ năng mới</label>
+                                <input type="text" name="newSkillName" placeholder="Tên kỹ năng (ví dụ: Docker)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-violet-500 focus:outline-none" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- New Skill Category -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Danh mục của kỹ năng mới</label>
+                                <input type="text" name="newSkillCategory" placeholder="Ví dụ: DevOps, Backend..." list="existing-categories" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-violet-500 focus:outline-none" />
+                                <datalist id="existing-categories">
+                                    <option th:each="cat : ${categories}" th:value="${cat}"></option>
+                                </datalist>
+                            </div>
+                            <!-- Level Input -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Cấp độ (Level)</label>
+                                <input type="number" name="level" value="1" min="1" max="10" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-violet-500 focus:outline-none" />
+                            </div>
+                        </div>
+                        
+                        <!-- Parent Node Dropdown -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Kỹ năng tiên quyết (Nút cha)</label>
+                            <select name="parentId" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-violet-500 focus:outline-none">
+                                <option value="">Không có (Nút gốc - Root)</option>
+                                <option th:each="n : ${nodes}" th:value="${n.id}" th:text="'Level ' + ${n.level} + ': ' + ${n.skill.name}">Parent Node</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl text-sm transition-all duration-150 shadow-md shadow-violet-500/10 cursor-pointer">
+                            Lưu nút kỹ năng
+                        </button>
+                    </form>
+                </div>
+            </section>
+ 
+            <!-- RIGHT COLUMN: Node details & Learning resources -->
+            <section class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+                <div id="node-details" th:fragment="node-details">
+                    
+                    <!-- CASE 1: No node selected -->
+                    <div th:if="${currentNode == null}" class="text-center py-20">
+                        <div class="w-16 h-16 bg-slate-950 border border-slate-850 rounded-2xl flex items-center justify-center text-slate-600 mx-auto mb-4 animate-bounce">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-300">Chưa Chọn Nút Kỹ Năng</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-[240px] mx-auto">Click nút **Tài liệu** ở một nút kỹ năng bên trái để cấu hình học liệu chi tiết.</p>
+                    </div>
+ 
+                    <!-- CASE 2: Node selected -->
+                    <div th:if="${currentNode != null}" class="space-y-6">
+                        <!-- Node Info & Quick Edit Form -->
+                        <div class="border-b border-slate-800 pb-4 space-y-4">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/15" th:text="'Level ' + ${currentNode.level}">Level</span>
+                                <h3 class="text-xl font-extrabold text-white mt-2" th:text="${currentNode.skill.name}">Skill Name</h3>
+                                <p class="text-xs text-slate-500 mt-1" th:text="${currentNode.skill.category}">Category</p>
+                            </div>
+                            
+                            <!-- Expandable Edit Form -->
+                            <details class="group bg-slate-950/40 border border-slate-850 rounded-xl p-3">
+                                <summary class="text-xs font-bold text-slate-400 hover:text-white cursor-pointer select-none flex items-center justify-between list-none">
+                                    <span>Chỉnh sửa thông tin nút</span>
+                                    <svg class="w-4 h-4 transition-transform group-open:rotate-180 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <form th:action="@{'/counselor/templates/' + ${currentNode.skillTreeTemplate.id} + '/nodes/' + ${currentNode.id} + '/update'}" method="post" class="mt-3 space-y-3">
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-slate-400 mb-1">Cấp độ (Level)</label>
+                                        <input type="number" name="level" th:value="${currentNode.level}" min="1" max="10" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-violet-500 focus:outline-none" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-semibold text-slate-400 mb-1">Kỹ năng tiên quyết (Nút cha)</label>
+                                        <select name="parentId" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-violet-500 focus:outline-none">
+                                            <option value="">Không có (Nút gốc - Root)</option>
+                                            <option th:each="n : ${nodes}" 
+                                                    th:if="${n.id != currentNode.id}"
+                                                    th:value="${n.id}" 
+                                                    th:selected="${currentNode.parentNode != null && currentNode.parentNode.id == n.id}"
+                                                    th:text="'Level ' + ${n.level} + ': ' + ${n.skill.name}">Parent Node</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="w-full py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer">
+                                        Cập nhật nút
+                                    </button>
+                                </form>
+                            </details>
+                        </div>
+ 
+                        <!-- Resources list -->
+                        <div>
+                            <h4 class="text-sm font-bold text-slate-200 mb-3">Tài Nguyên Học Tập Hiện Có</h4>
+                            <div th:if="${currentNode.learningResources.isEmpty()}" class="py-6 text-center text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">
+                                Chưa có tài nguyên nào được gán cho nút này.
+                            </div>
+                            
+                            <div th:if="${!currentNode.learningResources.isEmpty()}" class="space-y-2.5">
+                                <div th:each="res : ${currentNode.learningResources}" class="p-3.5 bg-slate-950/60 border border-slate-850 rounded-xl hover:border-slate-800 transition-colors flex items-start justify-between gap-3">
+                                    <div class="truncate space-y-1.5 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-violet-500/10 text-violet-400 border border-violet-500/10" th:text="${res.resourceType}">VIDEO</span>
+                                            <h5 class="text-xs font-bold text-slate-200" th:text="${res.title}">Title</h5>
+                                        </div>
+                                        <a th:href="${res.url}" target="_blank" class="text-[10px] text-violet-400 hover:underline truncate block" th:text="${res.url}">URL</a>
+                                        <p th:if="${res.description != null && !res.description.isEmpty()}" class="text-[10px] text-slate-500 italic font-medium whitespace-pre-line" th:text="${res.description}">Description</p>
+                                    </div>
+                                    <!-- Delete resource button -->
+                                    <button th:attr="hx-delete='/counselor/nodes/' + ${currentNode.id} + '/resources/' + ${res.id}, hx-target='#node-details', hx-swap='outerHTML'"
+                                            class="p-1 rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <!-- Add Resource Form -->
+                        <div class="border-t border-slate-850 pt-6 space-y-4">
+                            <h4 class="text-sm font-bold text-slate-200">Thêm Học Liệu Mới</h4>
+                            <form th:attr="hx-post='/counselor/nodes/' + ${currentNode.id} + '/resources', hx-target='#node-details', hx-swap='outerHTML'"
+                                  class="space-y-3.5">
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 mb-1">Tiêu đề tài nguyên</label>
+                                    <input type="text" name="title" placeholder="Ví dụ: Tài liệu Spring Boot cơ bản" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-violet-500 focus:outline-none" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 mb-1">Đường dẫn liên kết (URL)</label>
+                                    <input type="url" name="url" placeholder="https://..." required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-violet-500 focus:outline-none" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 mb-1">Loại tài nguyên</label>
+                                    <input type="text" name="resourceType" placeholder="Ví dụ: VIDEO, ARTICLE, BOOK, SLIDES..." required list="resource-types" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-violet-500 focus:outline-none" />
+                                    <datalist id="resource-types">
+                                        <option th:each="t : ${resourceTypes}" th:value="${t}"></option>
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-semibold text-slate-400 mb-1">Mô tả ngắn</label>
+                                    <textarea name="description" rows="2" placeholder="Ghi chú thêm về tài nguyên..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-violet-500 focus:outline-none resize-none"></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl text-xs transition-colors cursor-pointer">
+                                    Thêm tài nguyên
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+ 
+        </div>
+    </main>
+</body>
+</html>
