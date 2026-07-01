@@ -1,9 +1,21 @@
 package vn.uth.careercompass.admin.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "skill_tree_templates")
@@ -13,22 +25,32 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class SkillTreeTemplate {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "career_role_id", nullable = false)
-    private CareerRole careerRole;
+    /**
+     * Temporary link to CareerRole until the P7 module owns a concrete CareerRole entity.
+     */
+    private Long targetRoleId;
 
-    @OneToMany(mappedBy = "skillTreeTemplate", cascade = CascadeType.ALL, orphanRemoval = true)
+    @NotNull
+    @Column(nullable = false)
     @Builder.Default
-    private List<SkillNode> nodes = new ArrayList<>();
+    private Boolean active = true;
+
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

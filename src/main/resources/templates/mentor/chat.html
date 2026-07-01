@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('AI Mentor - CareerCompass')}"></head>
+<body class="bg-[#0F172A] text-slate-100">
+
+<nav th:replace="~{layout/base :: appNav('mentor')}"></nav>
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+<div class="flex h-[calc(100vh-86px)]">
+
+    <!-- Sidebar: danh sách lịch sử chat -->
+    <aside class="w-72 bg-[#1E293B] border-r border-white/5 flex flex-col">
+        <div class="p-4 border-b border-white/5">
+            <form th:action="@{/mentor/new}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit"
+                        class="w-full py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">
+                    + Cuộc trò chuyện mới
+                </button>
+            </form>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <a th:each="session : ${sessions}"
+               th:href="@{/mentor(session=${session.id})}"
+               th:classappend="${session.id == currentSessionId} ? ' bg-white/5' : ''"
+               class="block px-4 py-3 border-b border-white/5 hover:bg-white/5 transition text-sm truncate">
+                <span th:text="${session.title}">Cuộc trò chuyện</span>
+            </a>
+            <p th:if="${#lists.isEmpty(sessions)}" class="p-4 text-sm text-slate-400">
+                Chưa có cuộc trò chuyện nào.
+            </p>
+        </div>
+    </aside>
+
+    <!-- Khung chat chính -->
+    <main class="flex-1 flex flex-col">
+
+        <div id="messageList" th:fragment="messageList" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div th:each="msg : ${messages}"
+                 th:classappend="${msg.sender.name() == 'USER'} ? ' ml-auto bg-[#3B82F6]' : ' bg-[#1E293B]'"
+                 class="max-w-lg px-4 py-3 rounded-2xl">
+                <p th:text="${msg.content}" class="text-sm whitespace-pre-wrap"></p>
+            </div>
+
+            <p th:if="${#lists.isEmpty(messages)}" class="text-slate-400 text-sm">
+                Hãy đặt câu hỏi để bắt đầu trò chuyện với AI Mentor.
+            </p>
+        </div>
+
+        <!-- Ô nhập tin nhắn -->
+        <form th:if="${currentSessionId != null}"
+              hx-post="/mentor/send"
+              hx-target="#messageList"
+              hx-swap="outerHTML"
+              hx-headers='js:{"X-CSRF-TOKEN": document.querySelector("meta[name=_csrf]").content}'
+              class="p-4 border-t border-white/5 flex gap-3">
+            <input type="hidden" name="sessionId" th:value="${currentSessionId}">
+            <input type="text" name="content" required placeholder="Nhập câu hỏi..."
+                   class="flex-1 bg-[#1E293B] rounded-lg px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                   onkeydown="if(event.key==='Enter'){this.form.requestSubmit(); this.value='';}">
+            <button type="submit"
+                    class="px-6 py-3 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">
+                Gửi
+            </button>
+        </form>
+    </main>
+</div>
+
+<meta name="_csrf" th:content="${_csrf.token}">
+
+</body>
+</html>

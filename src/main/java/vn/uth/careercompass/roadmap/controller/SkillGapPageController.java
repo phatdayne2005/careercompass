@@ -1,0 +1,94 @@
+package vn.uth.careercompass.roadmap.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.entity.UserSkill;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
+import vn.uth.careercompass.roadmap.service.PdfService;
+import vn.uth.careercompass.roadmap.service.RoadmapService;
+import vn.uth.careercompass.roadmap.service.SkillGapService;
+
+@Controller
+@RequiredArgsConstructor
+public class SkillGapPageController {
+    private final AuthenticatedUserService authenticatedUserService;
+    private final RoadmapService roadmapService;
+    private final SkillGapService skillGapService;
+    private final PdfService pdfService;
+    private final SkillRepository skillRepository;
+    private final UserSkillRepository userSkillRepository;
+
+    @GetMapping("/skill-gap")
+    public String skillGapPage(
+            @RequestParam(required = false) Long templateId,
+            @RequestParam(required = false) Boolean reportCreated,
+            Authentication authentication,
+            Model model
+    ) {
+        User user = authenticatedUserService.requireCurrentUser(authentication);
+        SkillGapResultDTO result = skillGapService.analyze(user, templateId);
+        model.addAttribute("activeNav", "skill-gap");
+        model.addAttribute("templates", roadmapService.getActiveTemplates());
+        model.addAttribute("result", result);
+        model.addAttribute("currentSkills", userSkillRepository.findByUser(user).stream().map(UserSkill::getSkill).toList());
+        model.addAttribute("reports", skillGapService.getReports(user));
+        model.addAttribute("reportCreated", Boolean.TRUE.equals(reportCreated));
+        return "skillgap/index";
+    }
+
+    @PostMapping("/skill-gap/skills")
+    public String addSkill(
+            @RequestParam String skillName,
+            @RequestParam(required = false) Long templateId,
+            Authentication authentication
+    ) {
+        User user = authenticatedUserService.requireCurrentUser(authentication);
+        String normalizedName = skillName == null ? "" : skillName.trim();
+        if (!normalizedName.isBlank()) {
+            Skill skill = skillRepository.findByName(normalizedName)
+                    .orElseGet(() -> skillRepository.save(Skill.builder()
+                            .name(normalizedName)
+                            .category("Custom")
+                            .build()));
+            if (!userSkillRepository.existsByUserAndSkill(user, skill)) {
+                userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());
+            }
+        }
+        return redirectSkillGap(templateId, false);
+    }
+
+    @PostMapping("/skill-gap/reports")
+    public String createReport(
+            @RequestParam(required = false) Long templateId,
+            Authentication authentication
+    ) {
+        User user = authenticatedUserService.requireCurrentUser(authentication);
+        SkillGapResultDTO result = skillGapService.analyze(user, templateId);
+        String pdfPath = pdfService.generateSkillGapReport(user, result);
+        skillGapService.saveReport(user, result, pdfPath);
+        return redirectSkillGap(templateId, true);
+    }
+
+    private String redirectSkillGap(Long templateId, boolean reportCreated) {
+        String redirect = "redirect:/skill-gap";
+        boolean hasQuery = false;
+        if (templateId != null) {
+            redirect += "?templateId=" + templateId;
+            hasQuery = true;
+        }
+        if (reportCreated) {
+            redirect += hasQuery ? "&reportCreated=true" : "?reportCreated=true";
+        }
+        return redirect;
+    }
+}
