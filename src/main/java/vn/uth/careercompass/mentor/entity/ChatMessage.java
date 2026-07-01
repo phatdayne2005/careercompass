@@ -1,0 +1,33 @@
+package vn.uth.careercompass.mentor.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "chat_messages")
+@Getter
+@Setter
+@NoArgsConstructor
+public class ChatMessage {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    private MentorSession session;
+
+    @Enumerated(EnumType.STRING)
+    private Sender sender;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+}
