@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Profile - CareerCompass')}"></head>
+<body class="bg-[#0F172A] text-slate-100">
+
+<nav th:replace="~{layout/base :: appNav('profile')}"></nav>
+
+<div class="max-w-2xl mx-auto py-12 px-6">
+    <h1 class="text-2xl font-bold mb-8">Cài đặt tài khoản</h1>
+
+    <div class="bg-[#1E293B] rounded-xl p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Thông tin cơ bản</h2>
+        <p class="text-sm text-slate-400 mb-1">Họ tên</p>
+        <p class="mb-4" th:text="${user.fullName}">-</p>
+        <p class="text-sm text-slate-400 mb-1">Email</p>
+        <p th:text="${user.email}">-</p>
+    </div>
+
+    <div id="githubSection" th:fragment="githubSection" class="bg-[#1E293B] rounded-xl p-6">
+        <h2 class="text-lg font-semibold mb-4">Liên kết GitHub</h2>
+
+        <p th:if="${user.githubUsername != null}" class="text-sm text-slate-300 mb-4">
+            Đã liên kết: <span class="font-semibold" th:text="${user.githubUsername}"></span>
+        </p>
+        <p th:unless="${user.githubUsername != null}" class="text-sm text-slate-400 mb-4">
+            Chưa liên kết GitHub.
+        </p>
+
+        <form hx-post="/profile/github"
+              hx-target="#githubSection"
+              hx-swap="outerHTML"
+              hx-headers='js:{"X-CSRF-TOKEN": document.querySelector("meta[name=_csrf]").content}'
+              class="flex gap-3">
+            <input type="text" name="githubUsername" placeholder="username-github"
+                   th:value="${user.githubUsername}"
+                   class="flex-1 bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+            <button type="submit"
+                    class="px-5 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">
+                Lưu
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<meta name="_csrf" th:content="${_csrf.token}">
+
+</body>
+</html>
