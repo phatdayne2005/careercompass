@@ -1,9 +1,15 @@
-package vn.uth.careercompass.config.dto;
+package vn.uth.careercompass.admin.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+
 import java.util.List;
 
+/**
+ * DTO ánh xạ file roadmap xuất từ roadmap.sh (đặt trong {@code resources/data/*.json}).
+ * Chỉ đọc các trường cần thiết để dựng SkillTree; {@code @JsonIgnoreProperties} bỏ qua phần dư.
+ * Thuộc gói P7 (Admin/Counselor) — nguồn dữ liệu để seed SkillTreeTemplate + SkillNode.
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoadmapJson {
