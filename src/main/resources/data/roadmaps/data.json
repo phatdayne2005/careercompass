@@ -1,0 +1,162 @@
+{
+  "role": "Data Analyst",
+  "description": "Thu thập, xử lý và trực quan hoá dữ liệu để hỗ trợ ra quyết định bằng SQL, Python và công cụ BI.",
+  "salaryRange": "14,000,000 - 32,000,000 VND",
+  "demand": "High",
+  "nodes": [
+    {
+      "tier": 1,
+      "skill": "Excel",
+      "category": "Tools",
+      "parent": null,
+      "links": [
+        {
+          "title": "Excel Training - Microsoft Support",
+          "url": "https://support.microsoft.com/en-us/excel",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Excel for Data Analysis - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=OOWAk2aLEfk",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "SQL",
+      "category": "Database",
+      "parent": null,
+      "links": [
+        {
+          "title": "SQL Tutorial - Mode Analytics",
+          "url": "https://mode.com/sql-tutorial/",
+          "type": "COURSE"
+        },
+        {
+          "title": "Learn SQL - W3Schools",
+          "url": "https://www.w3schools.com/sql/",
+          "type": "DOCUMENTATION"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "Python",
+      "category": "Language",
+      "parent": null,
+      "links": [
+        {
+          "title": "Python Full Course for free",
+          "url": "https://www.youtube.com/watch?v=ix9cRaBkVe0",
+          "type": "COURSE"
+        },
+        {
+          "title": "Python Website",
+          "url": "https://www.python.org/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Automate the Boring Stuff",
+          "url": "https://automatetheboringstuff.com/",
+          "type": "ARTICLE"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Statistics",
+      "category": "Math",
+      "parent": "Excel",
+      "links": [
+        {
+          "title": "Statistics and Probability - Khan Academy",
+          "url": "https://www.khanacademy.org/math/statistics-probability",
+          "type": "COURSE"
+        },
+        {
+          "title": "Statistics for Data Science - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=xxpc-HPKN28",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Pandas",
+      "category": "Library",
+      "parent": "Python",
+      "links": [
+        {
+          "title": "Pandas",
+          "url": "https://pandas.pydata.org/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "NumPy vs Pandas",
+          "url": "https://www.youtube.com/watch?v=KHoEbRH46Zk",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Power BI",
+      "category": "BI",
+      "parent": "Excel",
+      "links": [
+        {
+          "title": "Power BI",
+          "url": "https://www.microsoft.com/en-us/power-platform/products/power-bi",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Power BI for beginners",
+          "url": "https://www.youtube.com/watch?v=NNSHu0rkew8",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Data Visualization",
+      "category": "BI",
+      "parent": "Power BI",
+      "links": [
+        {
+          "title": "Data Visualization - Tableau Learning",
+          "url": "https://www.tableau.com/learn/training",
+          "type": "COURSE"
+        },
+        {
+          "title": "Fundamentals of Data Visualization (sách)",
+          "url": "https://clauswilke.com/dataviz/",
+          "type": "DOCUMENTATION"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Machine Learning",
+      "category": "AI",
+      "parent": "Pandas",
+      "links": [
+        {
+          "title": "What is Machine Learning (ML)?",
+          "url": "https://www.ibm.com/topics/machine-learning",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Data Science vs Machine Learning: How are they different?",
+          "url": "https://roadmap.sh/ai-data-scientist/vs-machine-learning",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "What is Machine Learning?",
+          "url": "https://www.youtube.com/watch?v=9gGnTQTYNaE",
+          "type": "VIDEO"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "role": "Frontend Developer",
+  "description": "Xây dựng giao diện web tương tác: HTML/CSS/JS, framework hiện đại và trải nghiệm người dùng.",
+  "salaryRange": "12,000,000 - 30,000,000 VND",
+  "demand": "High",
+  "nodes": [
+    {
+      "tier": 1,
+      "skill": "HTML",
+      "category": "Markup",
+      "parent": null,
+      "links": [
+        {
+          "title": "Responsive Web Design Certification - Co-Learn HTML & CSS with guided projects",
+          "url": "https://www.freecodecamp.org/learn/2022/responsive-web-design/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "HTML Full Course for Beginners",
+          "url": "https://www.youtube.com/watch?v=mJgBOIoGihA",
+          "type": "VIDEO"
+        },
+        {
+          "title": "HTML Full Course - Build a Website Tutorial",
+          "url": "https://www.youtube.com/watch?v=pQN-pnXPaVg",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "CSS",
+      "category": "Styling",
+      "parent": null,
+      "links": [
+        {
+          "title": "CSS MDN Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/What_is_CSS",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "CSS Tutorial – Full Course for Beginners",
+          "url": "https://www.youtube.com/watch?v=OXGznpKZ_sA",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "JavaScript",
+      "category": "Language",
+      "parent": null,
+      "links": [
+        {
+          "title": "The Modern JavaScript Tutorial",
+          "url": "https://javascript.info/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Build 30 Javascript Projects in 30 days",
+          "url": "https://javascript30.com/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "JavaScript Crash Course for Beginners",
+          "url": "https://youtu.be/hdI2bqOjy3c?t=2",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Git",
+      "category": "Tools",
+      "parent": null,
+      "links": [
+        {
+          "title": "Why use Git? (Interactive Lesson)",
+          "url": "https://inter-git.com/lessons/introduction",
+          "type": "COURSE"
+        },
+        {
+          "title": "Git by Example - Learn Version Control with Bite-sized Lessons",
+          "url": "https://antonz.org/git-by-example/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Git & GitHub Crash Course For Beginners",
+          "url": "https://www.youtube.com/watch?v=vA5TTz6BXhY",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "TypeScript",
+      "category": "Language",
+      "parent": "JavaScript",
+      "links": [
+        {
+          "title": "TypeScript Handbook (chính thức)",
+          "url": "https://www.typescriptlang.org/docs/handbook/intro.html",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "TypeScript Course - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=30LWjhZzg50",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "React",
+      "category": "Framework",
+      "parent": "JavaScript",
+      "links": [
+        {
+          "title": "React Documentation (chính thức)",
+          "url": "https://react.dev/learn",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "React Course - Scrimba",
+          "url": "https://scrimba.com/learn/learnreact",
+          "type": "COURSE"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Tailwind CSS",
+      "category": "Styling",
+      "parent": "CSS",
+      "links": [
+        {
+          "title": "Tailwind CSS",
+          "url": "https://tailwindcss.com",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Tailwind CSS Full Course for Beginners",
+          "url": "https://www.youtube.com/watch?v=lCxcTsOHrjo",
+          "type": "VIDEO"
+        },
+        {
+          "title": "Tailwind CSS Crash Course",
+          "url": "https://www.youtube.com/watch?v=UBOj6rqRUME",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Next.js",
+      "category": "Framework",
+      "parent": "React",
+      "links": [
+        {
+          "title": "Official Website",
+          "url": "https://nextjs.org/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Next.js for Beginners",
+          "url": "https://youtu.be/1WmNXEVia8I",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Jest Testing",
+      "category": "Testing",
+      "parent": "JavaScript",
+      "links": [
+        {
+          "title": "Jest Website",
+          "url": "https://jestjs.io/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "JavaScript Testing With Jest",
+          "url": "https://youtu.be/IPiUDhwnZxA?si=2_lE2bDo2fRuo2CU",
+          "type": "VIDEO"
+        }
+      ]
+    }
+  ]
+}

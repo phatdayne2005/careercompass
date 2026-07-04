@@ -1,0 +1,177 @@
+{
+  "role": "DevOps Engineer",
+  "description": "Tự động hoá build/deploy, quản trị hạ tầng và giám sát hệ thống với container, CI/CD và IaC.",
+  "salaryRange": "20,000,000 - 45,000,000 VND",
+  "demand": "High",
+  "nodes": [
+    {
+      "tier": 1,
+      "skill": "Linux",
+      "category": "OS",
+      "parent": null,
+      "links": [
+        {
+          "title": "The Linux Command Line (sách miễn phí)",
+          "url": "https://linuxcommand.org/tlcl.php",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Linux for Beginners - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=sWbUDq4S6Y8",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "Git",
+      "category": "Tools",
+      "parent": null,
+      "links": [
+        {
+          "title": "Why use Git? (Interactive Lesson)",
+          "url": "https://inter-git.com/lessons/introduction",
+          "type": "COURSE"
+        },
+        {
+          "title": "Git by Example - Learn Version Control with Bite-sized Lessons",
+          "url": "https://antonz.org/git-by-example/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Git & GitHub Crash Course For Beginners",
+          "url": "https://www.youtube.com/watch?v=vA5TTz6BXhY",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "Networking",
+      "category": "Infrastructure",
+      "parent": null,
+      "links": [
+        {
+          "title": "Computer Networking - Cloudflare Learning",
+          "url": "https://www.cloudflare.com/learning/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Networking Fundamentals - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=qiQR5rTSshw",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Docker",
+      "category": "DevOps",
+      "parent": "Linux",
+      "links": [
+        {
+          "title": "Docker Documentation",
+          "url": "https://docs.docker.com/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Docker Tutorial",
+          "url": "https://www.youtube.com/watch?v=RqTEHSBrYFw",
+          "type": "VIDEO"
+        },
+        {
+          "title": "Docker simplified in 55 seconds",
+          "url": "https://youtu.be/vP_4DlOH1G4",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "CI/CD",
+      "category": "DevOps",
+      "parent": "Git",
+      "links": [
+        {
+          "title": "What is CI/CD?",
+          "url": "https://about.gitlab.com/topics/ci-cd/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "A Primer: Continuous Integration and Continuous Delivery (CI/CD)",
+          "url": "https://thenewstack.io/a-primer-continuous-integration-and-continuous-delivery-ci-cd/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "DevOps CI/CD Explained in 100 Seconds",
+          "url": "https://www.youtube.com/watch?v=scEDHsr3APg",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Kubernetes",
+      "category": "DevOps",
+      "parent": "Docker",
+      "links": [
+        {
+          "title": "Kubernetes Documentation",
+          "url": "https://kubernetes.io/docs/home/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Kubernetes: An Overview",
+          "url": "https://thenewstack.io/kubernetes-an-overview/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Kubernetes Crash Course for Absolute Beginners",
+          "url": "https://www.youtube.com/watch?v=s_o8dwzRlu4",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Terraform",
+      "category": "IaC",
+      "parent": "Docker",
+      "links": [
+        {
+          "title": "Complete Terraform Course",
+          "url": "https://www.youtube.com/watch?v=7xngnjfIlK4",
+          "type": "COURSE"
+        },
+        {
+          "title": "Terraform Documentation",
+          "url": "https://www.terraform.io/docs",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Terraform Tutorials",
+          "url": "https://learn.hashicorp.com/terraform",
+          "type": "OFFICIAL"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Prometheus",
+      "category": "Monitoring",
+      "parent": "Kubernetes",
+      "links": [
+        {
+          "title": "Prometheus Documentation",
+          "url": "https://prometheus.io/docs/introduction/overview/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Getting Started with Prometheus",
+          "url": "https://prometheus.io/docs/tutorials/getting_started/",
+          "type": "OFFICIAL"
+        }
+      ]
+    }
+  ]
+}

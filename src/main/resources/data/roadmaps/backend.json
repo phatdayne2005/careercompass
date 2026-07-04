@@ -1,0 +1,195 @@
+{
+  "role": "Backend Developer",
+  "description": "Phát triển ứng dụng phía máy chủ: API, cơ sở dữ liệu, bảo mật và khả năng mở rộng bằng Java + Spring.",
+  "salaryRange": "15,000,000 - 35,000,000 VND",
+  "demand": "High",
+  "nodes": [
+    {
+      "tier": 1,
+      "skill": "Git",
+      "category": "Tools",
+      "parent": null,
+      "links": [
+        {
+          "title": "Why use Git? (Interactive Lesson)",
+          "url": "https://inter-git.com/lessons/introduction",
+          "type": "COURSE"
+        },
+        {
+          "title": "Git by Example - Learn Version Control with Bite-sized Lessons",
+          "url": "https://antonz.org/git-by-example/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Git & GitHub Crash Course For Beginners",
+          "url": "https://www.youtube.com/watch?v=vA5TTz6BXhY",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "Java Core",
+      "category": "Language",
+      "parent": null,
+      "links": [
+        {
+          "title": "Java",
+          "url": "https://www.oracle.com/java/technologies/javase-jdk11-downloads.html",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Java Documentation",
+          "url": "https://docs.oracle.com/en/java/javase/11/docs/api/",
+          "type": "OFFICIAL"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "SQL",
+      "category": "Database",
+      "parent": null,
+      "links": [
+        {
+          "title": "SQL Tutorial - Mode Analytics",
+          "url": "https://mode.com/sql-tutorial/",
+          "type": "COURSE"
+        },
+        {
+          "title": "Learn SQL - W3Schools",
+          "url": "https://www.w3schools.com/sql/",
+          "type": "DOCUMENTATION"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Spring Boot",
+      "category": "Framework",
+      "parent": "Java Core",
+      "links": [
+        {
+          "title": "Spring Boot Reference (chính thức)",
+          "url": "https://docs.spring.io/spring-boot/index.html",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Spring Boot Tutorial - Amigoscode",
+          "url": "https://www.youtube.com/watch?v=9SGDpanrc8U",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "REST API",
+      "category": "Backend",
+      "parent": "Java Core",
+      "links": [
+        {
+          "title": "What is a REST API?",
+          "url": "https://www.redhat.com/en/topics/api/what-is-a-rest-api",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Best practices for RESTful web API design",
+          "url": "https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Learn REST: A RESTful Tutorial",
+          "url": "https://restapitutorial.com/",
+          "type": "ARTICLE"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Docker",
+      "category": "DevOps",
+      "parent": "Git",
+      "links": [
+        {
+          "title": "Docker Documentation",
+          "url": "https://docs.docker.com/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Docker Tutorial",
+          "url": "https://www.youtube.com/watch?v=RqTEHSBrYFw",
+          "type": "VIDEO"
+        },
+        {
+          "title": "Docker simplified in 55 seconds",
+          "url": "https://youtu.be/vP_4DlOH1G4",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Spring Security",
+      "category": "Security",
+      "parent": "Spring Boot",
+      "links": [
+        {
+          "title": "Spring Security Reference (chính thức)",
+          "url": "https://docs.spring.io/spring-security/reference/index.html",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Spring Security Course - Dan Vega",
+          "url": "https://www.youtube.com/watch?v=iJ2muJniikY",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Redis",
+      "category": "Database",
+      "parent": "SQL",
+      "links": [
+        {
+          "title": "Redis Crash Course",
+          "url": "https://www.youtube.com/watch?v=XCsS_NVAa1g",
+          "type": "COURSE"
+        },
+        {
+          "title": "Redis Documentation",
+          "url": "https://redis.io/docs/latest/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Redis Tutorial for Beginners",
+          "url": "https://www.youtube.com/watch?v=jgpVdJB2sKQ",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Kubernetes",
+      "category": "DevOps",
+      "parent": "Docker",
+      "links": [
+        {
+          "title": "Kubernetes Documentation",
+          "url": "https://kubernetes.io/docs/home/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Kubernetes: An Overview",
+          "url": "https://thenewstack.io/kubernetes-an-overview/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Kubernetes Crash Course for Absolute Beginners",
+          "url": "https://www.youtube.com/watch?v=s_o8dwzRlu4",
+          "type": "VIDEO"
+        }
+      ]
+    }
+  ]
+}

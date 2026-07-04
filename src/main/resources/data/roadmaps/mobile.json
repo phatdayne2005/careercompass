@@ -1,0 +1,177 @@
+{
+  "role": "Mobile Developer",
+  "description": "Xây dựng ứng dụng di động Android hiện đại với Kotlin, Jetpack Compose và các dịch vụ backend.",
+  "salaryRange": "13,000,000 - 32,000,000 VND",
+  "demand": "Medium",
+  "nodes": [
+    {
+      "tier": 1,
+      "skill": "Kotlin",
+      "category": "Language",
+      "parent": null,
+      "links": [
+        {
+          "title": "Kotlin",
+          "url": "https://kotlinlang.org/",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Kotlin Documentation",
+          "url": "https://kotlinlang.org/docs/home.html",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Learn Kotlin Programming for Beginners - Free Code Camp",
+          "url": "https://youtu.be/EExSSotojVI?si=4VPW8ZHa2UMX0HH1",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "Git",
+      "category": "Tools",
+      "parent": null,
+      "links": [
+        {
+          "title": "Why use Git? (Interactive Lesson)",
+          "url": "https://inter-git.com/lessons/introduction",
+          "type": "COURSE"
+        },
+        {
+          "title": "Git by Example - Learn Version Control with Bite-sized Lessons",
+          "url": "https://antonz.org/git-by-example/",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Git & GitHub Crash Course For Beginners",
+          "url": "https://www.youtube.com/watch?v=vA5TTz6BXhY",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 1,
+      "skill": "OOP",
+      "category": "Concept",
+      "parent": null,
+      "links": [
+        {
+          "title": "OOP Concepts - Oracle Java Tutorials",
+          "url": "https://docs.oracle.com/javase/tutorial/java/concepts/",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Object-Oriented Programming - freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=SiBw7os-_zI",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Android SDK",
+      "category": "Framework",
+      "parent": "Kotlin",
+      "links": [
+        {
+          "title": "Android Developers Guide (chính thức)",
+          "url": "https://developer.android.com/guide",
+          "type": "DOCUMENTATION"
+        },
+        {
+          "title": "Android Basics with Compose - Google",
+          "url": "https://developer.android.com/courses/android-basics-compose/course",
+          "type": "COURSE"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "Jetpack Compose",
+      "category": "Framework",
+      "parent": "Kotlin",
+      "links": [
+        {
+          "title": "Jetpack Compose",
+          "url": "https://developer.android.com/jetpack/compose",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Compose layout basics",
+          "url": "https://developer.android.com/develop/ui/compose/layouts/basics",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Jetpack Compose Crash Course",
+          "url": "https://www.youtube.com/watch?v=6_wK_Ud8--0",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 2,
+      "skill": "REST API",
+      "category": "Backend",
+      "parent": "OOP",
+      "links": [
+        {
+          "title": "What is a REST API?",
+          "url": "https://www.redhat.com/en/topics/api/what-is-a-rest-api",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Best practices for RESTful web API design",
+          "url": "https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design",
+          "type": "ARTICLE"
+        },
+        {
+          "title": "Learn REST: A RESTful Tutorial",
+          "url": "https://restapitutorial.com/",
+          "type": "ARTICLE"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Room Database",
+      "category": "Database",
+      "parent": "Android SDK",
+      "links": [
+        {
+          "title": "Room Database",
+          "url": "https://developer.android.com/training/data-storage/room",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "The Full Beginner's Guide for Room in Android",
+          "url": "https://www.youtube.com/watch?v=bOd3wO0uFr8&t=10s",
+          "type": "VIDEO"
+        }
+      ]
+    },
+    {
+      "tier": 3,
+      "skill": "Firebase",
+      "category": "Backend",
+      "parent": "Android SDK",
+      "links": [
+        {
+          "title": "The Ultimate Guide to Firebase",
+          "url": "https://fireship.io/lessons/the-ultimate-beginners-guide-to-firebase/",
+          "type": "COURSE"
+        },
+        {
+          "title": "Firebase Documentation",
+          "url": "https://firebase.google.com/docs",
+          "type": "OFFICIAL"
+        },
+        {
+          "title": "Firebase in 100 seconds",
+          "url": "https://www.youtube.com/watch?v=vAoB4VbhRzM",
+          "type": "VIDEO"
+        }
+      ]
+    }
+  ]
+}
