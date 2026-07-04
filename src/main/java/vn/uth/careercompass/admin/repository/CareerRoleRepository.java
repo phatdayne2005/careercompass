@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface CareerRoleRepository extends JpaRepository<CareerRole, Long> {
     Optional<CareerRole> findByName(String name);
  
-    @Query("SELECT cr FROM CareerRole cr WHERE cr.id NOT IN (SELECT t.careerRole.id FROM SkillTreeTemplate t)")
+    @Query("SELECT cr FROM CareerRole cr WHERE cr.id NOT IN (SELECT t.targetRoleId FROM SkillTreeTemplate t WHERE t.targetRoleId IS NOT NULL)")
     List<CareerRole> findWithoutTemplate();
 }

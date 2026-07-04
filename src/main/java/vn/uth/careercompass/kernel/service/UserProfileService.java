@@ -60,4 +60,11 @@ public class UserProfileService {
             userSkillRepository.save(userSkill);
         }
     }
+
+    /** Đánh dấu user đã hoàn thành 3 bước Onboarding. */
+    public void completeOnboarding(User user) {
+        user.setOnboardingCompleted(true);
+        userRepository.save(user);
+    }
 }
+

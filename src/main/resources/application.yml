@@ -30,6 +30,13 @@ spring:
   thymeleaf:
     cache: false                 # dev: sửa HTML không cần restart
 
+  # ====== FILE UPLOAD ======
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 12MB
+
   # ====== OAUTH2 CLIENT (Google Login) ======
   # Giá trị thật của client-id/secret nằm ở application-local.yml (gitignored).
   # Google là provider "well-known" của Spring Security nên không cần khai báo endpoint.
@@ -48,8 +55,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:test_email@gmail.com}
+    password: ${MAIL_PASSWORD:test_password}
     properties:
       mail:
         smtp:
@@ -79,10 +86,12 @@ app:
     email: ${COUNSELOR_EMAIL:counselor@gmail.com}
     password: ${COUNSELOR_PASSWORD:123456}
   mail:
-    from: ${MAIL_USERNAME}        # gửi từ chính địa chỉ project
+    from: ${MAIL_USERNAME:test_email@gmail.com}        # gửi từ chính địa chỉ project
   base-url: ${BASE_URL:http://localhost:8080}
+  upload:
+    dir: uploads/transcripts   # thư mục lưu bảng điểm của sinh viên
 
 
 llm:
-  api-key: ${GEMINI_API_KEY}
+  api-key: ${GEMINI_API_KEY:mock_gemini_api_key}
   model: gemini-2.5-flash

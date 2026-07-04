@@ -6,6 +6,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +42,12 @@ public class SkillTreeTemplate {
     /**
      * Temporary link to CareerRole until the P7 module owns a concrete CareerRole entity.
      */
+    @Column(name = "target_role_id")
     private Long targetRoleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_role_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private CareerRole careerRole;
 
     @NotNull
     @Column(nullable = false)
