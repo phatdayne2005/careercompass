@@ -8,6 +8,8 @@ import org.springframework.web.server.ResponseStatusException;
 import vn.uth.careercompass.admin.entity.SkillNode;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
 import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.ActivityLogService;
+import vn.uth.careercompass.roadmap.RoadmapActivityType;
 import vn.uth.careercompass.roadmap.entity.ProgressStatus;
 import vn.uth.careercompass.roadmap.entity.UserNodeProgress;
 import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 public class ProgressService {
     private final SkillNodeRepository skillNodeRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
+    private final ActivityLogService activityLogService;
 
     @Transactional
     public UserNodeProgress updateProgress(User user, Long skillNodeId, ProgressStatus status) {
@@ -40,6 +43,13 @@ public class ProgressService {
 
         progress.setStatus(status);
         progress.setCompletedAt(ProgressStatus.DONE.equals(status) ? LocalDateTime.now() : null);
-        return userNodeProgressRepository.save(progress);
+        UserNodeProgress saved = userNodeProgressRepository.save(progress);
+
+        // Ghi hoạt động để Dashboard (P5) đọc "hoạt động gần đây"
+        if (ProgressStatus.DONE.equals(status)) {
+            activityLogService.log(user, RoadmapActivityType.NODE_DONE,
+                    "Hoàn thành kỹ năng: " + skillNode.getSkill().getName());
+        }
+        return saved;
     }
 }

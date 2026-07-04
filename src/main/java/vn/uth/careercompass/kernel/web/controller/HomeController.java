@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import vn.uth.careercompass.dashboard.service.DashboardService;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
 
@@ -23,6 +24,7 @@ import java.util.Collection;
 public class HomeController {
 
     private final AuthenticatedUserService authenticatedUserService;
+    private final DashboardService dashboardService;
 
     @GetMapping("/")
     public String home(Authentication authentication, Model model) {
@@ -48,6 +50,8 @@ public class HomeController {
         }
 
         model.addAttribute("email", authentication.getName());
+        model.addAttribute("fullName", user.getFullName());
+        model.addAttribute("dashboard", dashboardService.buildDashboard(user));
         return "home";
     }
 }
