@@ -22,11 +22,11 @@
         </div>
 
         <div class="flex-1 overflow-y-auto">
-            <a th:each="session : ${sessions}"
-               th:href="@{/mentor(session=${session.id})}"
-               th:classappend="${session.id == currentSessionId} ? ' bg-white/5' : ''"
+            <a th:each="sess : ${sessions}"
+               th:href="@{/mentor(session=${sess.id})}"
+               th:classappend="${sess.id == currentSessionId} ? ' bg-white/5' : ''"
                class="block px-4 py-3 border-b border-white/5 hover:bg-white/5 transition text-sm truncate">
-                <span th:text="${session.title}">Cuộc trò chuyện</span>
+                <span th:text="${sess.title}">Cuộc trò chuyện</span>
             </a>
             <p th:if="${#lists.isEmpty(sessions)}" class="p-4 text-sm text-slate-400">
                 Chưa có cuộc trò chuyện nào.

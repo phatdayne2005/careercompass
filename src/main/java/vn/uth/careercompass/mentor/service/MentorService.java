@@ -1,6 +1,7 @@
 package vn.uth.careercompass.mentor.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.mentor.entity.ChatMessage;
@@ -41,7 +42,15 @@ public class MentorService {
         return messageRepo.findBySessionOrderByCreatedAtAsc(session);
     }
 
+    @Transactional
     public ChatMessage sendMessage(MentorSession session, String userText) {
+        // 0. Đặt tiêu đề session từ câu hỏi đầu tiên (thay cho "Cuộc trò chuyện mới")
+        if (session.getTitle() == null || session.getTitle().isBlank()
+                || "Cuộc trò chuyện mới".equals(session.getTitle())) {
+            session.setTitle(userText.length() > 60 ? userText.substring(0, 60) + "…" : userText);
+            sessionRepo.save(session);
+        }
+
         // 1. Lưu tin nhắn của user
         ChatMessage userMsg = new ChatMessage();
         userMsg.setSession(session);
@@ -49,9 +58,14 @@ public class MentorService {
         userMsg.setContent(userText);
         messageRepo.save(userMsg);
 
-        // 2. Dựng prompt cá nhân hoá + gọi LLM
-        String prompt = buildPrompt(session, userText);
-        String aiReply = llmClient.ask(prompt);
+        // 2. Dựng prompt cá nhân hoá + gọi LLM (fallback nếu lỗi để không chặn chat)
+        String aiReply;
+        try {
+            aiReply = llmClient.ask(buildPrompt(session, userText));
+        } catch (Exception e) {
+            aiReply = "Xin lỗi, hiện chưa kết nối được AI Mentor (kiểm tra cấu hình GEMINI_API_KEY). "
+                    + "Bạn vui lòng thử lại sau.";
+        }
 
         // 3. Lưu phản hồi AI
         ChatMessage aiMsg = new ChatMessage();
