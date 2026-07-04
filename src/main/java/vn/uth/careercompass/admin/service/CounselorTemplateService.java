@@ -13,8 +13,9 @@ import vn.uth.careercompass.admin.repository.LearningResourceRepository;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
 import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
-import vn.uth.careercompass.kernel.repository.UserRepository;
- 
+import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
+
 import java.util.List;
  
 @Service
@@ -25,7 +26,8 @@ public class CounselorTemplateService {
     private final SkillRepository skillRepository;
     private final LearningResourceRepository resourceRepository;
     private final CareerRoleRepository careerRoleRepository;
-    private final UserRepository userRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+    private final SkillGapReportRepository skillGapReportRepository;
  
     public List<SkillTreeTemplate> getAllTemplates() {
         try {
@@ -262,43 +264,37 @@ public class CounselorTemplateService {
         }
     }
  
+    /**
+     * Xoá 1 lộ trình + toàn bộ dữ liệu phụ thuộc, đúng thứ tự khoá ngoại (KHÔNG có cascade DB).
+     * Thứ tự: skill_gap_reports → user_node_progress → learning_resources → (gỡ self-ref) skill_nodes → template.
+     *
+     * <p>Đụng repo của P4 (progress/report) vì các bảng đó trỏ vào node/template mà P7 sở hữu —
+     * không dọn trước sẽ vi phạm FK. CareerRole được GIỮ LẠI (catalog dùng chung); muốn xoá hẳn
+     * nghề nghiệp là hành động admin riêng.</p>
+     *
+     * <p>Không bọc try/catch nuốt lỗi: {@code @Transactional} tự rollback, message lỗi (vd không tìm
+     * thấy ID) được giữ nguyên cho tầng trên xử lý.</p>
+     */
     @Transactional
     public void deleteTemplate(Long id) {
-        try {
-            SkillTreeTemplate template = templateRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
-            
-            // 1. Phá vỡ quan hệ cha-con tự liên kết (self-referential) trên các SkillNode
-            List<SkillNode> nodes = nodeRepository.findAllByTemplateIdWithRelations(id);
-            for (SkillNode node : nodes) {
-                node.setParent(null);
-                nodeRepository.save(node);
-            }
-            nodeRepository.flush(); // Đẩy các cập nhật NULL xuống DB trước
+        SkillTreeTemplate template = templateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
 
-            CareerRole role = template.getCareerRole();
+        // 1. Dữ liệu người dùng phụ thuộc (P4) — xoá trước để không vi phạm khoá ngoại.
+        skillGapReportRepository.deleteByTemplate_Id(id);
+        userNodeProgressRepository.deleteBySkillNode_Template_Id(id);
 
-            // 2. Gỡ tham chiếu CareerRole của User để tránh lỗi khóa ngoại
-            if (role != null) {
-                userRepository.findAll().forEach(u -> {
-                    if (role.equals(u.getCareerRole())) {
-                        u.setCareerRole(null);
-                        userRepository.save(u);
-                    }
-                });
-            }
+        // 2. Tài liệu học của mọi node trong lộ trình.
+        resourceRepository.deleteBySkillNode_Template_Id(id);
 
-            // 3. Xóa Template (sẽ Cascade xóa tất cả SkillNode và LearningResource tương ứng)
-            templateRepository.delete(template);
-            templateRepository.flush();
+        // 3. Gỡ liên kết cha-con (self-reference) rồi xoá toàn bộ node.
+        List<SkillNode> nodes = nodeRepository.findAllByTemplateIdWithRelations(id);
+        nodes.forEach(node -> node.setParent(null));
+        nodeRepository.saveAll(nodes);
+        nodeRepository.flush();
+        nodeRepository.deleteAll(nodes);
 
-            // 4. Xóa CareerRole
-            if (role != null) {
-                careerRoleRepository.delete(role);
-            }
-        } catch (Exception e) {
-            System.err.println("Lỗi khi xóa lộ trình ID " + id + ": " + e.getMessage());
-            throw new RuntimeException("Xóa lộ trình thất bại!", e);
-        }
+        // 4. Xoá template (CareerRole giữ nguyên).
+        templateRepository.delete(template);
     }
 }

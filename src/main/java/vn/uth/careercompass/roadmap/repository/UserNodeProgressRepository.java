@@ -14,4 +14,7 @@ public interface UserNodeProgressRepository extends JpaRepository<UserNodeProgre
     Optional<UserNodeProgress> findByUserAndSkillNode(User user, SkillNode skillNode);
 
     List<UserNodeProgress> findByUserAndSkillNode_Template_Id(User user, Long templateId);
+
+    /** Xoá mọi tiến độ của các node thuộc 1 template (dùng khi P7 xoá lộ trình). */
+    void deleteBySkillNode_Template_Id(Long templateId);
 }

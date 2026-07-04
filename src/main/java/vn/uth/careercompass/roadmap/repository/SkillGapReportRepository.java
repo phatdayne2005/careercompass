@@ -13,4 +13,7 @@ public interface SkillGapReportRepository extends JpaRepository<SkillGapReport, 
     List<SkillGapReport> findByUserOrderByCreatedAtDesc(User user);
 
     Optional<SkillGapReport> findByIdAndUser(Long id, User user);
+
+    /** Xoá mọi báo cáo skill-gap của 1 template (dùng khi P7 xoá lộ trình). */
+    void deleteByTemplate_Id(Long templateId);
 }

@@ -14,4 +14,7 @@ public interface LearningResourceRepository extends JpaRepository<LearningResour
 
     /** Tất cả tài liệu học của mọi node trong 1 roadmap (P4 đọc để render panel tài nguyên). */
     List<LearningResource> findBySkillNode_Template_IdOrderByIdAsc(Long templateId);
+
+    /** Xoá mọi tài liệu học của các node thuộc 1 template (dùng khi xoá lộ trình). */
+    void deleteBySkillNode_Template_Id(Long templateId);
 }
