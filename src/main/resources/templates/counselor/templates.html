@@ -44,6 +44,12 @@
             <h1 class="text-3xl font-extrabold tracking-tight text-white">Quản Lý Bản Mẫu Lộ Trình</h1>
             <p class="text-sm text-slate-400 mt-1">Chọn vai trò nghề nghiệp mục tiêu để chỉnh sửa và phân cấp các nút kỹ năng trong chương trình học mẫu.</p>
         </header>
+
+        <!-- Flash error (message thật từ service, vd trùng vai trò / thiếu trường) -->
+        <div th:if="${error}" class="mb-6 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+            <span>⚠</span>
+            <span th:text="${error}">Thông báo lỗi</span>
+        </div>
  
         <!-- TEMPLATES LIST -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-6">

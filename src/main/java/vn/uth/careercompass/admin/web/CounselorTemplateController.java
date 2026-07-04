@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.uth.careercompass.admin.entity.CareerRole;
 import vn.uth.careercompass.admin.entity.Skill;
 import vn.uth.careercompass.admin.entity.SkillNode;
@@ -56,23 +57,37 @@ public class CounselorTemplateController {
     @PostMapping("/counselor/templates")
     public String createTemplate(@RequestParam String name,
                                  @RequestParam String description,
-                                 @RequestParam String careerRoleName) {
-        counselorTemplateService.createTemplate(name, description, careerRoleName);
+                                 @RequestParam String careerRoleName,
+                                 RedirectAttributes ra) {
+        try {
+            counselorTemplateService.createTemplate(name, description, careerRoleName);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/counselor/templates";
     }
- 
+
     @PostMapping("/counselor/templates/{id}/update")
     public String updateTemplate(@PathVariable Long id,
                                  @RequestParam String name,
                                  @RequestParam String description,
-                                 @RequestParam String careerRoleName) {
-        counselorTemplateService.updateTemplate(id, name, description, careerRoleName);
+                                 @RequestParam String careerRoleName,
+                                 RedirectAttributes ra) {
+        try {
+            counselorTemplateService.updateTemplate(id, name, description, careerRoleName);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/counselor/templates";
     }
- 
+
     @PostMapping("/counselor/templates/{id}/delete")
-    public String deleteTemplate(@PathVariable Long id) {
-        counselorTemplateService.deleteTemplate(id);
+    public String deleteTemplate(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            counselorTemplateService.deleteTemplate(id);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/counselor/templates";
     }
  

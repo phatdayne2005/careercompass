@@ -1,5 +1,5 @@
 package vn.uth.careercompass.admin.service;
- 
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,16 @@ import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
 import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 import java.util.List;
- 
+
+/**
+ * Service quản lý SkillTree template cho Counselor (P7).
+ *
+ * <p><b>Xử lý lỗi:</b> KHÔNG bọc try/catch nuốt lỗi. Validation ném
+ * {@link IllegalArgumentException} với message rõ ràng (vd "Vui lòng nhập vai trò...") để tầng
+ * controller hiển thị lại cho người dùng; {@code @Transactional} tự rollback khi có exception.
+ * (Trước đây mọi method bọc {@code catch(Exception)} rồi ném RuntimeException chung chung
+ * "...thất bại!" → nuốt mất lý do thật.)</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class CounselorTemplateService {
@@ -28,242 +37,164 @@ public class CounselorTemplateService {
     private final CareerRoleRepository careerRoleRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
     private final SkillGapReportRepository skillGapReportRepository;
- 
+
     public List<SkillTreeTemplate> getAllTemplates() {
-        try {
-            return templateRepository.findAllWithCareerRole();
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy danh sách lộ trình: " + e.getMessage());
-            throw new RuntimeException("Lấy danh sách lộ trình thất bại!", e);
-        }
+        return templateRepository.findAllWithCareerRole();
     }
- 
+
     public SkillTreeTemplate getTemplateById(Long id) {
-        try {
-            return templateRepository.findByIdWithCareerRole(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy thông tin lộ trình ID " + id + ": " + e.getMessage());
-            throw new RuntimeException("Lấy thông tin lộ trình thất bại!", e);
-        }
+        return templateRepository.findByIdWithCareerRole(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
     }
- 
+
     public SkillNode getNodeById(Long nodeId) {
-        try {
-            return nodeRepository.findByIdWithRelations(nodeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy thông tin nút ID " + nodeId + ": " + e.getMessage());
-            throw new RuntimeException("Lấy thông tin nút thất bại!", e);
-        }
+        return nodeRepository.findByIdWithRelations(nodeId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
     }
- 
+
     public List<SkillNode> getNodesByTemplateId(Long templateId) {
-        try {
-            return nodeRepository.findAllByTemplateIdWithRelations(templateId);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi lấy danh sách nút của lộ trình ID " + templateId + ": " + e.getMessage());
-            throw new RuntimeException("Lấy danh sách nút lộ trình thất bại!", e);
-        }
+        return nodeRepository.findAllByTemplateIdWithRelations(templateId);
     }
- 
+
     @Transactional
     public SkillNode addNode(Long templateId, Long skillId, String newSkillName, String newSkillCategory, Integer tier, Long parentId) {
-        try {
-            SkillTreeTemplate template = templateRepository.findById(templateId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + templateId));
-            
-            Skill skill = null;
-            if (newSkillName != null && !newSkillName.trim().isEmpty()) {
-                String trimmedName = newSkillName.trim();
-                String trimmedCat = (newSkillCategory != null && !newSkillCategory.trim().isEmpty()) ? newSkillCategory.trim() : "General";
-                skill = skillRepository.findByNameIgnoreCase(trimmedName)
-                        .map(existingSkill -> {
-                            if (!trimmedCat.equalsIgnoreCase(existingSkill.getCategory())) {
-                                existingSkill.setCategory(trimmedCat);
-                                return skillRepository.save(existingSkill);
-                            }
-                            return existingSkill;
-                        })
-                        .orElseGet(() -> {
-                            Skill newSkill = Skill.builder()
-                                    .name(trimmedName)
-                                    .category(trimmedCat)
-                                    .build();
-                            return skillRepository.save(newSkill);
-                        });
-            } else if (skillId != null) {
-                skill = skillRepository.findById(skillId)
-                        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy kỹ năng có ID: " + skillId));
-            } else {
-                throw new IllegalArgumentException("Vui lòng chọn kỹ năng sẵn có hoặc nhập tên kỹ năng mới!");
-            }
- 
-            SkillNode parentNode = null;
-            if (parentId != null) {
-                parentNode = nodeRepository.findById(parentId)
-                        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
-            }
- 
-            SkillNode newNode = SkillNode.builder()
-                    .template(template)
-                    .skill(skill)
-                    .title(skill.getName())
-                    .tier(tier == null ? 1 : tier)
-                    .parent(parentNode)
-                    .build();
- 
-            return nodeRepository.save(newNode);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi thêm nút mới vào lộ trình ID " + templateId + ": " + e.getMessage());
-            throw new RuntimeException("Thêm nút vào lộ trình thất bại!", e);
+        SkillTreeTemplate template = templateRepository.findById(templateId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + templateId));
+
+        Skill skill;
+        if (newSkillName != null && !newSkillName.trim().isEmpty()) {
+            String trimmedName = newSkillName.trim();
+            String trimmedCat = (newSkillCategory != null && !newSkillCategory.trim().isEmpty()) ? newSkillCategory.trim() : "General";
+            skill = skillRepository.findByNameIgnoreCase(trimmedName)
+                    .map(existingSkill -> {
+                        if (!trimmedCat.equalsIgnoreCase(existingSkill.getCategory())) {
+                            existingSkill.setCategory(trimmedCat);
+                            return skillRepository.save(existingSkill);
+                        }
+                        return existingSkill;
+                    })
+                    .orElseGet(() -> skillRepository.save(Skill.builder()
+                            .name(trimmedName)
+                            .category(trimmedCat)
+                            .build()));
+        } else if (skillId != null) {
+            skill = skillRepository.findById(skillId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy kỹ năng có ID: " + skillId));
+        } else {
+            throw new IllegalArgumentException("Vui lòng chọn kỹ năng sẵn có hoặc nhập tên kỹ năng mới!");
         }
+
+        SkillNode parentNode = null;
+        if (parentId != null) {
+            parentNode = nodeRepository.findById(parentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
+        }
+
+        return nodeRepository.save(SkillNode.builder()
+                .template(template)
+                .skill(skill)
+                .title(skill.getName())
+                .tier(tier == null ? 1 : tier)
+                .parent(parentNode)
+                .build());
     }
- 
+
     @Transactional
     public void deleteNode(Long nodeId) {
-        try {
-            SkillNode node = nodeRepository.findById(nodeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
-            nodeRepository.delete(node);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi xóa nút ID " + nodeId + ": " + e.getMessage());
-            throw new RuntimeException("Xóa nút lộ trình thất bại!", e);
-        }
+        SkillNode node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
+        nodeRepository.delete(node);
     }
 
     @Transactional
     public SkillNode updateNode(Long nodeId, Integer tier, Long parentId) {
-        try {
-            SkillNode node = nodeRepository.findById(nodeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút kỹ năng có ID: " + nodeId));
-            
-            SkillNode parentNode = null;
-            if (parentId != null) {
-                if (parentId.equals(nodeId)) {
-                    throw new IllegalArgumentException("Nút tiên quyết không thể là chính nó!");
-                }
-                parentNode = nodeRepository.findById(parentId)
-                        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
+        SkillNode node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút kỹ năng có ID: " + nodeId));
+
+        SkillNode parentNode = null;
+        if (parentId != null) {
+            if (parentId.equals(nodeId)) {
+                throw new IllegalArgumentException("Nút tiên quyết không thể là chính nó!");
             }
-            
-            node.setTier(tier == null ? node.getTier() : tier);
-            node.setParent(parentNode);
-            return nodeRepository.save(node);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi cập nhật nút kỹ năng ID " + nodeId + ": " + e.getMessage());
-            throw new RuntimeException("Cập nhật nút kỹ năng thất bại!", e);
+            parentNode = nodeRepository.findById(parentId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
         }
+
+        node.setTier(tier == null ? node.getTier() : tier);
+        node.setParent(parentNode);
+        return nodeRepository.save(node);
     }
- 
+
     @Transactional
     public LearningResource addResource(Long nodeId, String title, String url, String type, String desc) {
-        try {
-            SkillNode node = nodeRepository.findById(nodeId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
- 
-            LearningResource resource = LearningResource.builder()
-                    .skillNode(node)
-                    .title(title)
-                    .url(url)
-                    .resourceType(type)
-                    .description(desc)
-                    .build();
- 
-            return resourceRepository.save(resource);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi thêm tài liệu vào nút ID " + nodeId + ": " + e.getMessage());
-            throw new RuntimeException("Thêm tài nguyên học tập thất bại!", e);
-        }
+        SkillNode node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút có ID: " + nodeId));
+
+        return resourceRepository.save(LearningResource.builder()
+                .skillNode(node)
+                .title(title)
+                .url(url)
+                .resourceType(type)
+                .description(desc)
+                .build());
     }
- 
+
     @Transactional
     public void deleteResource(Long resourceId) {
-        try {
-            LearningResource resource = resourceRepository.findById(resourceId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài nguyên có ID: " + resourceId));
-            resourceRepository.delete(resource);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi xóa tài nguyên ID " + resourceId + ": " + e.getMessage());
-            throw new RuntimeException("Xóa tài nguyên học tập thất bại!", e);
-        }
+        LearningResource resource = resourceRepository.findById(resourceId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài nguyên có ID: " + resourceId));
+        resourceRepository.delete(resource);
     }
- 
+
     @Transactional
     public SkillTreeTemplate createTemplate(String name, String description, String careerRoleName) {
-        try {
-            if (careerRoleName == null || careerRoleName.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng nhập vai trò nghề nghiệp mục tiêu!");
-            }
-            String trimmedRole = careerRoleName.trim();
-            CareerRole careerRole = careerRoleRepository.findByName(trimmedRole)
-                    .orElseGet(() -> {
-                        CareerRole newRole = CareerRole.builder()
-                                .name(trimmedRole)
-                                .description("Mô tả cho vai trò " + trimmedRole)
-                                .expectedSalaryRange("Thỏa thuận")
-                                .marketDemand("Cao")
-                                .build();
-                        return careerRoleRepository.save(newRole);
-                    });
- 
-            if (templateRepository.findByCareerRoleId(careerRole.getId()).isPresent()) {
-                throw new IllegalArgumentException("Vai trò nghề nghiệp này đã có lộ trình mẫu!");
-            }
- 
-            SkillTreeTemplate template = SkillTreeTemplate.builder()
-                    .name(name)
-                    .description(description)
-                    .targetRoleId(careerRole.getId())
-                    .build();
-            return templateRepository.save(template);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi tạo mới lộ trình: " + e.getMessage());
-            throw new RuntimeException("Tạo mới lộ trình thất bại!", e);
+        CareerRole careerRole = resolveOrCreateCareerRole(careerRoleName);
+
+        if (templateRepository.findByCareerRoleId(careerRole.getId()).isPresent()) {
+            throw new IllegalArgumentException("Vai trò nghề nghiệp này đã có lộ trình mẫu!");
         }
+
+        return templateRepository.save(SkillTreeTemplate.builder()
+                .name(name)
+                .description(description)
+                .targetRoleId(careerRole.getId())
+                .build());
     }
- 
+
     @Transactional
     public SkillTreeTemplate updateTemplate(Long id, String name, String description, String careerRoleName) {
-        try {
-            SkillTreeTemplate template = templateRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
-            
-            if (careerRoleName == null || careerRoleName.trim().isEmpty()) {
-                throw new IllegalArgumentException("Vui lòng nhập vai trò nghề nghiệp mục tiêu!");
+        SkillTreeTemplate template = templateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + id));
+
+        CareerRole careerRole = resolveOrCreateCareerRole(careerRoleName);
+
+        templateRepository.findByCareerRoleId(careerRole.getId()).ifPresent(existingTpl -> {
+            if (!existingTpl.getId().equals(id)) {
+                throw new IllegalArgumentException("Vai trò nghề nghiệp này đã được gán cho một lộ trình khác!");
             }
-            
-            String trimmedRole = careerRoleName.trim();
-            CareerRole careerRole = careerRoleRepository.findByName(trimmedRole)
-                    .orElseGet(() -> {
-                        CareerRole newRole = CareerRole.builder()
-                                .name(trimmedRole)
-                                .description("Mô tả cho vai trò " + trimmedRole)
-                                .expectedSalaryRange("Thỏa thuận")
-                                .marketDemand("Cao")
-                                .build();
-                        return careerRoleRepository.save(newRole);
-                    });
- 
-            templateRepository.findByCareerRoleId(careerRole.getId()).ifPresent(existingTpl -> {
-                if (!existingTpl.getId().equals(id)) {
-                    throw new IllegalArgumentException("Vai trò nghề nghiệp này đã được gán cho một lộ trình khác!");
-                }
-            });
- 
-            template.setName(name);
-            template.setDescription(description);
-            template.setTargetRoleId(careerRole.getId());
-            
-            return templateRepository.save(template);
-        } catch (Exception e) {
-            System.err.println("Lỗi khi cập nhật lộ trình ID " + id + ": " + e.getMessage());
-            throw new RuntimeException("Cập nhật lộ trình thất bại!", e);
-        }
+        });
+
+        template.setName(name);
+        template.setDescription(description);
+        template.setTargetRoleId(careerRole.getId());
+        return templateRepository.save(template);
     }
- 
+
+    /** Tìm CareerRole theo tên (tạo mới nếu chưa có). Ném lỗi rõ nếu tên rỗng. */
+    private CareerRole resolveOrCreateCareerRole(String careerRoleName) {
+        if (careerRoleName == null || careerRoleName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập vai trò nghề nghiệp mục tiêu!");
+        }
+        String trimmedRole = careerRoleName.trim();
+        return careerRoleRepository.findByName(trimmedRole)
+                .orElseGet(() -> careerRoleRepository.save(CareerRole.builder()
+                        .name(trimmedRole)
+                        .description("Mô tả cho vai trò " + trimmedRole)
+                        .expectedSalaryRange("Thỏa thuận")
+                        .marketDemand("Cao")
+                        .build()));
+    }
+
     /**
      * Xoá 1 lộ trình + toàn bộ dữ liệu phụ thuộc, đúng thứ tự khoá ngoại (KHÔNG có cascade DB).
      * Thứ tự: skill_gap_reports → user_node_progress → learning_resources → (gỡ self-ref) skill_nodes → template.
@@ -271,9 +202,6 @@ public class CounselorTemplateService {
      * <p>Đụng repo của P4 (progress/report) vì các bảng đó trỏ vào node/template mà P7 sở hữu —
      * không dọn trước sẽ vi phạm FK. CareerRole được GIỮ LẠI (catalog dùng chung); muốn xoá hẳn
      * nghề nghiệp là hành động admin riêng.</p>
-     *
-     * <p>Không bọc try/catch nuốt lỗi: {@code @Transactional} tự rollback, message lỗi (vd không tìm
-     * thấy ID) được giữ nguyên cho tầng trên xử lý.</p>
      */
     @Transactional
     public void deleteTemplate(Long id) {
