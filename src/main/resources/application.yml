@@ -55,8 +55,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:test_email@gmail.com}
-    password: ${MAIL_PASSWORD:test_password}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -86,12 +86,12 @@ app:
     email: ${COUNSELOR_EMAIL:counselor@gmail.com}
     password: ${COUNSELOR_PASSWORD:123456}
   mail:
-    from: ${MAIL_USERNAME:test_email@gmail.com}        # gửi từ chính địa chỉ project
+    from: ${MAIL_USERNAME}        # gửi từ chính địa chỉ project
   base-url: ${BASE_URL:http://localhost:8080}
   upload:
     dir: uploads/transcripts   # thư mục lưu bảng điểm của sinh viên
 
 
 llm:
-  api-key: ${GEMINI_API_KEY:mock_gemini_api_key}
+  api-key: ${GEMINI_API_KEY}
   model: gemini-2.5-flash
