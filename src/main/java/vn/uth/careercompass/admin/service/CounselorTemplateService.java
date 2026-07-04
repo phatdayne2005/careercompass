@@ -104,10 +104,11 @@ public class CounselorTemplateService {
             }
  
             SkillNode newNode = SkillNode.builder()
-                    .skillTreeTemplate(template)
+                    .template(template)
                     .skill(skill)
-                    .level(level)
-                    .parentNode(parentNode)
+                    .title(skill.getName())
+                    .requiredLevel(level)
+                    .parent(parentNode)
                     .build();
  
             return nodeRepository.save(newNode);
@@ -144,8 +145,8 @@ public class CounselorTemplateService {
                         .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
             }
             
-            node.setLevel(level);
-            node.setParentNode(parentNode);
+            node.setRequiredLevel(level);
+            node.setParent(parentNode);
             return nodeRepository.save(node);
         } catch (IllegalArgumentException e) {
             throw e;
@@ -213,7 +214,7 @@ public class CounselorTemplateService {
             SkillTreeTemplate template = SkillTreeTemplate.builder()
                     .name(name)
                     .description(description)
-                    .careerRole(careerRole)
+                    .targetRoleId(careerRole.getId())
                     .build();
             return templateRepository.save(template);
         } catch (Exception e) {
@@ -252,7 +253,7 @@ public class CounselorTemplateService {
  
             template.setName(name);
             template.setDescription(description);
-            template.setCareerRole(careerRole);
+            template.setTargetRoleId(careerRole.getId());
             
             return templateRepository.save(template);
         } catch (Exception e) {
@@ -270,7 +271,7 @@ public class CounselorTemplateService {
             // 1. Phá vỡ quan hệ cha-con tự liên kết (self-referential) trên các SkillNode
             List<SkillNode> nodes = nodeRepository.findAllByTemplateIdWithRelations(id);
             for (SkillNode node : nodes) {
-                node.setParentNode(null);
+                node.setParent(null);
                 nodeRepository.save(node);
             }
             nodeRepository.flush(); // Đẩy các cập nhật NULL xuống DB trước

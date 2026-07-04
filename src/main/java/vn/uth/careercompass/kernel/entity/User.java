@@ -52,10 +52,24 @@ public class User {
     @NotNull
     @Builder.Default
     private Boolean enabled = true;
+
+    /** Flag đánh dấu user đã hoàn thành 3 bước Onboarding hay chưa.
+     *  Mặc định false → sau khi đăng nhập lần đầu sẽ bị điều hướng tới /onboarding/step1.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean onboardingCompleted = false;
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
     @Column(nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public Long getTargetRoleId() {
+        if (careerRole == null) {
+            return null;
+        }
+        return careerRole.getId();
+    }
 }

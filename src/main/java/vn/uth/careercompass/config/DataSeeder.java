@@ -164,7 +164,7 @@ public class DataSeeder implements CommandLineRunner {
         SkillTreeTemplate template = SkillTreeTemplate.builder()
                 .name("Lo trinh Java Backend Developer chuan")
                 .description("Khung chuong trinh dao tao tu co ban den nang cao cho lap trinh vien Java Backend.")
-                .careerRole(backendRole)
+                .targetRoleId(backendRole.getId())
                 .build();
         template = skillTreeTemplateRepository.save(template);
 
@@ -178,24 +178,27 @@ public class DataSeeder implements CommandLineRunner {
         // 4. Seed cac SkillNode (Tu co ban den nang cao)
         // Seed cac SkillNode (Cap đo 1 - khong co cha)
         SkillNode nodeGit = SkillNode.builder()
-                .skillTreeTemplate(template)
+                .template(template)
                 .skill(gitSkill)
-                .level(1)
-                .parentNode(null)
+                .title(gitSkill.getName())
+                .requiredLevel(1)
+                .parent(null)
                 .build();
 
         SkillNode nodeJava = SkillNode.builder()
-                .skillTreeTemplate(template)
+                .template(template)
                 .skill(javaSkill)
-                .level(1)
-                .parentNode(null)
+                .title(javaSkill.getName())
+                .requiredLevel(1)
+                .parent(null)
                 .build();
 
         SkillNode nodeSQL = SkillNode.builder()
-                .skillTreeTemplate(template)
+                .template(template)
                 .skill(sqlSkill)
-                .level(1)
-                .parentNode(null)
+                .title(sqlSkill.getName())
+                .requiredLevel(1)
+                .parent(null)
                 .build();
 
         nodeGit = skillNodeRepository.save(nodeGit);
@@ -203,19 +206,21 @@ public class DataSeeder implements CommandLineRunner {
         nodeSQL = skillNodeRepository.save(nodeSQL);
         // Seed cac SkillNode phu thuoc (Cap đo 2 - cha la Java Core)
         SkillNode nodeSpringBoot = SkillNode.builder()
-                .skillTreeTemplate(template)
+                .template(template)
                 .skill(springBootSkill)
-                .level(2)
-                .parentNode(nodeJava)
+                .title(springBootSkill.getName())
+                .requiredLevel(2)
+                .parent(nodeJava)
                 .build();
         nodeSpringBoot = skillNodeRepository.save(nodeSpringBoot);
 
         // Seed cac SkillNode phu thuoc (Cap đo 3 - cha la Spring Boot)
         SkillNode nodeSpringSecurity = SkillNode.builder()
-                .skillTreeTemplate(template)
+                .template(template)
                 .skill(springSecuritySkill)
-                .level(3)
-                .parentNode(nodeSpringBoot)
+                .title(springSecuritySkill.getName())
+                .requiredLevel(3)
+                .parent(nodeSpringBoot)
                 .build();
         nodeSpringSecurity = skillNodeRepository.save(nodeSpringSecurity);
 
@@ -294,7 +299,7 @@ public class DataSeeder implements CommandLineRunner {
                             SkillTreeTemplate.builder()
                                     .name("Lộ trình " + roleName)
                                     .description("Khung chương trình đào tạo chuẩn cào từ roadmap.sh")
-                                    .careerRole(careerRole)
+                                    .targetRoleId(careerRole.getId())
                                     .build()
                     );
 
@@ -325,9 +330,10 @@ public class DataSeeder implements CommandLineRunner {
                                     ));
 
                             SkillNode skillNode = SkillNode.builder()
-                                    .skillTreeTemplate(template)
+                                    .template(template)
                                     .skill(skill)
-                                    .level(1)
+                                    .title(skill.getName())
+                                    .requiredLevel(1)
                                     .build();
 
                             SkillNode savedNode = skillNodeRepository.save(skillNode);
@@ -347,8 +353,8 @@ public class DataSeeder implements CommandLineRunner {
 
                         SkillNode parentSkillNode = findParentTopicNode(nodeId, incomingEdgesMap, nodesMap, createdNodesMap);
                         if (parentSkillNode != null) {
-                            currentSkillNode.setParentNode(parentSkillNode);
-                            currentSkillNode.setLevel(parentSkillNode.getLevel() + 1);
+                            currentSkillNode.setParent(parentSkillNode);
+                            currentSkillNode.setRequiredLevel(parentSkillNode.getRequiredLevel() + 1);
                             skillNodeRepository.save(currentSkillNode);
                         }
                     }

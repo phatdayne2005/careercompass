@@ -142,7 +142,7 @@ public class CounselorTemplateController {
         List<String> resourceTypes = getCleanResourceTypes();
         
         // Lấy danh sách tất cả các node trong cùng template của node này để làm danh sách lựa chọn nút cha
-        List<SkillNode> allNodes = counselorTemplateService.getNodesByTemplateId(node.getSkillTreeTemplate().getId());
+        List<SkillNode> allNodes = counselorTemplateService.getNodesByTemplateId(node.getTemplate().getId());
         
         model.addAttribute("currentNode", node);
         model.addAttribute("nodes", allNodes);
