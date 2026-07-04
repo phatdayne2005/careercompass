@@ -68,7 +68,7 @@ public class CounselorTemplateService {
     }
  
     @Transactional
-    public SkillNode addNode(Long templateId, Long skillId, String newSkillName, String newSkillCategory, Integer level, Long parentId) {
+    public SkillNode addNode(Long templateId, Long skillId, String newSkillName, String newSkillCategory, Integer tier, Long parentId) {
         try {
             SkillTreeTemplate template = templateRepository.findById(templateId)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lộ trình có ID: " + templateId));
@@ -109,7 +109,7 @@ public class CounselorTemplateService {
                     .template(template)
                     .skill(skill)
                     .title(skill.getName())
-                    .requiredLevel(level)
+                    .tier(tier == null ? 1 : tier)
                     .parent(parentNode)
                     .build();
  
@@ -133,7 +133,7 @@ public class CounselorTemplateService {
     }
 
     @Transactional
-    public SkillNode updateNode(Long nodeId, Integer level, Long parentId) {
+    public SkillNode updateNode(Long nodeId, Integer tier, Long parentId) {
         try {
             SkillNode node = nodeRepository.findById(nodeId)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút kỹ năng có ID: " + nodeId));
@@ -147,7 +147,7 @@ public class CounselorTemplateService {
                         .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nút cha có ID: " + parentId));
             }
             
-            node.setRequiredLevel(level);
+            node.setTier(tier == null ? node.getTier() : tier);
             node.setParent(parentNode);
             return nodeRepository.save(node);
         } catch (IllegalArgumentException e) {

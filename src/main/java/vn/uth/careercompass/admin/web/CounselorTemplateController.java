@@ -98,13 +98,13 @@ public class CounselorTemplateController {
                            @RequestParam(required = false) String skillId,
                            @RequestParam(required = false) String newSkillName,
                            @RequestParam(required = false) String newSkillCategory,
-                           @RequestParam Integer level,
+                           @RequestParam Integer tier,
                            @RequestParam(required = false) String parentId,
                            Model model) {
         Long skillIdLong = (skillId != null && !skillId.trim().isEmpty()) ? Long.valueOf(skillId.trim()) : null;
         Long parentIdLong = (parentId != null && !parentId.trim().isEmpty()) ? Long.valueOf(parentId.trim()) : null;
  
-        counselorTemplateService.addNode(id, skillIdLong, newSkillName, newSkillCategory, level, parentIdLong);
+        counselorTemplateService.addNode(id, skillIdLong, newSkillName, newSkillCategory, tier, parentIdLong);
         
         SkillTreeTemplate template = counselorTemplateService.getTemplateById(id);
         List<SkillNode> nodes = counselorTemplateService.getNodesByTemplateId(id);
@@ -153,10 +153,10 @@ public class CounselorTemplateController {
     @PostMapping("/counselor/templates/{templateId}/nodes/{nodeId}/update")
     public String updateNode(@PathVariable Long templateId,
                              @PathVariable Long nodeId,
-                             @RequestParam Integer level,
+                             @RequestParam Integer tier,
                              @RequestParam(required = false) String parentId) {
         Long parentIdLong = (parentId != null && !parentId.trim().isEmpty()) ? Long.valueOf(parentId.trim()) : null;
-        counselorTemplateService.updateNode(nodeId, level, parentIdLong);
+        counselorTemplateService.updateNode(nodeId, tier, parentIdLong);
         return "redirect:/counselor/templates/" + templateId + "/editor";
     }
  
