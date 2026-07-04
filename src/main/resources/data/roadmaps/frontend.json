@@ -7,7 +7,7 @@
     {
       "tier": 1,
       "skill": "HTML",
-      "category": "Markup",
+      "category": "Frontend",
       "parent": null,
       "links": [
         {
@@ -30,7 +30,7 @@
     {
       "tier": 1,
       "skill": "CSS",
-      "category": "Styling",
+      "category": "Frontend",
       "parent": null,
       "links": [
         {
@@ -48,7 +48,7 @@
     {
       "tier": 1,
       "skill": "JavaScript",
-      "category": "Language",
+      "category": "Frontend",
       "parent": null,
       "links": [
         {
@@ -94,7 +94,7 @@
     {
       "tier": 2,
       "skill": "TypeScript",
-      "category": "Language",
+      "category": "Frontend",
       "parent": "JavaScript",
       "links": [
         {
@@ -112,7 +112,7 @@
     {
       "tier": 2,
       "skill": "React",
-      "category": "Framework",
+      "category": "Frontend",
       "parent": "JavaScript",
       "links": [
         {
@@ -130,7 +130,7 @@
     {
       "tier": 3,
       "skill": "Tailwind CSS",
-      "category": "Styling",
+      "category": "Frontend",
       "parent": "CSS",
       "links": [
         {
@@ -153,7 +153,7 @@
     {
       "tier": 3,
       "skill": "Next.js",
-      "category": "Framework",
+      "category": "Frontend",
       "parent": "React",
       "links": [
         {
@@ -171,7 +171,7 @@
     {
       "tier": 3,
       "skill": "Jest Testing",
-      "category": "Testing",
+      "category": "Frontend",
       "parent": "JavaScript",
       "links": [
         {

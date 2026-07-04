@@ -7,7 +7,7 @@
     {
       "tier": 1,
       "skill": "Excel",
-      "category": "Tools",
+      "category": "Data & AI",
       "parent": null,
       "links": [
         {
@@ -43,7 +43,7 @@
     {
       "tier": 1,
       "skill": "Python",
-      "category": "Language",
+      "category": "Ngôn ngữ",
       "parent": null,
       "links": [
         {
@@ -66,7 +66,7 @@
     {
       "tier": 2,
       "skill": "Statistics",
-      "category": "Math",
+      "category": "Data & AI",
       "parent": "Excel",
       "links": [
         {
@@ -84,7 +84,7 @@
     {
       "tier": 2,
       "skill": "Pandas",
-      "category": "Library",
+      "category": "Data & AI",
       "parent": "Python",
       "links": [
         {
@@ -102,7 +102,7 @@
     {
       "tier": 2,
       "skill": "Power BI",
-      "category": "BI",
+      "category": "Data & AI",
       "parent": "Excel",
       "links": [
         {
@@ -120,7 +120,7 @@
     {
       "tier": 3,
       "skill": "Data Visualization",
-      "category": "BI",
+      "category": "Data & AI",
       "parent": "Power BI",
       "links": [
         {
@@ -138,7 +138,7 @@
     {
       "tier": 3,
       "skill": "Machine Learning",
-      "category": "AI",
+      "category": "Data & AI",
       "parent": "Pandas",
       "links": [
         {

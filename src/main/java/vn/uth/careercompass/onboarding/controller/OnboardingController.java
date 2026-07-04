@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.uth.careercompass.admin.entity.Skill;
 import vn.uth.careercompass.admin.repository.CareerRoleRepository;
 import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.kernel.entity.User;
@@ -14,7 +15,11 @@ import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
 import vn.uth.careercompass.kernel.service.UserProfileService;
 import vn.uth.careercompass.onboarding.service.OnboardingService;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/onboarding")
@@ -121,7 +126,7 @@ public class OnboardingController {
         if (user == null) return "redirect:/";
 
         model.addAttribute("currentStep", 3);
-        model.addAttribute("skills", skillRepository.findAll());
+        model.addAttribute("skillsByCategory", groupSkillsByCategory());
         List<Long> existingSkillIds = onboardingService.getUserSkillIds(user);
         model.addAttribute("existingSkillIds", existingSkillIds);
         return "onboarding/step3_skills";
@@ -142,5 +147,32 @@ public class OnboardingController {
         userProfileService.completeOnboarding(user);
 
         return "redirect:/";
+    }
+
+    // ─── Helper: nhóm skill theo category (dễ chọn + gọn trên CV) ────────────
+
+    /** Thứ tự nhóm hiển thị ở step3; nhóm ngoài danh sách này xếp cuối. */
+    private static final List<String> CATEGORY_ORDER = List.of(
+            "Ngôn ngữ", "Frontend", "Backend", "Database", "Mobile",
+            "Data & AI", "DevOps & Cloud", "Network", "Tools", "Nền tảng");
+
+    private Map<String, List<Skill>> groupSkillsByCategory() {
+        Map<String, List<Skill>> byCategory = skillRepository.findAll().stream()
+                .collect(Collectors.groupingBy(s -> s.getCategory() == null ? "Khác" : s.getCategory()));
+
+        Map<String, List<Skill>> ordered = new LinkedHashMap<>();
+        for (String category : CATEGORY_ORDER) {
+            List<Skill> list = byCategory.remove(category);
+            if (list != null) {
+                list.sort(Comparator.comparing(Skill::getName));
+                ordered.put(category, list);
+            }
+        }
+        // Nhóm lạ (nếu có) xếp sau cùng, không bỏ sót skill nào
+        byCategory.forEach((category, list) -> {
+            list.sort(Comparator.comparing(Skill::getName));
+            ordered.put(category, list);
+        });
+        return ordered;
     }
 }

@@ -30,7 +30,7 @@
     {
       "tier": 1,
       "skill": "Java Core",
-      "category": "Language",
+      "category": "Ngôn ngữ",
       "parent": null,
       "links": [
         {
@@ -66,7 +66,7 @@
     {
       "tier": 2,
       "skill": "Spring Boot",
-      "category": "Framework",
+      "category": "Backend",
       "parent": "Java Core",
       "links": [
         {
@@ -107,7 +107,7 @@
     {
       "tier": 2,
       "skill": "Docker",
-      "category": "DevOps",
+      "category": "DevOps & Cloud",
       "parent": "Git",
       "links": [
         {
@@ -130,7 +130,7 @@
     {
       "tier": 3,
       "skill": "Spring Security",
-      "category": "Security",
+      "category": "Backend",
       "parent": "Spring Boot",
       "links": [
         {
@@ -171,7 +171,7 @@
     {
       "tier": 3,
       "skill": "Kubernetes",
-      "category": "DevOps",
+      "category": "DevOps & Cloud",
       "parent": "Docker",
       "links": [
         {

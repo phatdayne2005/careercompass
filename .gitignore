@@ -59,3 +59,7 @@ secrets/
 
 ### Context riêng tư cho Claude Code (không chia sẻ với nhóm) ###
 CLAUDE.md
+
+# Playwright / browser test artifacts
+.playwright-mcp/
+/*.png

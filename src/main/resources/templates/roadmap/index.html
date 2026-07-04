@@ -120,18 +120,21 @@
 
                 <div class="mt-32">
                     <h3 class="text-[18px] font-extrabold text-[#d7deea]">📚 Tài nguyên học (tối thiểu 2 link — FR2.3)</h3>
-                    <div class="mt-6 space-y-4">
-                        <a class="flex min-h-[68px] items-center rounded-lg bg-[#0f172a] px-6 text-[17px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"
-                           th:href="${'https://www.youtube.com/results?search_query=' + #strings.replace(selectedNode.title, ' ', '+')}"
-                           target="_blank">
-                            ▶ YouTube — <span class="ml-1" th:text="${selectedNode.title}">Docker</span> for Beginners
-                        </a>
-                        <a class="flex min-h-[68px] items-center rounded-lg bg-[#0f172a] px-6 text-[17px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"
-                           th:href="${'https://www.google.com/search?q=' + #strings.replace(selectedNode.title + ' docs', ' ', '+')}"
-                           target="_blank">
-                            📄 Docs — tài liệu chính thức / hướng dẫn bắt đầu
+                    <div class="mt-6 space-y-4" th:if="${selectedNode.resources != null and !selectedNode.resources.isEmpty()}">
+                        <a th:each="res : ${selectedNode.resources}"
+                           class="flex min-h-[68px] items-center gap-3 rounded-lg bg-[#0f172a] px-6 text-[17px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"
+                           th:href="${res.url}" target="_blank" rel="noopener noreferrer">
+                            <span th:switch="${res.type}">
+                                <span th:case="'VIDEO'">▶</span>
+                                <span th:case="'COURSE'">🎓</span>
+                                <span th:case="*">📄</span>
+                            </span>
+                            <span th:text="${res.title}">Tài liệu học</span>
+                            <span class="ml-auto text-[13px] font-semibold text-[#5a6b85]" th:text="${res.type}">TYPE</span>
                         </a>
                     </div>
+                    <p th:if="${selectedNode.resources == null or selectedNode.resources.isEmpty()}"
+                       class="mt-6 text-[15px] text-[#5a6b85]">Chưa có tài liệu học cho node này.</p>
                 </div>
 
                 <form class="mt-28" th:action="@{/roadmap/progress}" method="post">

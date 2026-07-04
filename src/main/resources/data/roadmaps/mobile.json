@@ -7,7 +7,7 @@
     {
       "tier": 1,
       "skill": "Kotlin",
-      "category": "Language",
+      "category": "Ngôn ngữ",
       "parent": null,
       "links": [
         {
@@ -53,7 +53,7 @@
     {
       "tier": 1,
       "skill": "OOP",
-      "category": "Concept",
+      "category": "Nền tảng",
       "parent": null,
       "links": [
         {
@@ -71,7 +71,7 @@
     {
       "tier": 2,
       "skill": "Android SDK",
-      "category": "Framework",
+      "category": "Mobile",
       "parent": "Kotlin",
       "links": [
         {
@@ -89,7 +89,7 @@
     {
       "tier": 2,
       "skill": "Jetpack Compose",
-      "category": "Framework",
+      "category": "Mobile",
       "parent": "Kotlin",
       "links": [
         {
@@ -153,7 +153,7 @@
     {
       "tier": 3,
       "skill": "Firebase",
-      "category": "Backend",
+      "category": "Mobile",
       "parent": "Android SDK",
       "links": [
         {

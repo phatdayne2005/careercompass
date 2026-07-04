@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import vn.uth.careercompass.roadmap.entity.ProgressStatus;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,4 +25,5 @@ public class RoadmapNodeDTO {
     private Integer orderIndex;
     private Integer requiredLevel;
     private ProgressStatus status;
+    private List<RoadmapResourceDTO> resources;
 }

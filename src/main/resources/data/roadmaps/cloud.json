@@ -7,7 +7,7 @@
     {
       "tier": 1,
       "skill": "Linux",
-      "category": "OS",
+      "category": "DevOps & Cloud",
       "parent": null,
       "links": [
         {
@@ -25,7 +25,7 @@
     {
       "tier": 1,
       "skill": "Networking",
-      "category": "Infrastructure",
+      "category": "Network",
       "parent": null,
       "links": [
         {
@@ -66,7 +66,7 @@
     {
       "tier": 2,
       "skill": "AWS",
-      "category": "Cloud",
+      "category": "DevOps & Cloud",
       "parent": "Linux",
       "links": [
         {
@@ -84,7 +84,7 @@
     {
       "tier": 2,
       "skill": "Docker",
-      "category": "DevOps",
+      "category": "DevOps & Cloud",
       "parent": "Linux",
       "links": [
         {
@@ -107,7 +107,7 @@
     {
       "tier": 2,
       "skill": "Terraform",
-      "category": "IaC",
+      "category": "DevOps & Cloud",
       "parent": "Git",
       "links": [
         {
@@ -130,7 +130,7 @@
     {
       "tier": 3,
       "skill": "Kubernetes",
-      "category": "DevOps",
+      "category": "DevOps & Cloud",
       "parent": "Docker",
       "links": [
         {
@@ -153,7 +153,7 @@
     {
       "tier": 3,
       "skill": "Serverless",
-      "category": "Cloud",
+      "category": "DevOps & Cloud",
       "parent": "AWS",
       "links": [
         {
@@ -176,7 +176,7 @@
     {
       "tier": 3,
       "skill": "Cloud Security",
-      "category": "Security",
+      "category": "DevOps & Cloud",
       "parent": "AWS",
       "links": [
         {

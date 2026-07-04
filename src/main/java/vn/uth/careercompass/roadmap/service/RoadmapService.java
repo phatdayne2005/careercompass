@@ -5,12 +5,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import vn.uth.careercompass.admin.entity.LearningResource;
 import vn.uth.careercompass.admin.entity.SkillNode;
 import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.LearningResourceRepository;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
 import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.roadmap.dto.RoadmapNodeDTO;
+import vn.uth.careercompass.roadmap.dto.RoadmapResourceDTO;
 import vn.uth.careercompass.roadmap.dto.RoadmapTemplateDTO;
 import vn.uth.careercompass.roadmap.dto.RoadmapViewDTO;
 import vn.uth.careercompass.roadmap.entity.ProgressStatus;
@@ -28,6 +31,7 @@ public class RoadmapService {
     private final SkillTreeTemplateRepository skillTreeTemplateRepository;
     private final SkillNodeRepository skillNodeRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
+    private final LearningResourceRepository learningResourceRepository;
 
     @Transactional(readOnly = true)
     public List<RoadmapTemplateDTO> getActiveTemplates() {
@@ -46,8 +50,16 @@ public class RoadmapService {
                 .stream()
                 .collect(Collectors.toMap(progress -> progress.getSkillNode().getId(), Function.identity()));
 
+        Map<Long, List<RoadmapResourceDTO>> resourcesByNodeId = learningResourceRepository
+                .findBySkillNode_Template_IdOrderByIdAsc(template.getId())
+                .stream()
+                .collect(Collectors.groupingBy(
+                        resource -> resource.getSkillNode().getId(),
+                        Collectors.mapping(this::toResourceDTO, Collectors.toList())));
+
         List<RoadmapNodeDTO> nodeDTOs = nodes.stream()
-                .map(node -> toNodeDTO(node, progressByNodeId.get(node.getId())))
+                .map(node -> toNodeDTO(node, progressByNodeId.get(node.getId()),
+                        resourcesByNodeId.getOrDefault(node.getId(), List.of())))
                 .toList();
 
         int completedNodes = (int) nodeDTOs.stream()
@@ -87,7 +99,7 @@ public class RoadmapService {
         return Math.round((completed * 10000.0) / total) / 100.0;
     }
 
-    private RoadmapNodeDTO toNodeDTO(SkillNode node, UserNodeProgress progress) {
+    private RoadmapNodeDTO toNodeDTO(SkillNode node, UserNodeProgress progress, List<RoadmapResourceDTO> resources) {
         return RoadmapNodeDTO.builder()
                 .id(node.getId())
                 .parentId(node.getParent() == null ? null : node.getParent().getId())
@@ -99,6 +111,15 @@ public class RoadmapService {
                 .orderIndex(node.getOrderIndex())
                 .requiredLevel(node.getRequiredLevel())
                 .status(progress == null ? ProgressStatus.NOT_STARTED : progress.getStatus())
+                .resources(resources)
+                .build();
+    }
+
+    private RoadmapResourceDTO toResourceDTO(LearningResource resource) {
+        return RoadmapResourceDTO.builder()
+                .title(resource.getTitle())
+                .url(resource.getUrl())
+                .type(resource.getResourceType())
                 .build();
     }
 }

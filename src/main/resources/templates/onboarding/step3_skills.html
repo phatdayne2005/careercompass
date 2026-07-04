@@ -49,24 +49,30 @@
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
         <!-- Category label -->
-        <p class="text-xs text-slate-500 mb-4">💻 Ngôn ngữ, Framework &amp; Công cụ — bấm để chọn / bỏ chọn</p>
+        <p class="text-xs text-slate-500 mb-6">Bấm để chọn / bỏ chọn — kỹ năng nhóm theo lĩnh vực</p>
 
-        <!-- Skills chips -->
-        <div class="flex flex-wrap gap-2 mb-6" id="skillsContainer">
-            <div th:each="skill : ${skills}">
-                <input type="checkbox"
-                       name="skillIds"
-                       th:value="${skill.id}"
-                       th:id="'skill_' + ${skill.id}"
-                       th:checked="${existingSkillIds != null && existingSkillIds.contains(skill.id)}"
-                       class="sr-only peer">
-                <label th:for="'skill_' + ${skill.id}"
-                       th:text="${skill.name}"
-                       class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#334155] bg-[#1E293B]
-                              text-sm text-slate-400 cursor-pointer transition-all duration-150
-                              peer-checked:bg-[#8B5CF6]/20 peer-checked:border-[#8B5CF6] peer-checked:text-[#a78bfa]
-                              hover:border-slate-500 hover:text-slate-200 select-none">
-                </label>
+        <!-- Skills grouped by category -->
+        <div class="space-y-6 mb-6" id="skillsContainer">
+            <div th:each="group : ${skillsByCategory}">
+                <h3 class="text-xs font-semibold uppercase tracking-wide text-[#8B5CF6] mb-3"
+                    th:text="${group.key}">Frontend</h3>
+                <div class="flex flex-wrap gap-2">
+                    <div th:each="skill : ${group.value}">
+                        <input type="checkbox"
+                               name="skillIds"
+                               th:value="${skill.id}"
+                               th:id="'skill_' + ${skill.id}"
+                               th:checked="${existingSkillIds != null && existingSkillIds.contains(skill.id)}"
+                               class="sr-only peer">
+                        <label th:for="'skill_' + ${skill.id}"
+                               th:text="${skill.name}"
+                               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#334155] bg-[#1E293B]
+                                      text-sm text-slate-400 cursor-pointer transition-all duration-150
+                                      peer-checked:bg-[#8B5CF6]/20 peer-checked:border-[#8B5CF6] peer-checked:text-[#a78bfa]
+                                      hover:border-slate-500 hover:text-slate-200 select-none">
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 
