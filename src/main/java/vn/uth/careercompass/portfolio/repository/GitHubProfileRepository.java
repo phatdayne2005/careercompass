@@ -10,6 +10,8 @@ import vn.uth.careercompass.portfolio.entity.GitHubProfile;
 public interface GitHubProfileRepository extends JpaRepository<GitHubProfile, Long> {
 
     Optional<GitHubProfile> findByUserId(Long userId);
-    
+
+    Optional<GitHubProfile> findBySlug(String slug);
+
     boolean existsByGithubUsername(String githubUsername);
 }

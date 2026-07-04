@@ -28,6 +28,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/oauth2/**",
                         "/css/**", "/js/**", "/images/**",
                         "/uploads/**",
+                        "/p/**",
                         "/admin/**", "/counselor/**",
                         "/error", "/favicon.ico"
                 );

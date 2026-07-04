@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      th:replace="~{layout/base :: layout(~{::title}, ~{::main})}">
-<head>
-    <title>Quản lý E-Portfolio - CareerCompass</title>
-</head>
-<body>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Quản lý E-Portfolio · CareerCompass')}"></head>
+<body class="bg-[#0F172A] text-white font-sans min-h-screen">
+
+    <nav th:replace="~{layout/base :: appNav('portfolio')}"></nav>
 
     <main class="p-6 max-w-7xl mx-auto space-y-6 text-white">
         
@@ -13,11 +12,15 @@
                 <h1 class="text-3xl font-bold text-white tracking-tight">E-Portfolio cá nhân</h1>
                 <p class="text-slate-4xl mt-1">Kết nối kho chứa GitHub của bạn và để AI tóm tắt dự án một cách chuyên nghiệp.</p>
             </div>
-            <div class="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-800 p-3 rounded-lg border border-slate-700">
+            <div th:if="${shareUrl}" class="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-800 p-3 rounded-lg border border-slate-700">
                 <span class="text-sm text-slate-400">Link công khai:</span>
-                <a href="#" class="text-blue-400 hover:underline font-medium text-sm">/p/username-cua-ban</a>
+                <a th:href="${shareUrl}" th:text="${shareUrl}" target="_blank" class="text-blue-400 hover:underline font-medium text-sm">/p/...</a>
             </div>
         </div>
+
+        <!-- Flash message / error -->
+        <div th:if="${message}" class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300" th:text="${message}">Đã đồng bộ.</div>
+        <div th:if="${error}" class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">⚠ <span th:text="${error}">Lỗi</span></div>
 
         <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl max-w-2xl">
             <h2 class="text-xl font-semibold text-white flex items-center space-x-2">
@@ -25,10 +28,10 @@
                 <span>Kết nối tài khoản GitHub</span>
             </h2>
             
-            <form class="mt-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+            <form th:action="@{/portfolio/sync}" method="post" class="mt-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                 <div class="relative flex-1">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">github.com/</span>
-                    <input type="text" name="githubUsername" required
+                    <input type="text" name="githubUsername" required th:value="${githubUsername}"
                            class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-28 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 placeholder-slate-500 text-sm"
                            placeholder="nhập-username">
                 </div>
@@ -47,36 +50,32 @@
             <h2 class="text-2xl font-bold text-white">Danh sách dự án đã kết nối</h2>
             
             <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between shadow-md">
+
+                <div th:if="${repositories == null or repositories.isEmpty()}"
+                     class="md:col-span-2 text-center text-slate-400 border border-dashed border-slate-700 rounded-xl py-10">
+                    Chưa có repository nào. Nhập GitHub username rồi bấm “Đồng bộ ngay”.
+                </div>
+
+                <div th:each="repo : ${repositories}"
+                     class="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between shadow-md">
                     <div>
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-blue-400 hover:underline">
-                                <a href="#" target="_blank">Personalized-Career-Orientation</a>
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="text-lg font-bold text-blue-400 hover:underline truncate">
+                                <a th:href="${repo.htmlUrl}" th:text="${repo.repoName}" target="_blank">repo-name</a>
                             </h3>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                                <span class="ml-2 text-xs text-slate-400">Công khai</span>
-                            </label>
+                            <span class="text-xs px-2 py-0.5 rounded-full border whitespace-nowrap"
+                                  th:classappend="${repo.isPublic} ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-slate-400 border-slate-600 bg-slate-700/30'"
+                                  th:text="${repo.isPublic} ? 'Công khai' : 'Ẩn'">Công khai</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">Techstack gốc: Java, Thymeleaf</p>
-                        
+                        <p class="text-xs text-slate-400 mt-1" th:text="${repo.description != null and !repo.description.isBlank() ? repo.description : 'Không có mô tả'}">mô tả</p>
+
                         <div class="mt-3 bg-slate-900/50 rounded-lg p-3 border border-slate-700/50">
                             <span class="text-xs font-bold uppercase tracking-wider text-purple-400 block mb-1">AI Tóm tắt (README):</span>
-                            <p class="text-sm text-slate-300 leading-relaxed">
-                                Dự án xây dựng nền tảng định hướng nghề nghiệp CNTT cá nhân hóa. Sử dụng Java Spring Boot kết hợp kiến trúc Vertical-Slice giúp hệ thống vận hành độc lập và ổn định.
-                            </p>
+                            <p class="text-sm text-slate-300 leading-relaxed" th:text="${repo.aiSummary}">tóm tắt AI</p>
                         </div>
                     </div>
-                    
-                    <div class="mt-4 pt-3 border-t border-slate-700/50 flex justify-end">
-                        <button class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-md transition-all">
-                            ✍️ Chỉnh sửa tóm tắt
-                        </button>
-                    </div>
                 </div>
-                </div>
+            </div>
         </div>
 
     </main>

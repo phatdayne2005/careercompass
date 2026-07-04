@@ -29,11 +29,16 @@ public class GitHubProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "github_username", nullable = false, unique = true)
+    @Column(name = "github_username", nullable = false)
     private String githubUsername;
 
-    @Column(name = "user_id")
+    /** Chủ sở hữu portfolio — 1 user chỉ có 1 profile. */
+    @Column(name = "user_id", unique = true)
     private Long userId;
+
+    /** Định danh dùng cho URL công khai /p/{slug} (FR5.3). */
+    @Column(name = "slug", unique = true, length = 120)
+    private String slug;
 
     @OneToMany(mappedBy = "githubProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectRepository> repositories;

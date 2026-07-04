@@ -11,7 +11,10 @@ import vn.uth.careercompass.portfolio.entity.ProjectRepository;
 public interface ProjectRepositoryRepository extends JpaRepository<ProjectRepository, Long> {
 
     List<ProjectRepository> findByGithubProfileId(Long githubProfileId);
-    
+
     List<ProjectRepository> findByGithubProfileIdAndIsPublicTrue(Long githubProfileId);
+
+    /** Xoá toàn bộ repo cũ của 1 profile trước khi sync lại (tránh nhân đôi). */
+    void deleteByGithubProfileId(Long githubProfileId);
 }
 

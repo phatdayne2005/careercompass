@@ -1,101 +1,154 @@
 package vn.uth.careercompass.portfolio.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.RequiredArgsConstructor;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.mentor.service.LlmClient;
 import vn.uth.careercompass.portfolio.entity.GitHubProfile;
 import vn.uth.careercompass.portfolio.entity.ProjectRepository;
 import vn.uth.careercompass.portfolio.repository.GitHubProfileRepository;
 import vn.uth.careercompass.portfolio.repository.ProjectRepositoryRepository;
 
+/**
+ * Đồng bộ repo GitHub công khai của user, tóm tắt README bằng AI (FR5.1/5.2), và cung cấp
+ * dữ liệu cho trang portfolio cá nhân + trang public chia sẻ qua slug (FR5.3).
+ *
+ * <p>Dùng LLM chung của P3 ({@link LlmClient}) để tóm tắt; nếu LLM lỗi (thiếu key/API down) thì
+ * fallback tóm tắt cơ bản để KHÔNG chặn luồng sync.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
 
     private final GitHubProfileRepository gitHubProfileRepository;
     private final ProjectRepositoryRepository projectRepositoryRepository;
-    private final RestTemplate restTemplate = new RestTemplate(); 
+    private final LlmClient llmClient;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    public List<ProjectRepository> syncGithubRepositories(String githubUsername) {
-        Long mockUserId = 1L; 
-
-        GitHubProfile profile = gitHubProfileRepository.findByUserId(mockUserId)
-                .orElseGet(() -> createGitHubProfile(githubUsername));
-
-        String githubApiUrl = "https://api.github.com/users/" + githubUsername + "/repos";
-        List<Map<String, Object>> response = restTemplate.getForObject(githubApiUrl, List.class);
-        List<ProjectRepository> savedRepos = new ArrayList<>();
-
-        if (response != null) {
-            for (Map<String, Object> repoData : response) {
-                String repoName = (String) repoData.get("name");
-                String htmlUrl = (String) repoData.get("html_url");
-                String description = (String) repoData.get("description");
-
-                String readmeContent = fetchReadmeContent(githubUsername, repoName);
-
-                String aiSummaryText;
-                if (!readmeContent.isEmpty()) {
-                    aiSummaryText = generateAiSummary(repoName, readmeContent);
-                } else {
-                    aiSummaryText = "Dự án chưa có file README.md. " + (description != null ? description : "Chưa có mô tả.");
-                }
-
-                ProjectRepository repository = ProjectRepository.builder()
-                        .repoName(repoName)
-                        .htmlUrl(htmlUrl)
-                        .description(description)
-                        .isPublic(true)
-                        .githubProfile(profile)
-                        .aiSummary(aiSummaryText) 
-                        .build();
-
-                savedRepos.add(projectRepositoryRepository.save(repository));
-            }
-        }
-        return savedRepos;
+    // ─── Đọc dữ liệu ─────────────────────────────────────────────────────────
+    public Optional<GitHubProfile> getProfileByUser(User user) {
+        return gitHubProfileRepository.findByUserId(user.getId());
     }
 
-    private GitHubProfile createGitHubProfile(String githubUsername) {
-        Long mockUserId = 1L;
-        GitHubProfile profile = GitHubProfile.builder()
-                .userId(mockUserId)
-                .githubUsername(githubUsername)
-                .build();
-        return gitHubProfileRepository.save(profile);
+    public Optional<GitHubProfile> getProfileBySlug(String slug) {
+        return gitHubProfileRepository.findBySlug(slug);
+    }
+
+    public List<ProjectRepository> getRepos(Long profileId) {
+        return projectRepositoryRepository.findByGithubProfileId(profileId);
+    }
+
+    public List<ProjectRepository> getPublicRepos(Long profileId) {
+        return projectRepositoryRepository.findByGithubProfileIdAndIsPublicTrue(profileId);
+    }
+
+    // ─── Đồng bộ ─────────────────────────────────────────────────────────────
+    /**
+     * Đồng bộ toàn bộ repo công khai của {@code githubUsername} về portfolio của {@code user}.
+     * Xoá repo cũ trước (tránh nhân đôi khi sync lại), rồi fetch + tóm tắt README.
+     */
+    @Transactional
+    public List<ProjectRepository> syncGithubRepositories(User user, String githubUsername) {
+        if (githubUsername == null || githubUsername.trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập GitHub username!");
+        }
+        String username = githubUsername.trim();
+
+        GitHubProfile profile = gitHubProfileRepository.findByUserId(user.getId())
+                .orElseGet(() -> GitHubProfile.builder()
+                        .userId(user.getId())
+                        .slug(generateSlug(username))
+                        .build());
+        profile.setGithubUsername(username);
+        if (profile.getSlug() == null) {
+            profile.setSlug(generateSlug(username));
+        }
+        profile = gitHubProfileRepository.save(profile);
+
+        // Xoá repo cũ để sync lại không bị nhân đôi
+        projectRepositoryRepository.deleteByGithubProfileId(profile.getId());
+
+        List<Map<String, Object>> response = fetchRepos(username);
+        java.util.List<ProjectRepository> saved = new java.util.ArrayList<>();
+        for (Map<String, Object> repoData : response) {
+            String repoName = (String) repoData.get("name");
+            String htmlUrl = (String) repoData.get("html_url");
+            String description = (String) repoData.get("description");
+
+            String readme = fetchReadmeContent(username, repoName);
+            String aiSummary = generateAiSummary(repoName, readme, description);
+
+            saved.add(projectRepositoryRepository.save(ProjectRepository.builder()
+                    .repoName(repoName)
+                    .htmlUrl(htmlUrl)
+                    .description(description)
+                    .isPublic(true)
+                    .githubProfile(profile)
+                    .aiSummary(aiSummary)
+                    .build()));
+        }
+        return saved;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> fetchRepos(String username) {
+        String url = "https://api.github.com/users/" + username + "/repos?per_page=100&sort=updated";
+        try {
+            List<Map<String, Object>> repos = restTemplate.getForObject(url, List.class);
+            return repos == null ? List.of() : repos;
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new IllegalArgumentException("Không tìm thấy user GitHub '" + username + "'.");
+        } catch (RestClientException e) {
+            throw new IllegalStateException("Không gọi được GitHub API (có thể bị giới hạn tần suất). Thử lại sau.", e);
+        }
     }
 
     private String fetchReadmeContent(String username, String repoName) {
-        String readmeUrl = "https://raw.githubusercontent.com/" + username + "/" + repoName + "/main/README.md";
-        try {
-            return restTemplate.getForObject(readmeUrl, String.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            
+        for (String branch : new String[]{"main", "master"}) {
             try {
-                String fallbackUrl = "https://raw.githubusercontent.com/" + username + "/" + repoName + "/master/README.md";
-                return restTemplate.getForObject(fallbackUrl, String.class);
-            } catch (HttpClientErrorException ex) {
-                return ""; 
+                String content = restTemplate.getForObject(
+                        "https://raw.githubusercontent.com/" + username + "/" + repoName + "/" + branch + "/README.md",
+                        String.class);
+                if (content != null && !content.isBlank()) {
+                    return content;
+                }
+            } catch (RestClientException ignored) {
+                // thử branch tiếp theo
             }
-        } catch (HttpClientErrorException e) {
-            return "";
-        } catch (org.springframework.web.client.RestClientException e) {
-            return "";
+        }
+        return "";
+    }
+
+    private String generateAiSummary(String repoName, String readmeContent, String description) {
+        String context = (readmeContent != null && !readmeContent.isBlank())
+                ? readmeContent
+                : (description != null ? description : "");
+        if (context.isBlank()) {
+            return "Dự án chưa có README/mô tả để AI tóm tắt.";
+        }
+        String truncated = context.length() > 3000 ? context.substring(0, 3000) : context;
+        try {
+            return llmClient.ask("Tóm tắt ngắn gọn 2-3 câu bằng tiếng Việt về mục tiêu và công nghệ chính của "
+                    + "dự án GitHub \"" + repoName + "\" dựa trên README/mô tả sau:\n\n" + truncated);
+        } catch (Exception e) {
+            // LLM lỗi (thiếu key/API down) → fallback, không chặn sync
+            String excerpt = truncated.length() > 200 ? truncated.substring(0, 200) + "..." : truncated;
+            return "[Tóm tắt cơ bản] " + repoName + " — " + excerpt.replaceAll("\\s+", " ").trim();
         }
     }
 
-    private String generateAiSummary(String repoName, String readmeContent) {
-        String safeReadme = readmeContent == null ? "" : readmeContent;
-        String truncatedReadme = safeReadme.length() > 2000 ? safeReadme.substring(0, 2000) : safeReadme;
-
-        return "[AI Phân Tích]: Dự án triển khai hệ thống '" + repoName + "' ứng dụng các công nghệ hiện đại. " +
-               "Tối ưu hóa kiến trúc xử lý dữ liệu giúp nâng cao trải nghiệm người dùng và sẵn sàng tích hợp hệ thống." +
-               " Nội dung README mẫu: " + truncatedReadme;
+    private String generateSlug(String username) {
+        String base = username.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+        return base + "-" + UUID.randomUUID().toString().substring(0, 6);
     }
 }
