@@ -1,22 +1,33 @@
 package vn.uth.careercompass.roadmap.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import vn.uth.careercompass.admin.entity.Skill;
 import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.entity.UserSkill;
 import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.roadmap.dto.SkillGapReportDTO;
 import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
 import vn.uth.careercompass.roadmap.service.PdfService;
 import vn.uth.careercompass.roadmap.service.RoadmapService;
 import vn.uth.careercompass.roadmap.service.SkillGapService;
+
+import java.nio.file.Path;
 
 @Controller
 @RequiredArgsConstructor
@@ -77,6 +88,20 @@ public class SkillGapPageController {
         String pdfPath = pdfService.generateSkillGapReport(user, result);
         skillGapService.saveReport(user, result, pdfPath);
         return redirectSkillGap(templateId, true);
+    }
+
+    @GetMapping("/skill-gap/reports/{id}/download")
+    public ResponseEntity<Resource> downloadReport(@PathVariable Long id, Authentication authentication) {
+        User user = authenticatedUserService.requireCurrentUser(authentication);
+        SkillGapReportDTO report = skillGapService.getReport(user, id);   // đã kiểm report thuộc về user
+        Resource resource = new FileSystemResource(Path.of(report.getPdfPath()));
+        if (!resource.exists()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy file báo cáo");
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"skill-gap-report-" + id + ".pdf\"")
+                .body(resource);
     }
 
     private String redirectSkillGap(Long templateId, boolean reportCreated) {
