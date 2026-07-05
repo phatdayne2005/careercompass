@@ -53,6 +53,9 @@
 
 		<dependency> <groupId>org.jsoup</groupId> <artifactId>jsoup</artifactId> <version>1.17.2</version> </dependency>
 
+		<!-- Render markdown do AI trả về (**đậm**, danh sách...) thành HTML để hiển thị đúng. -->
+		<dependency> <groupId>org.commonmark</groupId> <artifactId>commonmark</artifactId> <version>0.22.0</version> </dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>

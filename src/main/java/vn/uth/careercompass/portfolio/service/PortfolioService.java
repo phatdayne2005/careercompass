@@ -47,13 +47,16 @@ public class PortfolioService {
     private final LlmClient llmClient;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    /** Bật/tắt hiển thị số star trên trang portfolio công khai. */
+    /** Ẩn/hiện 1 repo trên trang portfolio công khai (đảo isPublic). Kiểm repo thuộc về user. */
     @Transactional
-    public void toggleShowStars(User user) {
-        gitHubProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
-            profile.setShowStars(!profile.isShowStars());
-            gitHubProfileRepository.save(profile);
-        });
+    public void toggleRepoVisibility(User user, Long repoId) {
+        gitHubProfileRepository.findByUserId(user.getId()).ifPresent(profile ->
+                projectRepositoryRepository.findById(repoId).ifPresent(repo -> {
+                    if (repo.getGithubProfile() != null && repo.getGithubProfile().getId().equals(profile.getId())) {
+                        repo.setIsPublic(!repo.isIsPublic());
+                        projectRepositoryRepository.save(repo);
+                    }
+                }));
     }
 
     /** Gom thông tin chủ portfolio (mục tiêu nghề, kỹ năng, điểm mạnh) cho trang công khai. */

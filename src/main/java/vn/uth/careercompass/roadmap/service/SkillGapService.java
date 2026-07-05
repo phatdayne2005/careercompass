@@ -81,6 +81,23 @@ public class SkillGapService {
                 .build();
     }
 
+    /**
+     * "Kỹ năng hiện có" của user = kỹ năng tự khai (UserSkill, gồm chọn ở onboarding)
+     * + kỹ năng đã HOÀN THÀNH node trong Roadmap. Dùng cho cột trái trang Skill Gap.
+     */
+    @Transactional(readOnly = true)
+    public List<SkillSummaryDTO> getAcquiredSkills(User user) {
+        Map<Long, SkillSummaryDTO> byId = new LinkedHashMap<>();
+        userSkillRepository.findByUserWithSkill(user)
+                .forEach(us -> byId.putIfAbsent(us.getSkill().getId(), toSkillSummary(us.getSkill())));
+        userNodeProgressRepository.findByUserAndStatusWithSkill(user, ProgressStatus.DONE)
+                .forEach(p -> byId.putIfAbsent(p.getSkillNode().getSkill().getId(),
+                        toSkillSummary(p.getSkillNode().getSkill())));
+        return byId.values().stream()
+                .sorted(Comparator.comparing(SkillSummaryDTO::getName))
+                .toList();
+    }
+
     @Transactional
     public SkillGapReportDTO saveReport(User user, SkillGapResultDTO result, String pdfPath) {
         SkillTreeTemplate template = roadmapService.resolveTemplate(user, result.getTemplate().getId());

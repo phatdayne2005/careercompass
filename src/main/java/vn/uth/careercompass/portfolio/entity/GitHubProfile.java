@@ -40,11 +40,6 @@ public class GitHubProfile {
     @Column(name = "slug", unique = true, length = 120)
     private String slug;
 
-    /** Cho phép ẩn/hiện số star của các repo trên trang portfolio công khai. */
-    @Column(name = "show_stars")
-    @Builder.Default
-    private boolean showStars = true;
-
     @OneToMany(mappedBy = "githubProfile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectRepository> repositories;
 }

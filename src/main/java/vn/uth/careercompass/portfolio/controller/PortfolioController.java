@@ -46,10 +46,11 @@ public class PortfolioController {
         return "portfolio/manage";
     }
 
-    @PostMapping("/toggle-stars")
-    public String toggleStars(Authentication authentication) {
+    @PostMapping("/repos/{repoId}/toggle")
+    public String toggleRepo(@org.springframework.web.bind.annotation.PathVariable Long repoId,
+                             Authentication authentication) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        portfolioService.toggleShowStars(user);
+        portfolioService.toggleRepoVisibility(user, repoId);
         return "redirect:/portfolio/manage";
     }
 

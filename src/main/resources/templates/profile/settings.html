@@ -93,7 +93,7 @@
             <p class="text-sm text-slate-300 mb-3">✓ Đã tải lên bảng điểm.</p>
             <div th:if="${user.transcriptSummary != null}" class="rounded-lg bg-[#0F172A] border border-[#334155] p-4">
                 <span class="text-xs font-bold uppercase tracking-wider text-purple-400 block mb-1">🤖 AI phân tích bảng điểm</span>
-                <p class="text-sm text-slate-300 leading-relaxed" th:text="${user.transcriptSummary}">Tóm tắt phân tích...</p>
+                <div class="text-sm text-slate-300 leading-relaxed md" th:utext="${markdown.toHtml(user.transcriptSummary)}">Tóm tắt phân tích...</div>
             </div>
             <p th:if="${user.transcriptSummary == null}" class="text-sm text-slate-500">
                 Chưa có phân tích AI (file có thể là ảnh scan không đọc được text).

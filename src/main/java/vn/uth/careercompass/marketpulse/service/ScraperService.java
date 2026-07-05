@@ -35,6 +35,26 @@ public class ScraperService {
     private static final String REMOTEOK_API = "https://remoteok.com/api";
     private static final int MAX_DESC = 3900;   // cột rawDescription là VARCHAR(4000)
 
+    /**
+     * Chỉ giữ tin liên quan CNTT — lọc theo TÊN VỊ TRÍ (tags của RemoteOK là spam, tin nào cũng gắn
+     * "dev/engineer" nên không dùng để lọc được).
+     */
+    private static final List<String> IT_TITLE_SIGNALS = List.of(
+            "developer", "engineer", "software", "programmer", "backend", "back-end", "frontend", "front-end",
+            "fullstack", "full stack", "full-stack", "devops", "devsecops", " sre ", "architect", "data scientist",
+            "data engineer", "data analyst", "machine learning", "ai/ml", " ai ", " ml ", "android", " ios ",
+            "mobile", "web dev", " qa ", "tester", "sdet", "security", "cyber", "blockchain", "smart contract",
+            " dba ", "database", "cloud", "platform engineer", "tech lead", "technical lead", "sysadmin",
+            "system administrator", "game dev", "embedded", "network engineer", "automation", "sysops", "solidity",
+            " react", " node", "python", " java ", "golang", " rust", " php ", " ruby ", ".net");
+
+    /** Loại tin phi kỹ thuật dù có lọt tín hiệu IT (vd "Data Entry" chứa "data"). */
+    private static final List<String> NON_IT_TITLE = List.of(
+            "data entry", "customer support", "customer service", "administrative", "admin assistant",
+            "virtual assistant", "file clerk", "recruiter", "sales", "account ", "bookkeep", "strategist",
+            "marketing", "content writer", "copywriter", "video editor", "teacher", "tutor", "nurse", "medical",
+            "project manager", "product manager", "designer", "human resource", "operations manager");
+
     private final JobTrendRepository jobTrendRepository;
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -65,6 +85,14 @@ public class ScraperService {
                 if (position == null) {
                     continue; // bỏ item đầu (chỉ chứa "legal")
                 }
+                // Lọc IT theo TÊN VỊ TRÍ (tags của RemoteOK là spam, không dùng lọc được).
+                String titleLower = " " + position.toString().toLowerCase() + " ";
+                boolean itByTitle = IT_TITLE_SIGNALS.stream().anyMatch(titleLower::contains);
+                boolean isNonIt = NON_IT_TITLE.stream().anyMatch(titleLower::contains);
+                if (!itByTitle || isNonIt) {
+                    continue;
+                }
+
                 String tags = (item.get("tags") instanceof List<?> list)
                         ? list.stream().map(String::valueOf).collect(Collectors.joining(" "))
                         : "";

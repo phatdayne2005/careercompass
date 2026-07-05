@@ -51,7 +51,7 @@ public class SkillGapPageController {
         model.addAttribute("activeNav", "skill-gap");
         model.addAttribute("templates", roadmapService.getActiveTemplates());
         model.addAttribute("result", result);
-        model.addAttribute("currentSkills", userSkillRepository.findByUserWithSkill(user).stream().map(UserSkill::getSkill).toList());
+        model.addAttribute("currentSkills", skillGapService.getAcquiredSkills(user));
         model.addAttribute("allSkills", skillRepository.findAll().stream()
                 .sorted(java.util.Comparator.comparing(Skill::getName)).toList());
         model.addAttribute("reports", skillGapService.getReports(user));

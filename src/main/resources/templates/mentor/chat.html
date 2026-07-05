@@ -39,7 +39,7 @@
             <div th:each="msg : ${messages}"
                  th:classappend="${msg.sender.name() == 'USER'} ? ' ml-auto bg-[#3B82F6]' : ' bg-[#1E293B]'"
                  class="max-w-lg px-4 py-3 rounded-2xl">
-                <p th:text="${msg.content}" class="text-sm whitespace-pre-wrap"></p>
+                <div th:utext="${markdown.toHtml(msg.content)}" class="text-sm md"></div>
             </div>
 
             <p th:if="${#lists.isEmpty(messages)}" class="text-slate-400 text-sm">

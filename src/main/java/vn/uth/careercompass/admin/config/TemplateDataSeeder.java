@@ -56,10 +56,9 @@ public class TemplateDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Idempotent: đã có template thì bỏ qua (không đụng dữ liệu hiện có).
-        if (skillTreeTemplateRepository.count() > 0) {
-            return;
-        }
+        // KHÔNG check tổng số template ở đây: idempotent theo TỪNG role (seedRoadmap tự bỏ qua role đã có).
+        // -> Đảm bảo đủ 6 lộ trình mẫu ngay cả khi DB đã có template khác (vd team pull code về DB cũ),
+        //    mà vẫn không đụng/đè dữ liệu hiện có.
         try {
             Resource[] files = new PathMatchingResourcePatternResolver()
                     .getResources("classpath:data/roadmaps/*.json");
