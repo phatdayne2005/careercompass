@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import vn.uth.careercompass.kernel.exception.EmailAlreadyExistsException;
 import vn.uth.careercompass.kernel.service.AuthService;
+import vn.uth.careercompass.kernel.service.PasswordResetService;
 import vn.uth.careercompass.kernel.web.dto.request.RegisterFormDTO;
 
 @Controller
@@ -18,6 +19,7 @@ import vn.uth.careercompass.kernel.web.dto.request.RegisterFormDTO;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
 
     @GetMapping("/login")
     public String login() {
@@ -52,15 +54,55 @@ public class AuthController {
     }
 
     /**
-     * [STUB] Xử lý quên mật khẩu — HIỆN CHƯA gửi email thật.
-     * Luôn redirect về /forgot?sent với thông báo trung lập (không tiết lộ email có
-     * tồn tại hay không — đây là best practice bảo mật). TODO: tích hợp gửi email +
-     * tạo token đặt lại mật khẩu ở milestone sau.
+     * Xử lý quên mật khẩu: nếu email thuộc user LOCAL → sinh token + gửi link qua email.
+     * Luôn redirect về /forgot?sent với thông báo trung lập (không tiết lộ email có tồn
+     * tại hay không — best practice bảo mật). Xử lý thật nằm trong PasswordResetService.
      */
-
     @PostMapping("/forgot")
     public String forgotSubmit(@RequestParam String email) {
-        // TODO: nếu email tồn tại → sinh reset-token + gửi link qua email.
+        passwordResetService.createResetToken(email);
         return "redirect:/forgot?sent";
+    }
+
+    /**
+     * Mở link đặt lại từ email. Kiểm token còn hợp lệ (tồn tại + chưa dùng + chưa hết hạn)
+     * → hiện form đổi mật khẩu; nếu không → hiện trạng thái "link hết hạn/không hợp lệ".
+     */
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam String token, Model model) {
+        model.addAttribute("token", token);
+        model.addAttribute("tokenValid", passwordResetService.validateToken(token).isPresent());
+        return "reset-password";
+    }
+
+    /**
+     * Nhận mật khẩu mới. Kiểm độ dài + khớp confirm, rồi đổi mật khẩu qua service.
+     * Token có thể hết hạn giữa lúc mở form và submit → bắt lỗi để báo cho người dùng.
+     */
+    @PostMapping("/reset-password")
+    public String resetPasswordSubmit(@RequestParam String token,
+                                      @RequestParam String newPassword,
+                                      @RequestParam String confirmPassword,
+                                      Model model) {
+        model.addAttribute("token", token);
+        model.addAttribute("tokenValid", true);
+
+        if (newPassword == null || newPassword.length() < 6) {
+            model.addAttribute("error", "Mật khẩu phải từ 6 ký tự trở lên.");
+            return "reset-password";
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp.");
+            return "reset-password";
+        }
+
+        try {
+            passwordResetService.resetPassword(token, newPassword);
+        } catch (Exception e) {
+            model.addAttribute("tokenValid", false);
+            model.addAttribute("error", "Link đặt lại đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu link mới.");
+            return "reset-password";
+        }
+        return "redirect:/login?resetSuccess";
     }
 }

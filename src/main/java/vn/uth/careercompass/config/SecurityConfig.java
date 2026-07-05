@@ -19,7 +19,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http, CustomOidcUserService customOidcUserService) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/", "/login", "/register", "/forgot", "/oauth2/**", "/css/**", "/js/**", "/p/**").permitAll()
+                    .requestMatchers("/", "/login", "/register", "/forgot", "/reset-password", "/oauth2/**", "/css/**", "/js/**", "/p/**").permitAll()
                     .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                     .requestMatchers("/counselor", "/counselor/**").hasRole("COUNSELOR")
                     .anyRequest().authenticated()
