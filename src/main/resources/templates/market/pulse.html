@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: head('Market Pulse · CareerCompass')}"></head>
+<body class="min-h-screen bg-[#0f172a] font-sans text-[#d7deea] antialiased">
+
+<div th:replace="~{layout/base :: appNav(${activeNav})}"></div>
+
+<main class="px-6 py-8 lg:px-[52px]">
+    <h1 class="text-[34px] font-extrabold tracking-[-0.03em] text-[#e6ebf5] sm:text-[40px]">
+        Market Pulse — Xu hướng tuyển dụng
+    </h1>
+    <p class="mt-2 text-[18px] font-medium text-[#7f8ba0]">
+        FR4.1 scraper theo lịch · FR4.2 công nghệ hot · FR4.3 biểu đồ trực quan
+        (<span th:text="${pulse.totalJobsScraped}">0</span> tin đã thu thập)
+    </p>
+
+    <!-- Biểu đồ cột từ khoá hot -->
+    <section class="mt-8 rounded-2xl border border-[#334155] bg-[#1e293b] p-6">
+        <h2 class="mb-4 text-[20px] font-bold text-[#e6ebf5]">Công nghệ được nhắc nhiều nhất (30 ngày)</h2>
+        <canvas id="keywordChart" height="110"></canvas>
+    </section>
+
+    <!-- Bảng tin tuyển dụng gần đây -->
+    <section class="mt-8 rounded-2xl border border-[#334155] bg-[#1e293b] p-6">
+        <h2 class="mb-4 text-[20px] font-bold text-[#e6ebf5]">Tin tuyển dụng gần đây</h2>
+        <table class="w-full text-left text-sm">
+            <thead class="text-[#7f8ba0]">
+            <tr>
+                <th class="pb-2">Vị trí</th>
+                <th class="pb-2">Công ty</th>
+                <th class="pb-2">Nguồn</th>
+                <th class="pb-2">Ngày</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="job : ${pulse.recentJobs}" class="border-t border-[#334155]">
+                <td class="py-2 font-semibold" th:text="${job.jobTitle}">Backend Developer</td>
+                <td class="py-2" th:text="${job.company}">ABC Corp</td>
+                <td class="py-2" th:text="${job.source}">TOPCV</td>
+                <td class="py-2" th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+            </tr>
+            <tr th:if="${pulse.recentJobs.isEmpty()}">
+                <td colspan="4" class="py-4 text-center text-[#7f8ba0]">Chưa có dữ liệu — chờ scraper chạy.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script th:inline="javascript">
+    const labels = /*[[${pulse.topKeywords.![keyword]}]]*/ [];
+    const counts = /*[[${pulse.topKeywords.![count]}]]*/ [];
+
+    new Chart(document.getElementById('keywordChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Số tin JD nhắc tới',
+                data: counts,
+                backgroundColor: '#8b5cf6'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#d7deea' }, grid: { color: '#334155' } },
+                y: { ticks: { color: '#d7deea' }, grid: { color: '#334155' } }
+            }
+        }
+    });
+</script>
+</body>
+</html>
