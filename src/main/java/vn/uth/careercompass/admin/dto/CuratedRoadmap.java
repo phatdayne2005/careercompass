@@ -9,7 +9,7 @@ import java.util.List;
  * Format lộ trình CURATE của riêng dự án (đặt trong {@code resources/data/roadmaps/*.json}).
  * Map thẳng 1-1 vào schema document: 1 file = 1 CareerRole + 1 SkillTreeTemplate + N SkillNode.
  *
- * <p>Khác với {@link RoadmapJson} (định dạng thô của roadmap.sh, chỉ dùng làm nguồn cho scraper):
+ * <p>Khác với `RoadmapJson` (định dạng thô của roadmap.sh, chỉ dùng làm nguồn cho scraper):
  * format này mỗi node là 1 <b>skill cụ thể</b> (Java, SQL, Docker...) — đúng khái niệm Skill của
  * onboarding/skill-gap/portfolio — kèm tier + link học sẵn (≥2/node).</p>
  */
