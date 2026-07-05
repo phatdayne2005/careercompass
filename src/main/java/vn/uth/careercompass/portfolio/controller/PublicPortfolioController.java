@@ -34,6 +34,7 @@ public class PublicPortfolioController {
         User owner = userRepository.findById(profile.getUserId()).orElse(null);
         model.addAttribute("profile", profile);
         model.addAttribute("owner", owner);
+        model.addAttribute("ownerInfo", portfolioService.getOwnerInfo(profile.getUserId()));
         model.addAttribute("repositories", portfolioService.getPublicRepos(profile.getId()));
         return "portfolio/public";
     }

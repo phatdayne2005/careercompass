@@ -22,6 +22,7 @@ public class ProgressService {
     private final SkillNodeRepository skillNodeRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
     private final ActivityLogService activityLogService;
+    private final RoadmapService roadmapService;
 
     @Transactional
     public UserNodeProgress updateProgress(User user, Long skillNodeId, ProgressStatus status) {
@@ -34,6 +35,12 @@ public class ProgressService {
 
         SkillNode skillNode = skillNodeRepository.findById(skillNodeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy node kỹ năng"));
+
+        // Gating: không cho đánh dấu đang học/hoàn thành khi node còn bị khóa (tầng trước chưa xong).
+        if (!ProgressStatus.NOT_STARTED.equals(status) && roadmapService.isNodeLocked(user, skillNode)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Cần hoàn thành các node ở tầng trước để mở khóa node này");
+        }
 
         UserNodeProgress progress = userNodeProgressRepository.findByUserAndSkillNode(user, skillNode)
                 .orElseGet(() -> UserNodeProgress.builder()

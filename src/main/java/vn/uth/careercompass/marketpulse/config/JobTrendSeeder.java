@@ -6,6 +6,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import vn.uth.careercompass.marketpulse.entity.JobTrend;
 import vn.uth.careercompass.marketpulse.repository.JobTrendRepository;
+import vn.uth.careercompass.marketpulse.service.ScraperService;
 
 import java.util.List;
 
@@ -23,10 +24,16 @@ import java.util.List;
 public class JobTrendSeeder implements CommandLineRunner {
 
     private final JobTrendRepository jobTrendRepository;
+    private final ScraperService scraperService;
 
     @Override
     public void run(String... args) {
         if (jobTrendRepository.count() > 0) {
+            return;
+        }
+        // Ưu tiên cào dữ liệu THẬT từ RemoteOK; nếu lỗi/rỗng (mất mạng...) mới dùng bộ demo.
+        int scraped = scraperService.scrapeRemoteOk();
+        if (scraped > 0) {
             return;
         }
         jobTrendRepository.saveAll(List.of(

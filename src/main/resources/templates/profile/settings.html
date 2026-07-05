@@ -8,12 +8,54 @@
 <div class="max-w-2xl mx-auto py-12 px-6">
     <h1 class="text-2xl font-bold mb-8">Cài đặt tài khoản</h1>
 
+    <div th:if="${success}" class="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300" th:text="${success}">OK</div>
+    <div th:if="${error}" class="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300" th:text="${error}">Lỗi</div>
+
     <div class="bg-[#1E293B] rounded-xl p-6 mb-6">
         <h2 class="text-lg font-semibold mb-4">Thông tin cơ bản</h2>
-        <p class="text-sm text-slate-400 mb-1">Họ tên</p>
-        <p class="mb-4" th:text="${user.fullName}">-</p>
-        <p class="text-sm text-slate-400 mb-1">Email</p>
-        <p th:text="${user.email}">-</p>
+
+        <!-- Đổi họ tên -->
+        <form th:action="@{/profile/name}" method="post" class="mb-5">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label class="block text-sm text-slate-400 mb-1.5">Họ tên</label>
+            <div class="flex gap-2">
+                <input type="text" name="fullName" th:value="${user.fullName}" required
+                       class="flex-1 bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+                <button type="submit" class="px-5 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">Lưu</button>
+            </div>
+        </form>
+
+        <!-- Đổi email (chỉ tài khoản thường) -->
+        <form th:if="${user.authProvider.name() == 'LOCAL'}" th:action="@{/profile/email}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <label class="block text-sm text-slate-400 mb-1.5">Email
+                <span class="text-xs text-slate-500">(đổi xong sẽ đăng nhập lại)</span></label>
+            <div class="flex gap-2">
+                <input type="email" name="email" th:value="${user.email}" required
+                       class="flex-1 bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+                <button type="submit" class="px-5 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">Lưu</button>
+            </div>
+        </form>
+        <div th:unless="${user.authProvider.name() == 'LOCAL'}">
+            <label class="block text-sm text-slate-400 mb-1.5">Email</label>
+            <p class="text-sm"><span th:text="${user.email}">-</span>
+                <span class="text-xs text-slate-500">(tài khoản Google — không đổi được)</span></p>
+        </div>
+    </div>
+
+    <!-- Đổi mật khẩu (chỉ tài khoản thường) -->
+    <div th:if="${user.authProvider.name() == 'LOCAL'}" class="bg-[#1E293B] rounded-xl p-6 mb-6">
+        <h2 class="text-lg font-semibold mb-4">Đổi mật khẩu</h2>
+        <form th:action="@{/profile/password}" method="post" class="space-y-3">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="password" name="currentPassword" placeholder="Mật khẩu hiện tại" required
+                   class="w-full bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+            <input type="password" name="newPassword" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" minlength="6" required
+                   class="w-full bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+            <input type="password" name="confirmPassword" placeholder="Xác nhận mật khẩu mới" minlength="6" required
+                   class="w-full bg-[#0F172A] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]">
+            <button type="submit" class="px-5 py-2 rounded-lg bg-[#3B82F6] hover:bg-[#2563eb] transition text-sm font-semibold">Đổi mật khẩu</button>
+        </form>
     </div>
 
     <div id="githubSection" th:fragment="githubSection" class="bg-[#1E293B] rounded-xl p-6">

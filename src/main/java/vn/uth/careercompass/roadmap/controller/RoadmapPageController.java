@@ -87,14 +87,14 @@ public class RoadmapPageController {
     }
 
     private String prerequisiteFor(List<RoadmapNodeDTO> nodes, RoadmapNodeDTO selectedNode) {
-        if (selectedNode == null || selectedNode.getParentId() == null) {
+        if (selectedNode == null || selectedNode.getTier() == null) {
             return "Không có";
         }
-        return nodes.stream()
-                .filter(node -> selectedNode.getParentId().equals(node.getId()))
-                .map(RoadmapNodeDTO::getTitle)
-                .findFirst()
-                .orElse("Node trước");
+        return switch (selectedNode.getTier()) {
+            case 1 -> "Không có";
+            case 2 -> "Hoàn thành tầng Nền tảng";
+            default -> "Hoàn thành tầng Nền tảng + Cốt lõi";
+        };
     }
 
     private String estimateFor(RoadmapNodeDTO selectedNode) {

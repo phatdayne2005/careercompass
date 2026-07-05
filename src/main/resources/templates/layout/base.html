@@ -76,11 +76,21 @@
             <a th:href="@{/portfolio/manage}" class="transition hover:text-slate-100">E-Portfolio</a>
         </div>
 
-        <form th:action="@{/logout}" method="post" class="hidden sm:block">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <button type="submit" class="w-9 h-9 rounded-full bg-[#46556a] hover:bg-[#56677f] transition"
-                    aria-label="Đăng xuất"></button>
-        </form>
+        <div class="hidden sm:flex items-center gap-4">
+            <a th:href="@{/profile}" class="text-[14px] font-semibold text-[#95a1b3] transition hover:text-slate-100">Hồ sơ</a>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit"
+                        class="flex h-9 items-center gap-2 rounded-full bg-[#46556a] px-4 text-[13px] font-semibold text-slate-100 transition hover:bg-[#56677f]"
+                        aria-label="Đăng xuất">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </div>
     </div>
 </nav>
 

@@ -5,7 +5,7 @@
 
 <nav th:replace="~{layout/base :: appNav('mentor')}"></nav>
 
-<div class="flex h-[calc(100vh-86px)]">
+<div class="flex h-[calc(100vh-64px)]">
 
     <!-- Sidebar: danh sách lịch sử chat -->
     <aside class="w-72 bg-[#1E293B] border-r border-white/5 flex flex-col">
@@ -67,6 +67,16 @@
 </div>
 
 <meta name="_csrf" th:content="${_csrf.token}">
+
+<script>
+  // Luôn cuộn xuống tin nhắn cuối cùng: khi mở cuộc trò chuyện + sau mỗi lần gửi (HTMX swap).
+  function scrollMentorToBottom() {
+    var el = document.getElementById('messageList');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+  document.addEventListener('DOMContentLoaded', scrollMentorToBottom);
+  document.body.addEventListener('htmx:afterSwap', scrollMentorToBottom);
+</script>
 
 </body>
 </html>

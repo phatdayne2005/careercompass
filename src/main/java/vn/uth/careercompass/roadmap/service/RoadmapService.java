@@ -22,6 +22,7 @@ import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,17 @@ public class RoadmapService {
                         resourcesByNodeId.getOrDefault(node.getId(), List.of())))
                 .toList();
 
+        // Gating theo tier: tầng 2 mở khi tầng 1 xong hết; tầng 3 mở khi tầng 1+2 xong hết.
+        // (allMatch trên stream rỗng trả true → tầng không có node coi như đã "xong", không chặn tầng sau.)
+        boolean tier1Done = nodeDTOs.stream().filter(n -> isTier(n, 1))
+                .allMatch(n -> ProgressStatus.DONE.equals(n.getStatus()));
+        boolean tier2Done = nodeDTOs.stream().filter(n -> isTier(n, 2))
+                .allMatch(n -> ProgressStatus.DONE.equals(n.getStatus()));
+        nodeDTOs.forEach(n -> {
+            int t = n.getTier() == null ? 1 : n.getTier();
+            n.setLocked((t == 2 && !tier1Done) || (t >= 3 && !(tier1Done && tier2Done)));
+        });
+
         int completedNodes = (int) nodeDTOs.stream()
                 .filter(node -> ProgressStatus.DONE.equals(node.getStatus()))
                 .count();
@@ -90,6 +102,31 @@ public class RoadmapService {
 
         return skillTreeTemplateRepository.findFirstByActiveTrueOrderByNameAsc()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chưa có roadmap nào"));
+    }
+
+    private boolean isTier(RoadmapNodeDTO node, int tier) {
+        return node.getTier() != null && node.getTier() == tier;
+    }
+
+    /**
+     * Kiểm 1 node có đang bị khóa với user không (dùng để CHẶN đánh dấu ở ProgressService).
+     * Khóa nếu tầng của node > 1 và còn node ở tầng thấp hơn (cùng template) user chưa DONE.
+     */
+    @Transactional(readOnly = true)
+    public boolean isNodeLocked(User user, SkillNode node) {
+        int tier = node.getTier() == null ? 1 : node.getTier();
+        if (tier <= 1) {
+            return false;
+        }
+        Long templateId = node.getTemplate().getId();
+        Set<Long> doneNodeIds = userNodeProgressRepository
+                .findByUserAndSkillNode_Template_Id(user, templateId).stream()
+                .filter(p -> ProgressStatus.DONE.equals(p.getStatus()))
+                .map(p -> p.getSkillNode().getId())
+                .collect(Collectors.toSet());
+        return skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(templateId).stream()
+                .filter(n -> (n.getTier() == null ? 1 : n.getTier()) < tier)
+                .anyMatch(n -> !doneNodeIds.contains(n.getId()));
     }
 
     public double calculatePercent(int completed, int total) {

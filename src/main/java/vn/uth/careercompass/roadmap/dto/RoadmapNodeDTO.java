@@ -25,5 +25,7 @@ public class RoadmapNodeDTO {
     private Integer orderIndex;
     private Integer requiredLevel;
     private ProgressStatus status;
+    /** true = chưa mở khóa (tầng trước chưa hoàn thành) — xem được info nhưng không đánh dấu được. */
+    private boolean locked;
     private List<RoadmapResourceDTO> resources;
 }

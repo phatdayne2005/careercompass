@@ -39,6 +39,10 @@ public class ProjectRepository {
     @Column(name = "ai_summary", columnDefinition = "TEXT")
     private String aiSummary;
 
+    @Column(name = "stars")
+    @Builder.Default
+    private int stars = 0;
+
     @Column(name = "is_public")
     @Builder.Default
     private boolean isPublic = true;

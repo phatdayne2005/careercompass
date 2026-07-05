@@ -52,6 +52,8 @@ public class SkillGapPageController {
         model.addAttribute("templates", roadmapService.getActiveTemplates());
         model.addAttribute("result", result);
         model.addAttribute("currentSkills", userSkillRepository.findByUserWithSkill(user).stream().map(UserSkill::getSkill).toList());
+        model.addAttribute("allSkills", skillRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(Skill::getName)).toList());
         model.addAttribute("reports", skillGapService.getReports(user));
         model.addAttribute("reportCreated", Boolean.TRUE.equals(reportCreated));
         return "skillgap/index";
@@ -59,21 +61,19 @@ public class SkillGapPageController {
 
     @PostMapping("/skill-gap/skills")
     public String addSkill(
-            @RequestParam String skillName,
+            @RequestParam Long skillId,
             @RequestParam(required = false) Long templateId,
             Authentication authentication
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        String normalizedName = skillName == null ? "" : skillName.trim();
-        if (!normalizedName.isBlank()) {
-            Skill skill = skillRepository.findByName(normalizedName)
-                    .orElseGet(() -> skillRepository.save(Skill.builder()
-                            .name(normalizedName)
-                            .category("Custom")
-                            .build()));
-            if (!userSkillRepository.existsByUserAndSkill(user, skill)) {
-                userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());
-            }
+        // Chọn từ danh sách kỹ năng có sẵn của hệ thống (không cho gõ tự do -> tránh skill "rác"
+        // không khớp với node roadmap nào).
+        if (skillId != null) {
+            skillRepository.findById(skillId).ifPresent(skill -> {
+                if (!userSkillRepository.existsByUserAndSkill(user, skill)) {
+                    userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());
+                }
+            });
         }
         return redirectSkillGap(templateId, false);
     }

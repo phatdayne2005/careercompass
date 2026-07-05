@@ -30,6 +30,10 @@
              class="mt-5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
             Đổi mật khẩu thành công! Mời bạn đăng nhập bằng mật khẩu mới.
         </div>
+        <div th:if="${param.emailChanged}"
+             class="mt-5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            Đã đổi email. Mời bạn đăng nhập lại bằng email mới.
+        </div>
 
         <!-- Form login: th:action => Thymeleaf tự chèn token CSRF.
              name="username"/"password" là tên mặc định Spring Security tìm. -->

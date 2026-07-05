@@ -16,10 +16,13 @@ import vn.uth.careercompass.roadmap.dto.RoadmapTemplateDTO;
 import vn.uth.careercompass.roadmap.dto.SkillGapReportDTO;
 import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
 import vn.uth.careercompass.roadmap.dto.SkillSummaryDTO;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
 import vn.uth.careercompass.roadmap.entity.SkillGapReport;
 import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ public class SkillGapService {
     private final SkillNodeRepository skillNodeRepository;
     private final UserSkillRepository userSkillRepository;
     private final SkillGapReportRepository skillGapReportRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
 
     @Transactional(readOnly = true)
     public SkillGapResultDTO analyze(User user, Long templateId) {
@@ -43,19 +47,25 @@ public class SkillGapService {
                 .map(SkillNode::getSkill)
                 .collect(Collectors.toMap(Skill::getId, skill -> skill, (left, right) -> left, LinkedHashMap::new));
 
-        Set<Long> userSkillIds = userSkillRepository.findByUser(user).stream()
+        // "Đã có kỹ năng" = kỹ năng user tự khai (UserSkill) HOẶC đã hoàn thành node tương ứng
+        // trong Roadmap (UserNodeProgress DONE). -> Skill Gap khớp với tiến độ Roadmap (không còn rời rạc).
+        Set<Long> acquiredSkillIds = new HashSet<>();
+        userSkillRepository.findByUser(user).stream()
                 .map(UserSkill::getSkill)
                 .map(Skill::getId)
-                .collect(Collectors.toSet());
+                .forEach(acquiredSkillIds::add);
+        userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, template.getId()).stream()
+                .filter(progress -> ProgressStatus.DONE.equals(progress.getStatus()))
+                .forEach(progress -> acquiredSkillIds.add(progress.getSkillNode().getSkill().getId()));
 
         List<SkillSummaryDTO> matchedSkills = requiredSkills.values().stream()
-                .filter(skill -> userSkillIds.contains(skill.getId()))
+                .filter(skill -> acquiredSkillIds.contains(skill.getId()))
                 .sorted(Comparator.comparing(Skill::getName))
                 .map(this::toSkillSummary)
                 .toList();
 
         List<SkillSummaryDTO> missingSkills = requiredSkills.values().stream()
-                .filter(skill -> !userSkillIds.contains(skill.getId()))
+                .filter(skill -> !acquiredSkillIds.contains(skill.getId()))
                 .sorted(Comparator.comparing(Skill::getName))
                 .map(this::toSkillSummary)
                 .toList();

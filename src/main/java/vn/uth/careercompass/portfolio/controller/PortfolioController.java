@@ -38,11 +38,19 @@ public class PortfolioController {
         // Prefill ô username: ưu tiên profile đã sync, nếu chưa thì lấy từ hồ sơ user (onboarding)
         model.addAttribute("githubUsername",
                 profile != null ? profile.getGithubUsername() : user.getGithubUsername());
+        model.addAttribute("profile", profile);
         if (profile != null) {
             model.addAttribute("repositories", portfolioService.getRepos(profile.getId()));
             model.addAttribute("shareUrl", baseUrl + "/p/" + profile.getSlug());
         }
         return "portfolio/manage";
+    }
+
+    @PostMapping("/toggle-stars")
+    public String toggleStars(Authentication authentication) {
+        User user = authenticatedUserService.requireCurrentUser(authentication);
+        portfolioService.toggleShowStars(user);
+        return "redirect:/portfolio/manage";
     }
 
     @PostMapping("/sync")

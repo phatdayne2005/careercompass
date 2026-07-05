@@ -11,13 +11,22 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Comparator;
+import java.util.TreeSet;
+
 import lombok.RequiredArgsConstructor;
 import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.entity.UserSkill;
+import vn.uth.careercompass.kernel.repository.UserRepository;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 import vn.uth.careercompass.mentor.service.LlmClient;
+import vn.uth.careercompass.portfolio.dto.OwnerInfoDTO;
 import vn.uth.careercompass.portfolio.entity.GitHubProfile;
 import vn.uth.careercompass.portfolio.entity.ProjectRepository;
 import vn.uth.careercompass.portfolio.repository.GitHubProfileRepository;
 import vn.uth.careercompass.portfolio.repository.ProjectRepositoryRepository;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 /**
  * Đồng bộ repo GitHub công khai của user, tóm tắt README bằng AI (FR5.1/5.2), và cung cấp
@@ -32,8 +41,36 @@ public class PortfolioService {
 
     private final GitHubProfileRepository gitHubProfileRepository;
     private final ProjectRepositoryRepository projectRepositoryRepository;
+    private final UserRepository userRepository;
+    private final UserSkillRepository userSkillRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
     private final LlmClient llmClient;
     private final RestTemplate restTemplate = new RestTemplate();
+
+    /** Bật/tắt hiển thị số star trên trang portfolio công khai. */
+    @Transactional
+    public void toggleShowStars(User user) {
+        gitHubProfileRepository.findByUserId(user.getId()).ifPresent(profile -> {
+            profile.setShowStars(!profile.isShowStars());
+            gitHubProfileRepository.save(profile);
+        });
+    }
+
+    /** Gom thông tin chủ portfolio (mục tiêu nghề, kỹ năng, điểm mạnh) cho trang công khai. */
+    @Transactional(readOnly = true)
+    public OwnerInfoDTO getOwnerInfo(Long userId) {
+        User owner = userRepository.findById(userId).orElse(null);
+        if (owner == null) {
+            return new OwnerInfoDTO(null, List.of(), null);
+        }
+        String careerGoal = owner.getCareerRole() != null ? owner.getCareerRole().getName() : null;
+        // Kỹ năng = kỹ năng tự khai (UserSkill) + kỹ năng đã hoàn thành trong Roadmap (nhất quán với Skill Gap)
+        TreeSet<String> skills = new TreeSet<>(Comparator.naturalOrder());
+        userSkillRepository.findByUserWithSkill(owner).forEach(us -> skills.add(us.getSkill().getName()));
+        userNodeProgressRepository.findByUserAndStatusWithSkill(owner, ProgressStatus.DONE)
+                .forEach(p -> skills.add(p.getSkillNode().getSkill().getName()));
+        return new OwnerInfoDTO(careerGoal, List.copyOf(skills), owner.getTranscriptSummary());
+    }
 
     // ─── Đọc dữ liệu ─────────────────────────────────────────────────────────
     public Optional<GitHubProfile> getProfileByUser(User user) {
@@ -84,6 +121,8 @@ public class PortfolioService {
             String repoName = (String) repoData.get("name");
             String htmlUrl = (String) repoData.get("html_url");
             String description = (String) repoData.get("description");
+            Object starsRaw = repoData.get("stargazers_count");
+            int stars = (starsRaw instanceof Number number) ? number.intValue() : 0;
 
             String readme = fetchReadmeContent(username, repoName);
             String aiSummary = generateAiSummary(repoName, readme, description);
@@ -92,6 +131,7 @@ public class PortfolioService {
                     .repoName(repoName)
                     .htmlUrl(htmlUrl)
                     .description(description)
+                    .stars(stars)
                     .isPublic(true)
                     .githubProfile(profile)
                     .aiSummary(aiSummary)
