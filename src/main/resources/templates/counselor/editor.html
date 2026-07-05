@@ -216,12 +216,12 @@
                         <!-- Resources list -->
                         <div>
                             <h4 class="text-sm font-bold text-slate-200 mb-3">Tài Nguyên Học Tập Hiện Có</h4>
-                            <div th:if="${currentNode.learningResources.isEmpty()}" class="py-6 text-center text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">
+                            <div th:if="${resources == null or resources.isEmpty()}" class="py-6 text-center text-xs text-slate-600 border border-dashed border-slate-800 rounded-xl">
                                 Chưa có tài nguyên nào được gán cho nút này.
                             </div>
-                            
-                            <div th:if="${!currentNode.learningResources.isEmpty()}" class="space-y-2.5">
-                                <div th:each="res : ${currentNode.learningResources}" class="p-3.5 bg-slate-950/60 border border-slate-850 rounded-xl hover:border-slate-800 transition-colors flex items-start justify-between gap-3">
+
+                            <div th:if="${resources != null and !resources.isEmpty()}" class="space-y-2.5">
+                                <div th:each="res : ${resources}" class="p-3.5 bg-slate-950/60 border border-slate-850 rounded-xl hover:border-slate-800 transition-colors flex items-start justify-between gap-3">
                                     <div class="truncate space-y-1.5 flex-1">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-violet-500/10 text-violet-400 border border-violet-500/10" th:text="${res.resourceType}">VIDEO</span>

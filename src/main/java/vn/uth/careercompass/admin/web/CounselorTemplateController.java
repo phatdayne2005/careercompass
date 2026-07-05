@@ -153,16 +153,20 @@ public class CounselorTemplateController {
  
     @GetMapping("/counselor/nodes/{nodeId}/details")
     public String nodeDetails(@PathVariable Long nodeId, Model model) {
-        SkillNode node = counselorTemplateService.getNodeById(nodeId);
-        List<String> resourceTypes = getCleanResourceTypes();
-        
-        // Lấy danh sách tất cả các node trong cùng template của node này để làm danh sách lựa chọn nút cha
-        List<SkillNode> allNodes = counselorTemplateService.getNodesByTemplateId(node.getTemplate().getId());
-        
-        model.addAttribute("currentNode", node);
-        model.addAttribute("nodes", allNodes);
-        model.addAttribute("resourceTypes", resourceTypes);
+        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));
         return "counselor/editor :: node-details";
+    }
+
+    /**
+     * Nạp đủ model cho fragment node-details: node hiện tại, danh sách node (dropdown cha),
+     * loại tài nguyên, và DANH SÁCH TÀI LIỆU của node (SkillNode không có @OneToMany nên phải
+     * load riêng — trước đây template gọi currentNode.learningResources -> lỗi SpEL 500).
+     */
+    private void populateNodeDetails(Model model, SkillNode node) {
+        model.addAttribute("currentNode", node);
+        model.addAttribute("nodes", counselorTemplateService.getNodesByTemplateId(node.getTemplate().getId()));
+        model.addAttribute("resourceTypes", getCleanResourceTypes());
+        model.addAttribute("resources", resourceRepository.findBySkillNode_IdOrderByIdAsc(node.getId()));
     }
  
     @PostMapping("/counselor/templates/{templateId}/nodes/{nodeId}/update")
@@ -183,26 +187,16 @@ public class CounselorTemplateController {
                               @RequestParam(required = false) String description,
                               Model model) {
         counselorTemplateService.addResource(nodeId, title, url, resourceType, description);
-        
-        SkillNode node = counselorTemplateService.getNodeById(nodeId);
-        List<String> resourceTypes = getCleanResourceTypes();
-        
-        model.addAttribute("currentNode", node);
-        model.addAttribute("resourceTypes", resourceTypes);
+        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));
         return "counselor/editor :: node-details";
     }
- 
+
     @DeleteMapping("/counselor/nodes/{nodeId}/resources/{resourceId}")
     public String deleteResource(@PathVariable Long nodeId,
                                  @PathVariable Long resourceId,
                                  Model model) {
         counselorTemplateService.deleteResource(resourceId);
- 
-        SkillNode node = counselorTemplateService.getNodeById(nodeId);
-        List<String> resourceTypes = getCleanResourceTypes();
-        
-        model.addAttribute("currentNode", node);
-        model.addAttribute("resourceTypes", resourceTypes);
+        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));
         return "counselor/editor :: node-details";
     }
 }
