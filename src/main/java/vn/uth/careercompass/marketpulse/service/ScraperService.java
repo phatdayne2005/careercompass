@@ -10,50 +10,43 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import vn.uth.careercompass.marketpulse.entity.JobTrend;
 import vn.uth.careercompass.marketpulse.repository.JobTrendRepository;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * Cào dữ liệu tuyển dụng THẬT từ RemoteOK API (JSON công khai) — dùng cho Market Pulse (FR4.1).
+ * Cào dữ liệu tuyển dụng IT THẬT từ The Muse API (JSON công khai, nguồn uy tín) — cho Market Pulse (FR4.1).
  *
- * <p>Vì sao RemoteOK: có API JSON mở, không chặn bot, không render JS (Jsoup/LinkedIn/TopCV trước
- * đây không lấy được). Theo ToS của RemoteOK, cần ghi nguồn "RemoteOK" — đã hiển thị ở trang Market Pulse.</p>
+ * <p>Vì sao The Muse: có API JSON mở + tham số category (lọc sẵn "Software Engineering") + mô tả JD đầy đủ;
+ * không chặn bot, không render JS như LinkedIn/TopCV. Danh mục SE vẫn lẫn ít job phần cứng (cơ khí SpaceX...)
+ * nên lọc thêm theo tên vị trí.</p>
  *
- * <p>Chạy tự động mỗi ngày 02:00. Mỗi lần cào THAY dữ liệu cũ bằng danh sách mới nhất; nếu cào rỗng/lỗi
- * thì GIỮ dữ liệu cũ (không làm trống biểu đồ).</p>
+ * <p>Chạy tự động mỗi ngày 02:00, mỗi lần THAY dữ liệu cũ bằng danh sách mới; cào rỗng/lỗi thì giữ data cũ.</p>
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ScraperService {
 
-    private static final String REMOTEOK_API = "https://remoteok.com/api";
-    private static final int MAX_DESC = 3900;   // cột rawDescription là VARCHAR(4000)
+    private static final String MUSE_API = "https://www.themuse.com/api/public/jobs";
+    private static final int PAGES = 4;            // ~20 tin/trang
+    private static final int MAX_DESC = 3900;      // cột rawDescription VARCHAR(4000)
 
     /**
-     * Chỉ giữ tin liên quan CNTT — lọc theo TÊN VỊ TRÍ (tags của RemoteOK là spam, tin nào cũng gắn
-     * "dev/engineer" nên không dùng để lọc được).
+     * CHỈ giữ tin có tín hiệu PHẦN MỀM/CNTT cụ thể trong tên vị trí (danh mục The Muse còn lẫn
+     * vai trò phần cứng/quản lý/phi kỹ thuật — "engineer" đơn thuần không đủ vì có cả cơ khí/hàng không).
      */
-    private static final List<String> IT_TITLE_SIGNALS = List.of(
-            "developer", "engineer", "software", "programmer", "backend", "back-end", "frontend", "front-end",
-            "fullstack", "full stack", "full-stack", "devops", "devsecops", " sre ", "architect", "data scientist",
-            "data engineer", "data analyst", "machine learning", "ai/ml", " ai ", " ml ", "android", " ios ",
-            "mobile", "web dev", " qa ", "tester", "sdet", "security", "cyber", "blockchain", "smart contract",
-            " dba ", "database", "cloud", "platform engineer", "tech lead", "technical lead", "sysadmin",
-            "system administrator", "game dev", "embedded", "network engineer", "automation", "sysops", "solidity",
-            " react", " node", "python", " java ", "golang", " rust", " php ", " ruby ", ".net");
-
-    /** Loại tin phi kỹ thuật dù có lọt tín hiệu IT (vd "Data Entry" chứa "data"). */
-    private static final List<String> NON_IT_TITLE = List.of(
-            "data entry", "customer support", "customer service", "administrative", "admin assistant",
-            "virtual assistant", "file clerk", "recruiter", "sales", "account ", "bookkeep", "strategist",
-            "marketing", "content writer", "copywriter", "video editor", "teacher", "tutor", "nurse", "medical",
-            "project manager", "product manager", "designer", "human resource", "operations manager");
+    private static final List<String> SOFTWARE_SIGNALS = List.of(
+            "software", "developer", "full stack", "fullstack", "full-stack", "backend", "back end", "back-end",
+            "frontend", "front end", "front-end", "devops", "data engineer", "data scientist", "data analyst",
+            "machine learning", "ml engineer", "ai engineer", "cloud engineer", "platform engineer",
+            "web develop", "mobile develop", "android", "ios ", "programmer", "sre", "site reliability",
+            "qa engineer", "security engineer", "database engineer", "infrastructure engineer");
 
     private final JobTrendRepository jobTrendRepository;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -61,63 +54,71 @@ public class ScraperService {
     /** Chạy mỗi ngày lúc 02:00 sáng. */
     @Scheduled(cron = "0 0 2 * * *")
     public void scrapeDaily() {
-        scrapeRemoteOk();
+        scrapeJobs();
     }
 
-    /**
-     * Cào RemoteOK, thay toàn bộ job_trends bằng dữ liệu mới. Trả số bản ghi đã lưu (0 nếu lỗi/rỗng).
-     */
+    /** Cào The Muse, thay toàn bộ job_trends bằng dữ liệu mới. Trả số bản ghi đã lưu (0 nếu lỗi/rỗng). */
     @Transactional
     @SuppressWarnings("unchecked")
-    public int scrapeRemoteOk() {
+    public int scrapeJobs() {
         List<JobTrend> fresh = new ArrayList<>();
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("User-Agent", "Mozilla/5.0 (CareerCompass Market Pulse)");
-            ResponseEntity<List> response = restTemplate.exchange(
-                    REMOTEOK_API, HttpMethod.GET, new HttpEntity<>(headers), List.class);
-            List<Map<String, Object>> items = response.getBody();
-            if (items == null) {
-                return 0;
-            }
-            for (Map<String, Object> item : items) {
-                Object position = item.get("position");
-                if (position == null) {
-                    continue; // bỏ item đầu (chỉ chứa "legal")
-                }
-                // Lọc IT theo TÊN VỊ TRÍ (tags của RemoteOK là spam, không dùng lọc được).
-                String titleLower = " " + position.toString().toLowerCase() + " ";
-                boolean itByTitle = IT_TITLE_SIGNALS.stream().anyMatch(titleLower::contains);
-                boolean isNonIt = NON_IT_TITLE.stream().anyMatch(titleLower::contains);
-                if (!itByTitle || isNonIt) {
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            for (int page = 1; page <= PAGES; page++) {
+                // Dùng UriComponentsBuilder + URI để tránh RestTemplate double-encode dấu cách trong category.
+                URI uri = UriComponentsBuilder.fromUriString(MUSE_API)
+                        .queryParam("category", "Software Engineering")
+                        .queryParam("category", "Data Science")
+                        .queryParam("page", page)
+                        .build().toUri();
+                ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);
+                Map<String, Object> body = response.getBody();
+                if (body == null) {
                     continue;
                 }
+                List<Map<String, Object>> results = (List<Map<String, Object>>) body.get("results");
+                if (results == null) {
+                    continue;
+                }
+                for (Map<String, Object> item : results) {
+                    Object nameObj = item.get("name");
+                    if (nameObj == null) {
+                        continue;
+                    }
+                    String title = nameObj.toString();
+                    String titleLower = " " + title.toLowerCase() + " ";
+                    if (SOFTWARE_SIGNALS.stream().noneMatch(titleLower::contains)) {
+                        continue;   // chỉ giữ tin phần mềm/CNTT rõ ràng
+                    }
 
-                String tags = (item.get("tags") instanceof List<?> list)
-                        ? list.stream().map(String::valueOf).collect(Collectors.joining(" "))
-                        : "";
-                String desc = String.valueOf(item.getOrDefault("description", ""))
-                        .replaceAll("<[^>]+>", " ");   // bỏ thẻ HTML
-                String raw = (position + " " + tags + " " + desc).replaceAll("\\s+", " ").trim();
+                    String company = (item.get("company") instanceof Map<?, ?> co)
+                            ? String.valueOf(co.get("name")) : "";
+                    String desc = String.valueOf(item.getOrDefault("contents", ""))
+                            .replaceAll("<[^>]+>", " ");   // bỏ thẻ HTML
+                    String raw = (title + " " + desc).replaceAll("\\s+", " ").trim();
 
-                fresh.add(JobTrend.builder()
-                        .source("REMOTEOK")
-                        .jobTitle(cap(position.toString(), 255))
-                        .company(cap(String.valueOf(item.getOrDefault("company", "")), 150))
-                        .rawDescription(cap(raw, MAX_DESC))
-                        .build());
+                    fresh.add(JobTrend.builder()
+                            .source("THEMUSE")
+                            .jobTitle(cap(title, 255))
+                            .company(cap(company, 150))
+                            .rawDescription(cap(raw, MAX_DESC))
+                            .build());
+                }
             }
         } catch (Exception e) {
-            log.warn("[ScraperService] Lỗi khi cào RemoteOK: {}", e.getMessage());
+            log.warn("[ScraperService] Lỗi khi cào The Muse: {}", e.getMessage());
             return 0;
         }
 
         if (fresh.isEmpty()) {
-            return 0; // không xoá dữ liệu cũ nếu cào không ra gì
+            return 0;   // không xoá dữ liệu cũ nếu cào không ra gì
         }
         jobTrendRepository.deleteAll();
         jobTrendRepository.saveAll(fresh);
-        log.info("[ScraperService] RemoteOK → lưu {} JobTrend", fresh.size());
+        log.info("[ScraperService] The Muse → lưu {} JobTrend", fresh.size());
         return fresh.size();
     }
 

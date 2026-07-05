@@ -31,8 +31,8 @@ public class JobTrendSeeder implements CommandLineRunner {
         if (jobTrendRepository.count() > 0) {
             return;
         }
-        // Ưu tiên cào dữ liệu THẬT từ RemoteOK; nếu lỗi/rỗng (mất mạng...) mới dùng bộ demo.
-        int scraped = scraperService.scrapeRemoteOk();
+        // Ưu tiên cào dữ liệu THẬT từ The Muse; nếu lỗi/rỗng (mất mạng...) mới dùng bộ demo.
+        int scraped = scraperService.scrapeJobs();
         if (scraped > 0) {
             return;
         }

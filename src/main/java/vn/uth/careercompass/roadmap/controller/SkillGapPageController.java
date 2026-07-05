@@ -78,16 +78,25 @@ public class SkillGapPageController {
         return redirectSkillGap(templateId, false);
     }
 
+    /**
+     * "Export PDF": tạo báo cáo + TẢI THẲNG file PDF luôn (đảm bảo luôn là PDF hợp lệ, vừa sinh).
+     * Báo cáo cũng được lưu vào lịch sử (hiện ở cột phải khi tải lại trang).
+     */
     @PostMapping("/skill-gap/reports")
-    public String createReport(
+    public ResponseEntity<Resource> createReport(
             @RequestParam(required = false) Long templateId,
             Authentication authentication
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
         SkillGapResultDTO result = skillGapService.analyze(user, templateId);
         String pdfPath = pdfService.generateSkillGapReport(user, result);
-        skillGapService.saveReport(user, result, pdfPath);
-        return redirectSkillGap(templateId, true);
+        SkillGapReportDTO saved = skillGapService.saveReport(user, result, pdfPath);
+        Resource resource = new FileSystemResource(Path.of(pdfPath));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"skill-gap-report-" + saved.getId() + ".pdf\"")
+                .body(resource);
     }
 
     @GetMapping("/skill-gap/reports/{id}/download")
