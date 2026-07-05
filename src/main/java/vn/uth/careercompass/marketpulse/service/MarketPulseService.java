@@ -11,7 +11,7 @@ import vn.uth.careercompass.marketpulse.repository.JobTrendRepository;
 public class MarketPulseService {
 
     private final JobTrendRepository jobTrendRepository;
-    private final KeywordAnalysisService keywordAnalysisService;
+    private final vn.uth.careercompass.marketpulse.service.KeywordAnalysisService keywordAnalysisService;
 
     public MarketPulseViewDTO getMarketPulse() {
         var topKeywords = keywordAnalysisService.topKeywords(30, 10);
