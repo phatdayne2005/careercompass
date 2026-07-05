@@ -9,12 +9,12 @@
     <section class="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
         <div>
             <div class="flex items-center gap-2">
-                <span class="flex h-12 w-12 items-center justify-center rounded-full border-[4px] border-[#d7deea] text-[30px] font-extrabold leading-none text-[#d7deea]">6</span>
-                <h1 class="text-[34px] font-extrabold tracking-[-0.03em] text-[#e6ebf5] sm:text-[40px]">
+                <span class="flex h-12 w-12 items-center justify-center rounded-full border-[4px] border-[#d7deea] text-[24px] font-extrabold leading-none text-[#d7deea]">6</span>
+                <h1 class="text-[26px] font-extrabold tracking-[-0.03em] text-[#e6ebf5] sm:text-[40px]">
                     Skill Gap Analysis
                 </h1>
             </div>
-            <p class="mt-2 text-[18px] font-medium text-[#7f8ba0]">
+            <p class="mt-2 text-[15px] font-medium text-[#7f8ba0]">
                 FR3.1 nhập/chọn kỹ năng hiện có · FR3.2 so khớp với yêu cầu Target Role · FR3.3 báo cáo trực quan + Export PDF
             </p>
         </div>
@@ -23,7 +23,7 @@
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="templateId" th:value="${result.template.id}">
             <button type="submit"
-                    class="rounded-lg bg-[#3b82f6] px-9 py-4 text-[18px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]">
+                    class="rounded-lg bg-[#3b82f6] px-9 py-4 text-[15px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]">
                 ⬇️ Export PDF
             </button>
         </form>
@@ -35,7 +35,7 @@
 
     <section class="mt-[72px] grid gap-10 xl:grid-cols-[minmax(300px,525px)_minmax(420px,710px)_minmax(300px,473px)]">
         <article class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[22px] font-extrabold text-[#d7deea]">Kỹ năng hiện có (FR3.1)</h2>
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">Kỹ năng hiện có (FR3.1)</h2>
 
             <form th:action="@{/skill-gap/skills}" method="post" class="mt-7">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -43,14 +43,14 @@
                 <label for="skillName" class="sr-only">Thêm kỹ năng</label>
                 <div class="flex rounded-lg bg-[#0f172a]">
                     <input id="skillName" name="skillName" type="text" placeholder="+  Thêm kỹ năng (vd: React, AWS...)"
-                           class="min-h-[54px] flex-1 rounded-l-lg bg-transparent px-5 text-[18px] font-medium text-[#d7deea] outline-none placeholder:text-[#6f7c91]">
+                           class="min-h-[54px] flex-1 rounded-l-lg bg-transparent px-5 text-[15px] font-medium text-[#d7deea] outline-none placeholder:text-[#6f7c91]">
                     <button type="submit" class="rounded-r-lg px-5 text-sm font-extrabold text-[#3b82f6] hover:bg-[#13203a]">
                         Thêm
                     </button>
                 </div>
             </form>
 
-            <ul class="mt-10 space-y-2 text-[20px] font-semibold text-[#5cda91]">
+            <ul class="mt-10 space-y-2 text-[16px] font-semibold text-[#5cda91]">
                 <li th:each="skill : ${currentSkills}" class="flex items-center gap-3">
                     <span>✓</span>
                     <span th:text="${skill.name}">Java</span>
@@ -62,25 +62,25 @@
         </article>
 
         <article class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[22px] font-extrabold text-[#d7deea]">
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">
                 So khớp với mục tiêu:
                 <span th:text="${result.template.name}">DevOps Engineer</span>
             </h2>
 
             <div class="mt-[72px] space-y-1">
                 <div th:each="skill : ${result.matchedSkills}" class="grid grid-cols-[230px_minmax(150px,1fr)_92px_28px] items-center gap-4">
-                    <span class="text-[20px] font-semibold text-[#d7deea]" th:text="${skill.name}">Linux</span>
+                    <span class="text-[16px] font-semibold text-[#d7deea]" th:text="${skill.name}">Linux</span>
                     <div class="h-[22px] bg-[#173152]">
                         <div class="h-full w-full bg-[#3b82f6]"></div>
                     </div>
-                    <span class="text-[22px] font-semibold text-[#3b82f6]">100%</span>
+                    <span class="text-[17px] font-semibold text-[#3b82f6]">100%</span>
                     <span class="text-[#3b82f6]">✓</span>
                 </div>
 
                 <div th:each="skill : ${result.missingSkills}" class="grid grid-cols-[230px_minmax(150px,1fr)_92px_28px] items-center gap-4">
-                    <span class="text-[20px] font-semibold text-[#d7deea]" th:text="${skill.name}">Docker</span>
+                    <span class="text-[16px] font-semibold text-[#d7deea]" th:text="${skill.name}">Docker</span>
                     <div class="h-[22px] bg-[repeating-linear-gradient(90deg,#163253_0,#163253_2px,#1d3b60_2px,#1d3b60_4px)]"></div>
-                    <span class="text-[22px] font-semibold text-[#3b82f6]">0%</span>
+                    <span class="text-[17px] font-semibold text-[#3b82f6]">0%</span>
                     <span class="text-[#3b82f6]">×</span>
                 </div>
             </div>
@@ -92,18 +92,18 @@
         </article>
 
         <aside class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[22px] font-extrabold text-[#d7deea]">🔥 Ưu tiên học gấp (FR3.3)</h2>
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">🔥 Ưu tiên học gấp (FR3.3)</h2>
 
-            <ol class="mt-[72px] space-y-7 text-[20px] font-semibold text-[#d7deea]">
+            <ol class="mt-[72px] space-y-7 text-[16px] font-semibold text-[#d7deea]">
                 <li th:each="skill, iter : ${result.missingSkills}" class="grid grid-cols-[28px_minmax(0,1fr)_auto] gap-3">
                     <span th:text="${iter.index + 1 + '.'}">1.</span>
                     <div>
                         <p th:text="${skill.name}">Docker</p>
-                        <p class="mt-1 text-[18px] text-[#d7deea]" th:text="${iter.index == 0 ? 'Nền tảng, khoảng cách lớn' : (iter.index == 1 ? 'Phụ thuộc node trước' : 'Bổ sung để hoàn thiện roadmap')}">
+                        <p class="mt-1 text-[15px] text-[#d7deea]" th:text="${iter.index == 0 ? 'Nền tảng, khoảng cách lớn' : (iter.index == 1 ? 'Phụ thuộc node trước' : 'Bổ sung để hoàn thiện roadmap')}">
                             Nền tảng, khoảng cách lớn
                         </p>
                     </div>
-                    <span class="whitespace-nowrap text-[18px]"
+                    <span class="whitespace-nowrap text-[15px]"
                           th:text="${iter.index == 0 ? '🔴 GẤP' : (iter.index < 3 ? '🟠 CAO' : '🟡 TB')}">🔴 GẤP</span>
                 </li>
                 <li th:if="${result.missingSkills == null or result.missingSkills.isEmpty()}" class="text-[#5cda91]">
@@ -111,7 +111,7 @@
                 </li>
             </ol>
 
-            <div class="mt-32 border-t border-[#334155] pt-6">
+            <div class="mt-10 border-t border-[#334155] pt-6">
                 <h3 class="text-[16px] font-extrabold text-[#d7deea]">Báo cáo gần đây</h3>
                 <ul class="mt-4 space-y-2 text-sm text-[#8b98ad]">
                     <li th:each="report : ${reports}" class="flex items-center justify-between gap-3 rounded-lg bg-[#0f172a] px-4 py-3">

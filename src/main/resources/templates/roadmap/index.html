@@ -14,7 +14,7 @@
                     Dynamic Roadmap — Skill Tree
                 </h1>
             </div>
-            <p class="mt-2 text-[18px] font-medium text-[#7f8ba0]">
+            <p class="mt-2 text-[15px] font-medium text-[#7f8ba0]">
                 FR2.2 skill tree phân cấp theo thứ tự ưu tiên · FR2.3 ≥2 link học mỗi node · FR2.4 mark complete + cập nhật tiến độ
             </p>
         </div>
@@ -38,7 +38,7 @@
             <div class="h-full rounded-full bg-[#3b82f6]"
                  th:style="${'width:' + roadmap.completionPercent + '%'}"></div>
         </div>
-        <p class="text-[18px] font-extrabold text-[#d7deea]">
+        <p class="text-[15px] font-extrabold text-[#d7deea]">
             <span th:text="${#numbers.formatDecimal(roadmap.completionPercent, 0, 0)}">42</span>%
             · <span th:text="${roadmap.completedNodes}">18</span> /
             <span th:text="${roadmap.totalNodes}">35</span> nodes hoàn thành
@@ -55,7 +55,7 @@
 
                 <a th:each="node : ${tier1Nodes}"
                    th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                   class="flex min-h-[84px] items-center gap-3 rounded-xl border px-5 text-[18px] font-extrabold transition"
+                   class="flex min-h-[52px] items-center gap-3 rounded-xl border px-5 text-[15px] font-extrabold transition"
                    th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-[#8b5cf6] bg-[#1e293b] ring-2 ring-[#8b5cf6]/40' : (node.status.name() == 'DONE' ? ' border-[#3f9d5b] bg-[#12301f] text-[#69df9a]' : ' border-transparent bg-[#202b3d] text-[#d7deea] hover:bg-[#263247]')}">
                     <span th:text="${node.status.name() == 'DONE' ? '✅' : (node.status.name() == 'IN_PROGRESS' ? '🔵' : '◻')}">✅</span>
                     <span th:text="${node.title}">Linux & Shell</span>
@@ -70,7 +70,7 @@
 
                 <a th:each="node : ${tier2Nodes}"
                    th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                   class="flex min-h-[84px] items-center gap-3 rounded-xl border px-5 text-[18px] font-extrabold transition"
+                   class="flex min-h-[52px] items-center gap-3 rounded-xl border px-5 text-[15px] font-extrabold transition"
                    th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-[#8b5cf6] bg-[#1e293b] ring-2 ring-[#8b5cf6]/40' : (node.status.name() == 'DONE' ? ' border-[#3f9d5b] bg-[#12301f] text-[#69df9a]' : ' border-transparent bg-[#202b3d] text-[#d7deea] hover:bg-[#263247]')}">
                     <span th:text="${node.status.name() == 'DONE' ? '✅' : (node.status.name() == 'IN_PROGRESS' ? '🔵' : '◻')}">🔵</span>
                     <span th:text="${node.title}">Docker & Containers</span>
@@ -85,7 +85,7 @@
 
                 <a th:each="node : ${tier3Nodes}"
                    th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                   class="flex min-h-[84px] items-center gap-3 rounded-xl border px-5 text-[18px] font-extrabold transition"
+                   class="flex min-h-[52px] items-center gap-3 rounded-xl border px-5 text-[15px] font-extrabold transition"
                    th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-[#8b5cf6] bg-[#1e293b] ring-2 ring-[#8b5cf6]/40' : (node.status.name() == 'DONE' ? ' border-[#3f9d5b] bg-[#12301f] text-[#69df9a]' : ' border-transparent bg-[#0b1222] text-[#78849a] hover:bg-[#111a2d]')}">
                     <span th:text="${node.status.name() == 'DONE' ? '✅' : (node.status.name() == 'IN_PROGRESS' ? '🔵' : '🔒')}">🔒</span>
                     <span th:text="${node.title}">Kubernetes</span>
@@ -99,7 +99,7 @@
 
         <aside class="rounded-[18px] bg-[#1e293b] p-8 shadow-2xl shadow-black/20 xl:min-h-[620px]">
             <div th:if="${selectedNode != null}">
-                <h2 class="text-[28px] font-extrabold tracking-[-0.02em] text-[#e6ebf5]" th:text="${selectedNode.title}">
+                <h2 class="text-[22px] font-extrabold tracking-[-0.02em] text-[#e6ebf5]" th:text="${selectedNode.title}">
                     Docker & Containers
                 </h2>
                 <div class="mt-4 flex flex-wrap items-center gap-3 text-[16px] font-extrabold text-[#b9a4ff]">
@@ -108,7 +108,7 @@
                     <span th:text="${selectedNode.tier != null and selectedNode.tier >= 3 ? 'Ưu tiên: CAO' : 'Ưu tiên: TB'}">Ưu tiên: CAO</span>
                 </div>
 
-                <p class="mt-8 min-h-[86px] text-[17px] leading-8 text-[#8b98ad]"
+                <p class="mt-8 min-h-[56px] text-[14px] leading-8 text-[#8b98ad]"
                    th:text="${selectedNode.description != null and !selectedNode.description.isBlank() ? selectedNode.description : 'Hoàn thiện kỹ năng này để tiến gần hơn tới mục tiêu nghề nghiệp và mở khoá các node tiếp theo trong roadmap.'}">
                     Đóng gói ứng dụng vào container.
                 </p>
@@ -118,11 +118,11 @@
                     <span>Ước tính <span th:text="${estimateText}">~3 tuần</span></span>
                 </div>
 
-                <div class="mt-32">
-                    <h3 class="text-[18px] font-extrabold text-[#d7deea]">📚 Tài nguyên học (tối thiểu 2 link — FR2.3)</h3>
+                <div class="mt-10">
+                    <h3 class="text-[15px] font-extrabold text-[#d7deea]">📚 Tài nguyên học (tối thiểu 2 link — FR2.3)</h3>
                     <div class="mt-6 space-y-4" th:if="${selectedNode.resources != null and !selectedNode.resources.isEmpty()}">
                         <a th:each="res : ${selectedNode.resources}"
-                           class="flex min-h-[68px] items-center gap-3 rounded-lg bg-[#0f172a] px-6 text-[17px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"
+                           class="flex min-h-[44px] items-center gap-3 rounded-lg bg-[#0f172a] px-6 text-[14px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"
                            th:href="${res.url}" target="_blank" rel="noopener noreferrer">
                             <span th:switch="${res.type}">
                                 <span th:case="'VIDEO'">▶</span>
@@ -137,13 +137,13 @@
                        class="mt-6 text-[15px] text-[#5a6b85]">Chưa có tài liệu học cho node này.</p>
                 </div>
 
-                <form class="mt-28" th:action="@{/roadmap/progress}" method="post">
+                <form class="mt-8" th:action="@{/roadmap/progress}" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
                     <input type="hidden" name="templateId" th:value="${roadmap.template.id}">
                     <input type="hidden" name="status" th:value="${selectedNode.status.name() == 'DONE' ? 'IN_PROGRESS' : 'DONE'}">
                     <button type="submit"
-                            class="w-full rounded-lg bg-[#3b82f6] px-6 py-4 text-[20px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]"
+                            class="w-full rounded-lg bg-[#3b82f6] px-6 py-4 text-[16px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]"
                             th:text="${selectedNode.status.name() == 'DONE' ? '↻ Đánh dấu đang học' : '✓ Đánh dấu hoàn thành'}">
                         ✓ Đánh dấu hoàn thành
                     </button>
