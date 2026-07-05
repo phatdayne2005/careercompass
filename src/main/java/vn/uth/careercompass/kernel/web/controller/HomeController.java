@@ -47,7 +47,6 @@ public class HomeController {
             return "redirect:/onboarding/step1";
         }
 
-        model.addAttribute("email", authentication.getName());
-        return "home";
+        return "redirect:/dashboard";
     }
 }

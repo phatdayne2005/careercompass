@@ -14,7 +14,7 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <!-- Thư viện HTMX toàn cục -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
                 }
             }
         }
-        
+
         // Tự động gán CSRF Token vào request header của HTMX
         document.addEventListener('htmx:configRequest', (event) => {
             const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
@@ -54,7 +54,7 @@
         </a>
 
         <div class="hidden lg:flex items-center gap-11 text-[20px] font-semibold text-[#95a1b3]">
-            <a th:href="@{/}" class="transition hover:text-slate-100"
+            <a th:href="@{/dashboard}" class="transition hover:text-slate-100"
                th:classappend="${active == 'dashboard'} ? ' text-slate-100' : ''">Dashboard</a>
             <a href="#" class="transition hover:text-slate-100">AI Mentor</a>
             <a th:href="@{/roadmap}" class="flex items-center gap-4 transition hover:text-slate-100"
@@ -67,7 +67,11 @@
                 <span th:if="${active == 'skill-gap'}" class="w-3.5 h-3.5 rounded-full bg-[#98a7bd]"></span>
                 <span>Skill Gap</span>
             </a>
-            <a href="#" class="transition hover:text-slate-100">Market Pulse</a>
+            <a th:href="@{/market/pulse}"
+               class="transition hover:text-slate-100"
+               th:classappend="${active == 'market'} ? ' text-slate-100' : ''">
+                Market Pulse
+            </a>
             <a th:href="@{/portfolio/manage}" class="transition hover:text-slate-100">E-Portfolio</a>
         </div>
 
