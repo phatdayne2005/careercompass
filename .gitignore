@@ -68,3 +68,12 @@ CLAUDE.md
 # Runtime artifacts (PDF report, transcript upload)
 reports/
 uploads/
+
+# Dọn repo: ảnh thiết kế / render / script thử nghiệm (giữ local, không đưa lên repo)
+figmaDesign/
+codex-docx-render/
+scratch_script.py
+remix_context.json
+
+# Tài liệu thay đổi nội bộ (bản docx đưa cho team, không push)
+CareerCompass-ThayDoi-TichHop.docx
