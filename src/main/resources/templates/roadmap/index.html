@@ -14,9 +14,6 @@
                     Dynamic Roadmap — Skill Tree
                 </h1>
             </div>
-            <p class="mt-2 text-[15px] font-medium text-[#7f8ba0]">
-                FR2.2 skill tree phân cấp theo thứ tự ưu tiên · FR2.3 ≥2 link học mỗi node · FR2.4 mark complete + cập nhật tiến độ
-            </p>
         </div>
 
         <form th:if="${templates != null and !templates.isEmpty()}" method="get" th:action="@{/roadmap}" class="w-full max-w-sm">
@@ -93,7 +90,7 @@
             </div>
 
             <p class="lg:col-span-3 mt-10 text-[15px] font-medium text-[#637188]">
-                Skill Tree phân cấp — hoàn thành node ở tầng trước để mở khoá tầng sau (FR2.2)
+                Hoàn thành node ở tầng trước để mở khoá tầng sau.
             </p>
         </div>
 
@@ -120,7 +117,7 @@
                 </div>
 
                 <div class="mt-10">
-                    <h3 class="text-[15px] font-extrabold text-[#d7deea]">📚 Tài nguyên học (tối thiểu 2 link — FR2.3)</h3>
+                    <h3 class="text-[15px] font-extrabold text-[#d7deea]">📚 Tài nguyên học</h3>
                     <div class="mt-6 space-y-4" th:if="${selectedNode.resources != null and !selectedNode.resources.isEmpty()}">
                         <a th:each="res : ${selectedNode.resources}"
                            class="flex min-h-[44px] items-center gap-3 rounded-lg bg-[#0f172a] px-6 text-[14px] font-bold text-[#3b82f6] transition hover:bg-[#13203a]"

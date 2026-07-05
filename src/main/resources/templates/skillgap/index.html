@@ -14,9 +14,6 @@
                     Skill Gap Analysis
                 </h1>
             </div>
-            <p class="mt-2 text-[15px] font-medium text-[#7f8ba0]">
-                FR3.1 nhập/chọn kỹ năng hiện có · FR3.2 so khớp với yêu cầu Target Role · FR3.3 báo cáo trực quan + Export PDF
-            </p>
         </div>
 
         <form th:action="@{/skill-gap/reports}" method="post" class="flex flex-col gap-3 sm:flex-row">
@@ -35,7 +32,7 @@
 
     <section class="mt-[72px] grid gap-10 xl:grid-cols-[minmax(300px,525px)_minmax(420px,710px)_minmax(300px,473px)]">
         <article class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[17px] font-extrabold text-[#d7deea]">Kỹ năng hiện có (FR3.1)</h2>
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">Kỹ năng hiện có</h2>
 
             <form th:action="@{/skill-gap/skills}" method="post" class="mt-7">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -95,7 +92,7 @@
         </article>
 
         <aside class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[17px] font-extrabold text-[#d7deea]">🔥 Ưu tiên học gấp (FR3.3)</h2>
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">🔥 Ưu tiên học gấp</h2>
 
             <ol class="mt-[72px] space-y-7 text-[16px] font-semibold text-[#d7deea]">
                 <li th:each="skill, iter : ${result.missingSkills}" class="grid grid-cols-[28px_minmax(0,1fr)_auto] gap-3">
@@ -132,7 +129,7 @@
             </div>
 
             <p class="mt-10 text-[16px] font-medium text-[#7f8ba0]">
-                Báo cáo có thể xuất PDF để nộp / lưu hồ sơ (FR3.3)
+                Báo cáo có thể xuất PDF để nộp / lưu hồ sơ
             </p>
         </aside>
     </section>
