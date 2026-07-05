@@ -44,6 +44,10 @@ public class User {
     private String transcriptPath;
     private Double gpa;
 
+    /** Tóm tắt AI phân tích bảng điểm/CV (FR1.3) — cá nhân hoá Mentor + hiện ở Profile. */
+    @Column(name = "transcript_summary", columnDefinition = "TEXT")
+    private String transcriptSummary;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "career_role_id")
     private CareerRole careerRole;

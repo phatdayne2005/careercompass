@@ -14,6 +14,7 @@ import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
 import vn.uth.careercompass.kernel.service.UserProfileService;
 import vn.uth.careercompass.onboarding.service.OnboardingService;
+import vn.uth.careercompass.onboarding.service.TranscriptAnalysisService;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -29,6 +30,7 @@ public class OnboardingController {
     private final AuthenticatedUserService authenticatedUserService;
     private final UserProfileService userProfileService;
     private final OnboardingService onboardingService;
+    private final TranscriptAnalysisService transcriptAnalysisService;
     private final CareerRoleRepository careerRoleRepository;
     private final SkillRepository skillRepository;
 
@@ -104,6 +106,11 @@ public class OnboardingController {
             try {
                 String savedPath = onboardingService.saveTranscript(user, transcriptFile);
                 userProfileService.storeTranscript(user, savedPath, null);
+                // Scan CV: AI phân tích bảng điểm (FR1.3) — không chặn upload nếu lỗi/không đọc được
+                String summary = transcriptAnalysisService.analyze(java.nio.file.Path.of(savedPath));
+                if (summary != null) {
+                    userProfileService.storeTranscriptSummary(user, summary);
+                }
             } catch (Exception e) {
                 redirectAttributes.addFlashAttribute("error", "Lỗi khi tải lên bảng điểm: " + e.getMessage());
                 return "redirect:/onboarding/step2";

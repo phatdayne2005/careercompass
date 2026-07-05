@@ -40,6 +40,24 @@
             </button>
         </form>
     </div>
+
+    <!-- Bảng điểm — AI phân tích (FR1.3) -->
+    <div class="bg-[#1E293B] rounded-xl p-6">
+        <h2 class="text-lg font-semibold mb-4">Bảng điểm &amp; Phân tích AI</h2>
+        <p th:if="${user.transcriptPath == null}" class="text-sm text-slate-400">
+            Chưa tải lên bảng điểm — bổ sung ở bước Onboarding để AI phân tích định hướng.
+        </p>
+        <div th:if="${user.transcriptPath != null}">
+            <p class="text-sm text-slate-300 mb-3">✓ Đã tải lên bảng điểm.</p>
+            <div th:if="${user.transcriptSummary != null}" class="rounded-lg bg-[#0F172A] border border-[#334155] p-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-purple-400 block mb-1">🤖 AI phân tích bảng điểm</span>
+                <p class="text-sm text-slate-300 leading-relaxed" th:text="${user.transcriptSummary}">Tóm tắt phân tích...</p>
+            </div>
+            <p th:if="${user.transcriptSummary == null}" class="text-sm text-slate-500">
+                Chưa có phân tích AI (file có thể là ảnh scan không đọc được text).
+            </p>
+        </div>
+    </div>
 </div>
 <meta name="_csrf" th:content="${_csrf.token}">
 

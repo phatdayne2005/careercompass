@@ -51,6 +51,12 @@ public class UserProfileService {
         userRepository.save(user);
     }
 
+    /** Lưu tóm tắt AI của bảng điểm/CV (FR1.3). */
+    public void storeTranscriptSummary(User user, String summary) {
+        user.setTranscriptSummary(summary);
+        userRepository.save(user);
+    }
+
     @Transactional
     public void replaceSkills(User user, List<Long> skillIds) {
         userSkillRepository.deleteByUser(user);

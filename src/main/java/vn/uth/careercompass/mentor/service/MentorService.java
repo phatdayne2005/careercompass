@@ -84,17 +84,22 @@ public class MentorService {
     String targetRoleInfo = (user.getTargetRoleId() != null)
             ? "Role ID #" + user.getTargetRoleId()
             : "chưa chọn định hướng nghề nghiệp";
+    String transcriptInfo = (user.getTranscriptSummary() != null && !user.getTranscriptSummary().isBlank())
+            ? user.getTranscriptSummary()
+            : "chưa có / chưa phân tích bảng điểm";
 
     return """
         Bạn là mentor tư vấn định hướng nghề nghiệp.
         Hồ sơ học viên:
         - Định hướng nghề nghiệp: %s
         - GitHub: %s
+        - Phân tích bảng điểm (AI): %s
 
         Câu hỏi: %s
         """.formatted(
             targetRoleInfo,
             user.getGithubUsername() != null ? user.getGithubUsername() : "chưa liên kết",
+            transcriptInfo,
             userText
     );
 }
