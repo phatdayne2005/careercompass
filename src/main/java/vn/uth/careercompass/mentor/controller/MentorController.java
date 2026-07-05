@@ -69,7 +69,7 @@ public class MentorController {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Session không tồn tại hoặc không thuộc về bạn"));
 
-        mentorService.sendMessage(session, content);
+        mentorService.sendMessage(user, session, content);
 
         model.addAttribute("messages", mentorService.getMessages(session));
         model.addAttribute("currentSessionId", session.getId());

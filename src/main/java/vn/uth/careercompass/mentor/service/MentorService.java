@@ -1,5 +1,6 @@
 package vn.uth.careercompass.mentor.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import vn.uth.careercompass.mentor.repository.MentorSessionRepository;
 import java.util.List;
 
 @Service
+@Slf4j
 public class MentorService {
 
     private final MentorSessionRepository sessionRepo;
@@ -43,7 +45,7 @@ public class MentorService {
     }
 
     @Transactional
-    public ChatMessage sendMessage(MentorSession session, String userText) {
+    public ChatMessage sendMessage(User user, MentorSession session, String userText) {
         // 0. Đặt tiêu đề session từ câu hỏi đầu tiên (thay cho "Cuộc trò chuyện mới")
         if (session.getTitle() == null || session.getTitle().isBlank()
                 || "Cuộc trò chuyện mới".equals(session.getTitle())) {
@@ -61,8 +63,9 @@ public class MentorService {
         // 2. Dựng prompt cá nhân hoá + gọi LLM (fallback nếu lỗi để không chặn chat)
         String aiReply;
         try {
-            aiReply = llmClient.ask(buildPrompt(session, userText));
+            aiReply = llmClient.ask(buildPrompt(user, userText));
         } catch (Exception e) {
+            log.error("[MentorService] Gọi LLM thất bại: {}", e.toString(), e);
             aiReply = "Xin lỗi, hiện chưa kết nối được AI Mentor (kiểm tra cấu hình GEMINI_API_KEY). "
                     + "Bạn vui lòng thử lại sau.";
         }
@@ -75,9 +78,7 @@ public class MentorService {
         return messageRepo.save(aiMsg);
     }
 
-    private String buildPrompt(MentorSession session, String userText) {
-    User user = session.getUser();
-
+    private String buildPrompt(User user, String userText) {
     // TODO: khi P7 hoàn thành refactor targetRoleId -> CareerRole,
     // đổi dòng dưới thành user.getTargetRole().getName() để lấy tên role dạng chữ
     String targetRoleInfo = (user.getTargetRoleId() != null)

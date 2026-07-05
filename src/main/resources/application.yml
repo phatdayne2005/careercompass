@@ -94,4 +94,5 @@ app:
 
 llm:
   api-key: ${GEMINI_API_KEY}
-  model: gemini-2.5-flash
+  # flash-lite nhẹ hơn -> ít bị 503 "high demand" của free-tier hơn flash thường
+  model: gemini-2.5-flash-lite
