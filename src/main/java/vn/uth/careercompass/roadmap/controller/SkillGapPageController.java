@@ -1,5 +1,6 @@
 package vn.uth.careercompass.roadmap.controller;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -18,8 +19,6 @@ import org.springframework.web.server.ResponseStatusException;
 import vn.uth.careercompass.admin.entity.Skill;
 import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.kernel.entity.User;
-import vn.uth.careercompass.kernel.entity.UserSkill;
-import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
 import vn.uth.careercompass.roadmap.dto.SkillGapReportDTO;
 import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
@@ -32,22 +31,26 @@ import java.nio.file.Path;
 @Controller
 @RequiredArgsConstructor
 public class SkillGapPageController {
+    private static final String SELECTED_TEMPLATE_SESSION_KEY = "selectedRoadmapTemplateId";
+
     private final AuthenticatedUserService authenticatedUserService;
     private final RoadmapService roadmapService;
     private final SkillGapService skillGapService;
     private final PdfService pdfService;
     private final SkillRepository skillRepository;
-    private final UserSkillRepository userSkillRepository;
 
     @GetMapping("/skill-gap")
     public String skillGapPage(
             @RequestParam(required = false) Long templateId,
             @RequestParam(required = false) Boolean reportCreated,
             Authentication authentication,
+            HttpSession session,
             Model model
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        SkillGapResultDTO result = skillGapService.analyze(user, templateId);
+        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);
+        SkillGapResultDTO result = skillGapService.analyze(user, selectedTemplateId);
+        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, result.getTemplate().getId());
         model.addAttribute("activeNav", "skill-gap");
         model.addAttribute("templates", roadmapService.getActiveTemplates());
         model.addAttribute("result", result);
@@ -63,32 +66,25 @@ public class SkillGapPageController {
     public String addSkill(
             @RequestParam Long skillId,
             @RequestParam(required = false) Long templateId,
-            Authentication authentication
+            Authentication authentication,
+            HttpSession session
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        // Chọn từ danh sách kỹ năng có sẵn của hệ thống (không cho gõ tự do -> tránh skill "rác"
-        // không khớp với node roadmap nào).
-        if (skillId != null) {
-            skillRepository.findById(skillId).ifPresent(skill -> {
-                if (!userSkillRepository.existsByUserAndSkill(user, skill)) {
-                    userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());
-                }
-            });
-        }
-        return redirectSkillGap(templateId, false);
+        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);
+        skillGapService.addAcquiredSkill(user, skillId, selectedTemplateId);
+        return redirectSkillGap(selectedTemplateId, false);
     }
 
-    /**
-     * "Export PDF": tạo báo cáo + TẢI THẲNG file PDF luôn (đảm bảo luôn là PDF hợp lệ, vừa sinh).
-     * Báo cáo cũng được lưu vào lịch sử (hiện ở cột phải khi tải lại trang).
-     */
     @PostMapping("/skill-gap/reports")
     public ResponseEntity<Resource> createReport(
             @RequestParam(required = false) Long templateId,
-            Authentication authentication
+            Authentication authentication,
+            HttpSession session
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        SkillGapResultDTO result = skillGapService.analyze(user, templateId);
+        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);
+        SkillGapResultDTO result = skillGapService.analyze(user, selectedTemplateId);
+        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, result.getTemplate().getId());
         String pdfPath = pdfService.generateSkillGapReport(user, result);
         SkillGapReportDTO saved = skillGapService.saveReport(user, result, pdfPath);
         Resource resource = new FileSystemResource(Path.of(pdfPath));
@@ -102,7 +98,7 @@ public class SkillGapPageController {
     @GetMapping("/skill-gap/reports/{id}/download")
     public ResponseEntity<Resource> downloadReport(@PathVariable Long id, Authentication authentication) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        SkillGapReportDTO report = skillGapService.getReport(user, id);   // đã kiểm report thuộc về user
+        SkillGapReportDTO report = skillGapService.getReport(user, id);
         Resource resource = new FileSystemResource(Path.of(report.getPdfPath()));
         if (!resource.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy file báo cáo");
@@ -124,5 +120,14 @@ public class SkillGapPageController {
             redirect += hasQuery ? "&reportCreated=true" : "?reportCreated=true";
         }
         return redirect;
+    }
+
+    private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {
+        if (templateId != null) {
+            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);
+            return templateId;
+        }
+        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);
+        return selected instanceof Long id ? id : null;
     }
 }

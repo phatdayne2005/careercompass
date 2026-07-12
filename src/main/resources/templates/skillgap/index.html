@@ -16,22 +16,37 @@
             </div>
         </div>
 
-        <form th:action="@{/skill-gap/reports}" method="post" class="flex flex-col gap-3 sm:flex-row">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <input type="hidden" name="templateId" th:value="${result.template.id}">
-            <button type="submit"
-                    class="rounded-lg bg-[#3b82f6] px-9 py-4 text-[15px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]">
-                ⬇️ Export PDF
-            </button>
-        </form>
+        <div class="flex w-full flex-col gap-3 sm:w-auto sm:min-w-[360px]">
+            <form th:if="${templates != null and !templates.isEmpty()}" method="get" th:action="@{/skill-gap}">
+                <label for="templateId" class="sr-only">Chọn roadmap</label>
+                <select id="templateId" name="templateId" onchange="this.form.submit()"
+                        class="w-full rounded-lg border border-[#334155] bg-[#1e293b] px-4 py-3 text-sm font-semibold text-[#d7deea] outline-none transition focus:border-[#8b5cf6]">
+                    <option th:each="template : ${templates}"
+                            th:value="${template.id}"
+                            th:text="${template.name}"
+                            th:selected="${result.template != null and template.id == result.template.id}">
+                        Backend Developer Roadmap
+                    </option>
+                </select>
+            </form>
+
+            <form th:action="@{/skill-gap/reports}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="templateId" th:value="${result.template.id}">
+                <button type="submit"
+                        class="w-full rounded-lg bg-[#3b82f6] px-9 py-4 text-[15px] font-extrabold text-white shadow-lg shadow-blue-500/20 transition hover:bg-[#2563eb]">
+                    Export PDF
+                </button>
+            </form>
+        </div>
     </section>
 
     <div th:if="${reportCreated}" class="mt-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-4 text-sm font-semibold text-emerald-200">
-        Đã tạo báo cáo skill gap mới. Bạn có thể xem lịch sử báo cáo ở cột bên phải.
+        Đã tạo báo cáo skill gap mới.
     </div>
 
-    <section class="mt-[72px] grid gap-10 xl:grid-cols-[minmax(300px,525px)_minmax(420px,710px)_minmax(300px,473px)]">
-        <article class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
+    <section class="mt-10 grid gap-8 xl:grid-cols-[minmax(280px,420px)_minmax(420px,1fr)_minmax(280px,400px)]">
+        <article class="min-h-[640px] rounded-[18px] bg-[#1e293b] p-8">
             <h2 class="text-[17px] font-extrabold text-[#d7deea]">Kỹ năng hiện có</h2>
 
             <form th:action="@{/skill-gap/skills}" method="post" class="mt-7">
@@ -52,62 +67,70 @@
 
             <ul class="mt-10 space-y-2 text-[16px] font-semibold text-[#5cda91]">
                 <li th:each="skill : ${currentSkills}" class="flex items-center gap-3">
-                    <span>✓</span>
+                    <span class="h-2 w-2 rounded-full bg-[#5cda91]"></span>
                     <span th:text="${skill.name}">Java</span>
                 </li>
                 <li th:if="${currentSkills == null or currentSkills.isEmpty()}" class="text-[#8b98ad]">
-                    Chưa có kỹ năng nào. Hãy thêm kỹ năng để phân tích khoảng cách.
+                    Chưa có kỹ năng nào.
                 </li>
             </ul>
         </article>
 
-        <article class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
+        <article class="min-h-[640px] rounded-[18px] bg-[#1e293b] p-8">
             <h2 class="text-[17px] font-extrabold text-[#d7deea]">
-                So khớp với mục tiêu:
+                So khớp với:
                 <span th:text="${result.template.name}">DevOps Engineer</span>
             </h2>
 
-            <div class="mt-[72px] space-y-1">
-                <div th:each="skill : ${result.matchedSkills}" class="grid grid-cols-[minmax(0,1fr)_minmax(120px,1.5fr)_64px_28px] items-center gap-4">
-                    <span class="text-[16px] font-semibold text-[#d7deea]" th:text="${skill.name}">Linux</span>
-                    <div class="h-[22px] bg-[#173152]">
-                        <div class="h-full w-full bg-[#3b82f6]"></div>
-                    </div>
-                    <span class="justify-self-end text-[17px] font-semibold text-[#3b82f6]">100%</span>
-                    <span class="justify-self-center text-[#3b82f6]">✓</span>
+            <div class="mt-8 grid grid-cols-3 gap-4">
+                <div class="rounded-lg bg-[#0f172a] px-4 py-3">
+                    <p class="text-xs font-semibold uppercase text-[#7f8ba0]">Yêu cầu</p>
+                    <p class="mt-1 text-2xl font-extrabold text-[#e6ebf5]" th:text="${result.requiredSkillCount}">0</p>
                 </div>
-
-                <div th:each="skill : ${result.missingSkills}" class="grid grid-cols-[minmax(0,1fr)_minmax(120px,1.5fr)_64px_28px] items-center gap-4">
-                    <span class="text-[16px] font-semibold text-[#d7deea]" th:text="${skill.name}">Docker</span>
-                    <div class="h-[22px] bg-[repeating-linear-gradient(90deg,#163253_0,#163253_2px,#1d3b60_2px,#1d3b60_4px)]"></div>
-                    <span class="justify-self-end text-[17px] font-semibold text-[#3b82f6]">0%</span>
-                    <span class="justify-self-center text-[#8b98ad]">×</span>
+                <div class="rounded-lg bg-[#0f172a] px-4 py-3">
+                    <p class="text-xs font-semibold uppercase text-[#7f8ba0]">Đã có</p>
+                    <p class="mt-1 text-2xl font-extrabold text-[#5cda91]" th:text="${result.matchedSkillCount}">0</p>
+                </div>
+                <div class="rounded-lg bg-[#0f172a] px-4 py-3">
+                    <p class="text-xs font-semibold uppercase text-[#7f8ba0]">Còn thiếu</p>
+                    <p class="mt-1 text-2xl font-extrabold text-[#fbbf24]" th:text="${result.missingSkillCount}">0</p>
                 </div>
             </div>
 
-            <div class="mt-40 text-[15px] font-semibold text-[#7f8ba0]">
-                <p>■ Mức bạn đạt · ▦ Còn thiếu · ▲ Ưu tiên · × Chưa học</p>
-                <p>So sánh: kỹ năng hiện có ↔ yêu cầu của <span th:text="${result.template.name}">roadmap</span></p>
+            <div class="mt-8 h-3 overflow-hidden rounded-full bg-[#334155]">
+                <div class="h-full rounded-full bg-[#3b82f6]"
+                     th:style="${'width:' + result.matchPercent + '%'}"></div>
+            </div>
+            <p class="mt-2 text-sm font-semibold text-[#8b98ad]">
+                Mức khớp <span th:text="${#numbers.formatDecimal(result.matchPercent, 0, 0)}">0</span>%
+            </p>
+
+            <div class="mt-9 space-y-3">
+                <div th:each="skill : ${result.matchedSkills}" class="grid grid-cols-[minmax(0,1fr)_64px_28px] items-center gap-4">
+                    <span class="text-[15px] font-semibold text-[#d7deea]" th:text="${skill.name}">Linux</span>
+                    <span class="justify-self-end text-sm font-semibold text-[#3b82f6]">100%</span>
+                    <span class="h-2.5 w-2.5 justify-self-center rounded-full bg-[#3b82f6]"></span>
+                </div>
+                <div th:each="skill : ${result.missingSkills}" class="grid grid-cols-[minmax(0,1fr)_64px_28px] items-center gap-4">
+                    <span class="text-[15px] font-semibold text-[#d7deea]" th:text="${skill.name}">Docker</span>
+                    <span class="justify-self-end text-sm font-semibold text-[#7f8ba0]">0%</span>
+                    <span class="h-2.5 w-2.5 justify-self-center rounded-full bg-[#475569]"></span>
+                </div>
             </div>
         </article>
 
-        <aside class="min-h-[720px] rounded-[18px] bg-[#1e293b] p-8">
-            <h2 class="text-[17px] font-extrabold text-[#d7deea]">🔥 Ưu tiên học gấp</h2>
+        <aside class="min-h-[640px] rounded-[18px] bg-[#1e293b] p-8">
+            <h2 class="text-[17px] font-extrabold text-[#d7deea]">Ưu tiên học</h2>
 
-            <ol class="mt-[72px] space-y-7 text-[16px] font-semibold text-[#d7deea]">
+            <ol class="mt-8 space-y-5 text-[15px] font-semibold text-[#d7deea]">
                 <li th:each="skill, iter : ${result.missingSkills}" class="grid grid-cols-[28px_minmax(0,1fr)_auto] gap-3">
                     <span th:text="${iter.index + 1 + '.'}">1.</span>
-                    <div>
-                        <p th:text="${skill.name}">Docker</p>
-                        <p class="mt-1 text-[15px] text-[#d7deea]" th:text="${iter.index == 0 ? 'Nền tảng, khoảng cách lớn' : (iter.index == 1 ? 'Phụ thuộc node trước' : 'Bổ sung để hoàn thiện roadmap')}">
-                            Nền tảng, khoảng cách lớn
-                        </p>
-                    </div>
-                    <span class="whitespace-nowrap text-[15px]"
-                          th:text="${iter.index == 0 ? '🔴 GẤP' : (iter.index < 3 ? '🟠 CAO' : '🟡 TB')}">🔴 GẤP</span>
+                    <span th:text="${skill.name}">Docker</span>
+                    <span class="whitespace-nowrap text-xs text-[#fbbf24]"
+                          th:text="${iter.index == 0 ? 'GAP' : (iter.index < 3 ? 'CAO' : 'TB')}">GAP</span>
                 </li>
                 <li th:if="${result.missingSkills == null or result.missingSkills.isEmpty()}" class="text-[#5cda91]">
-                    Bạn đã khớp toàn bộ kỹ năng trong roadmap này.
+                    Đã khớp toàn bộ kỹ năng.
                 </li>
             </ol>
 
@@ -120,17 +143,13 @@
                             <span class="ml-2 text-xs text-[#5a6b85]" th:text="${#temporals.format(report.createdAt, 'dd/MM HH:mm')}">04/07</span>
                         </span>
                         <a th:href="@{'/skill-gap/reports/' + ${report.id} + '/download'}"
-                           class="shrink-0 rounded-md bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2563eb] transition">
-                            ⬇️ PDF
+                           class="shrink-0 rounded-md bg-[#3B82F6] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#2563eb]">
+                            PDF
                         </a>
                     </li>
                     <li th:if="${reports == null or reports.isEmpty()}">Chưa có báo cáo nào.</li>
                 </ul>
             </div>
-
-            <p class="mt-10 text-[16px] font-medium text-[#7f8ba0]">
-                Báo cáo có thể xuất PDF để nộp / lưu hồ sơ
-            </p>
         </aside>
     </section>
 </main>

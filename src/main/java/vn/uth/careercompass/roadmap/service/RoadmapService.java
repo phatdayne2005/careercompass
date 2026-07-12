@@ -71,7 +71,8 @@ public class RoadmapService {
                 .allMatch(n -> ProgressStatus.DONE.equals(n.getStatus()));
         nodeDTOs.forEach(n -> {
             int t = n.getTier() == null ? 1 : n.getTier();
-            n.setLocked((t == 2 && !tier1Done) || (t >= 3 && !(tier1Done && tier2Done)));
+            boolean completed = ProgressStatus.DONE.equals(n.getStatus());
+            n.setLocked(!completed && ((t == 2 && !tier1Done) || (t >= 3 && !(tier1Done && tier2Done))));
         });
 
         int completedNodes = (int) nodeDTOs.stream()

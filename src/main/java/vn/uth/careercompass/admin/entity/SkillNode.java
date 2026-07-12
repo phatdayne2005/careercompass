@@ -67,4 +67,8 @@ public class SkillNode {
     @Column(nullable = false)
     @Builder.Default
     private Integer requiredLevel = 1;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean customNode = false;
 }

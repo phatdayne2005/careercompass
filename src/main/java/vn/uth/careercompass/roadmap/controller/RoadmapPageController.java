@@ -1,5 +1,6 @@
 package vn.uth.careercompass.roadmap.controller;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,8 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 public class RoadmapPageController {
+    private static final String SELECTED_TEMPLATE_SESSION_KEY = "selectedRoadmapTemplateId";
+
     private final RoadmapService roadmapService;
     private final ProgressService progressService;
     private final AuthenticatedUserService authenticatedUserService;
@@ -29,10 +32,14 @@ public class RoadmapPageController {
             @RequestParam(required = false) Long templateId,
             @RequestParam(required = false) Long nodeId,
             Authentication authentication,
+            HttpSession session,
             Model model
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, templateId);
+        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);
+        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, selectedTemplateId);
+        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, roadmap.getTemplate().getId());
+
         RoadmapNodeDTO selectedNode = selectNode(roadmap.getNodes(), nodeId);
 
         model.addAttribute("activeNav", "roadmap");
@@ -43,7 +50,7 @@ public class RoadmapPageController {
         model.addAttribute("tier2Nodes", filterByTier(roadmap.getNodes(), 2));
         model.addAttribute("tier3Nodes", filterByTier(roadmap.getNodes(), 3));
         model.addAttribute("estimateText", estimateFor(selectedNode));
-        model.addAttribute("prerequisiteText", prerequisiteFor(roadmap.getNodes(), selectedNode));
+        model.addAttribute("prerequisiteText", prerequisiteFor(selectedNode));
         return "roadmap/index";
     }
 
@@ -52,15 +59,28 @@ public class RoadmapPageController {
             @RequestParam Long skillNodeId,
             @RequestParam ProgressStatus status,
             @RequestParam(required = false) Long templateId,
-            Authentication authentication
+            Authentication authentication,
+            HttpSession session
     ) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
         progressService.updateProgress(user, skillNodeId, status);
+        if (templateId != null) {
+            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);
+        }
         String redirect = "redirect:/roadmap?nodeId=" + skillNodeId;
         if (templateId != null) {
             redirect += "&templateId=" + templateId;
         }
         return redirect;
+    }
+
+    private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {
+        if (templateId != null) {
+            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);
+            return templateId;
+        }
+        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);
+        return selected instanceof Long id ? id : null;
     }
 
     private RoadmapNodeDTO selectNode(List<RoadmapNodeDTO> nodes, Long nodeId) {
@@ -86,7 +106,7 @@ public class RoadmapPageController {
                 .toList();
     }
 
-    private String prerequisiteFor(List<RoadmapNodeDTO> nodes, RoadmapNodeDTO selectedNode) {
+    private String prerequisiteFor(RoadmapNodeDTO selectedNode) {
         if (selectedNode == null || selectedNode.getTier() == null) {
             return "Không có";
         }

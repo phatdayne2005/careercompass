@@ -9,6 +9,7 @@ import vn.uth.careercompass.admin.entity.Skill;
 import vn.uth.careercompass.admin.entity.SkillNode;
 import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.entity.UserSkill;
 import vn.uth.careercompass.kernel.repository.UserSkillRepository;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class SkillGapService {
     private final RoadmapService roadmapService;
     private final SkillNodeRepository skillNodeRepository;
+    private final SkillRepository skillRepository;
     private final UserSkillRepository userSkillRepository;
     private final SkillGapReportRepository skillGapReportRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
@@ -47,8 +49,6 @@ public class SkillGapService {
                 .map(SkillNode::getSkill)
                 .collect(Collectors.toMap(Skill::getId, skill -> skill, (left, right) -> left, LinkedHashMap::new));
 
-        // "Đã có kỹ năng" = kỹ năng user tự khai (UserSkill) HOẶC đã hoàn thành node tương ứng
-        // trong Roadmap (UserNodeProgress DONE). -> Skill Gap khớp với tiến độ Roadmap (không còn rời rạc).
         Set<Long> acquiredSkillIds = new HashSet<>();
         userSkillRepository.findByUser(user).stream()
                 .map(UserSkill::getSkill)
@@ -81,10 +81,6 @@ public class SkillGapService {
                 .build();
     }
 
-    /**
-     * "Kỹ năng hiện có" của user = kỹ năng tự khai (UserSkill, gồm chọn ở onboarding)
-     * + kỹ năng đã HOÀN THÀNH node trong Roadmap. Dùng cho cột trái trang Skill Gap.
-     */
     @Transactional(readOnly = true)
     public List<SkillSummaryDTO> getAcquiredSkills(User user) {
         Map<Long, SkillSummaryDTO> byId = new LinkedHashMap<>();
@@ -96,6 +92,24 @@ public class SkillGapService {
         return byId.values().stream()
                 .sorted(Comparator.comparing(SkillSummaryDTO::getName))
                 .toList();
+    }
+
+    @Transactional
+    public void addAcquiredSkill(User user, Long skillId, Long templateId) {
+        if (skillId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Thiếu skillId");
+        }
+
+        Skill skill = skillRepository.findById(skillId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy kỹ năng"));
+
+        if (!userSkillRepository.existsByUserAndSkill(user, skill)) {
+            userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());
+        }
+
+        SkillTreeTemplate template = roadmapService.resolveTemplate(user, templateId);
+        skillNodeRepository.findByTemplate_IdAndSkill_Id(template.getId(), skill.getId())
+                .orElseGet(() -> createSupplementalRoadmapNode(template, skill));
     }
 
     @Transactional
@@ -137,6 +151,25 @@ public class SkillGapService {
                 .name(skill.getName())
                 .category(skill.getCategory())
                 .build();
+    }
+
+    private SkillNode createSupplementalRoadmapNode(SkillTreeTemplate template, Skill skill) {
+        return skillNodeRepository.save(SkillNode.builder()
+                .template(template)
+                .skill(skill)
+                .title(skill.getName())
+                .description("Kỹ năng bổ sung từ Skill Gap.")
+                .tier(1)
+                .orderIndex(nextOrderIndex(template.getId()))
+                .requiredLevel(1)
+                .customNode(true)
+                .build());
+    }
+
+    private int nextOrderIndex(Long templateId) {
+        return skillNodeRepository.findTopByTemplate_IdOrderByOrderIndexDesc(templateId)
+                .map(node -> node.getOrderIndex() == null ? 1 : node.getOrderIndex() + 1)
+                .orElse(0);
     }
 
     private String buildSummary(SkillGapResultDTO result) {

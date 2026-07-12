@@ -13,6 +13,10 @@ import java.util.Optional;
 public interface SkillNodeRepository extends JpaRepository<SkillNode, Long> {
     List<SkillNode> findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(Long templateId);
 
+    Optional<SkillNode> findByTemplate_IdAndSkill_Id(Long templateId, Long skillId);
+
+    Optional<SkillNode> findTopByTemplate_IdOrderByOrderIndexDesc(Long templateId);
+
     @Query("SELECT sn FROM SkillNode sn LEFT JOIN FETCH sn.template LEFT JOIN FETCH sn.skill LEFT JOIN FETCH sn.parent WHERE sn.id = :id")
     Optional<SkillNode> findByIdWithRelations(@Param("id") Long id);
 
