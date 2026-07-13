@@ -12,6 +12,7 @@ import vn.uth.careercompass.admin.repository.LearningResourceRepository;
 import vn.uth.careercompass.admin.repository.SkillNodeRepository;
 import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
 import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 import vn.uth.careercompass.roadmap.dto.RoadmapNodeDTO;
 import vn.uth.careercompass.roadmap.dto.RoadmapResourceDTO;
 import vn.uth.careercompass.roadmap.dto.RoadmapTemplateDTO;
@@ -33,6 +34,7 @@ public class RoadmapService {
     private final SkillNodeRepository skillNodeRepository;
     private final UserNodeProgressRepository userNodeProgressRepository;
     private final LearningResourceRepository learningResourceRepository;
+    private final UserSkillRepository userSkillRepository;
 
     @Transactional(readOnly = true)
     public List<RoadmapTemplateDTO> getActiveTemplates() {
@@ -62,6 +64,16 @@ public class RoadmapService {
                 .map(node -> toNodeDTO(node, progressByNodeId.get(node.getId()),
                         resourcesByNodeId.getOrDefault(node.getId(), List.of())))
                 .toList();
+
+        // Skill user đã khai ở Onboarding (UserSkill) -> node tương ứng hiện ĐÃ HỌC (DONE), kể cả khi
+        // chưa bấm đánh dấu. Chỉ áp cho node CHƯA có bản ghi tiến độ (NOT_STARTED) để không đè thao tác
+        // user tự đánh dấu. -> Roadmap khớp với lựa chọn onboarding (giống Skill Gap).
+        Set<Long> acquiredSkillIds = userSkillRepository.findByUserWithSkill(user).stream()
+                .map(us -> us.getSkill().getId())
+                .collect(Collectors.toSet());
+        nodeDTOs.stream()
+                .filter(n -> ProgressStatus.NOT_STARTED.equals(n.getStatus()) && acquiredSkillIds.contains(n.getSkillId()))
+                .forEach(n -> n.setStatus(ProgressStatus.DONE));
 
         // Gating theo tier: tầng 2 mở khi tầng 1 xong hết; tầng 3 mở khi tầng 1+2 xong hết.
         // (allMatch trên stream rỗng trả true → tầng không có node coi như đã "xong", không chặn tầng sau.)
