@@ -77,3 +77,10 @@ remix_context.json
 
 # Tài liệu thay đổi nội bộ (bản docx đưa cho team, không push)
 CareerCompass-ThayDoi-TichHop.docx
+
+# File bảng điểm mẫu để test transcript (không push)
+bang-diem-mau.pdf
+
+# Checklist P1 (deliverable, không push)
+P1-Checklist-ChucNang.docx
+P1-Checklist-va-Demo.docx

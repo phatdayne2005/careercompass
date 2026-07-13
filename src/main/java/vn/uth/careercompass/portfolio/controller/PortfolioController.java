@@ -63,6 +63,9 @@ public class PortfolioController {
             ra.addFlashAttribute("message", "Đã đồng bộ " + repos.size() + " repository từ GitHub.");
         } catch (IllegalArgumentException | IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Không để crash 500 khi vướng ràng buộc dữ liệu (vd DB cũ còn unique tàn dư trên github_username)
+            ra.addFlashAttribute("error", "Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác.");
         }
         return "redirect:/portfolio/manage";
     }
