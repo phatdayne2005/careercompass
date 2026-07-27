@@ -1,0 +1,5038 @@
+{
+  "info": {
+    "_postman_id": "c1a2b3d4-5e6f-4a7b-8c9d-careercompass01",
+    "name": "CareerCompass API (SU26SWP02)",
+    "description": "# CareerCompass — REST API Collection\n\nBộ sưu tập Postman mô tả **toàn bộ endpoint HTTP** của hệ thống **CareerCompass**\n(*Personalized Career Orientation & Learning Roadmap Platform for Software Engineering Students* — SU26SWP02).\n\n- **Công nghệ:** Spring Boot 4.1 · Spring Security (form login + Google OAuth2) · Spring Data JPA / MySQL · Thymeleaf + HTMX\n- **Base URL mặc định:** `http://localhost:8080`\n- **Tài liệu đặc tả:** `SRS-CareerCompass-v1.0.md`\n\n## 1. Kiểu endpoint\n\n| Nhóm | Kiểu | Định dạng phản hồi |\n|---|---|---|\n| `/api/roadmap/**`, `/api/skill-gap/**` | REST API thuần (`@RestController`) | `application/json` |\n| Các endpoint còn lại | MVC (`@Controller`) | `text/html` (trang đầy đủ, fragment HTMX) hoặc `302 Redirect`, `application/pdf` |\n\n## 2. Cơ chế xác thực\n\nHệ thống dùng **session cookie (`JSESSIONID`) + CSRF token**, KHÔNG dùng JWT.\n\nThứ tự chạy bắt buộc:\n\n1. `TC-AUTH-01` — `GET /login` → script tự lưu `{{csrfToken}}`\n2. `TC-AUTH-02` — `POST /login` → nhận `JSESSIONID` (Postman tự quản lý cookie)\n3. `TC-AUTH-04` — `GET /dashboard` → **làm mới** `{{csrfToken}}` (session đổi sau khi đăng nhập)\n4. Chạy các thư mục nghiệp vụ 01 → 11\n\n> **Script cấp collection** tự động trích `_csrf` từ mọi phản hồi HTML và cập nhật biến `{{csrfToken}}`,\n> nên bạn không cần copy token thủ công.\n\n## 3. Tài khoản seed (môi trường dev)\n\n| Vai trò | Email | Mật khẩu |\n|---|---|---|\n| ADMIN | `admin@gmail.com` | `123456` |\n| STUDENT | `student@gmail.com` | `123456` |\n| COUNSELOR | `counselor@gmail.com` | `123456` |\n\n## 4. Quy ước đặt tên\n\nMỗi request gắn mã **TC-xxx-nn** để liên kết với **ma trận truy vết** trong tài liệu SRS\n(FR ↔ Use case ↔ API ↔ Test case). Thư mục `11 · Security & Negative` chứa các ca kiểm thử tiêu cực\nvà kiểm thử phân quyền.\n\n## 5. Chạy tự động\n\n```bash\nnewman run CareerCompass.postman_collection.json -e CareerCompass.postman_environment.json\n```",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 · Auth & Session",
+      "description": "Đăng ký · Đăng nhập · CSRF · Quên mật khẩu · Đăng xuất. **Chạy thư mục này đầu tiên.** (FR6.1)",
+      "item": [
+        {
+          "name": "TC-AUTH-01 · GET /login — Mở trang đăng nhập & lấy CSRF token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-01**\n\nBước BẮT BUỘC đầu tiên. Trang login trả về `<meta name=\"_csrf\">`; script test cấp collection tự bắt token và lưu vào biến `{{csrfToken}}`.\n\n**FR:** FR6.1 · **Ghi chú:** Spring Security bật CSRF mặc định, mọi POST/DELETE đều cần token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trang đăng nhập trả về 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"HTML có chứa CSRF token\", function () {",
+                  "    pm.expect(pm.response.text()).to.match(/name=\"_csrf\"/);",
+                  "});",
+                  "pm.test(\"Biến csrfToken đã được lưu\", function () {",
+                  "    pm.expect(pm.collectionVariables.get(\"csrfToken\")).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-02 · POST /login — Đăng nhập STUDENT (happy path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-02**\n\nForm login của Spring Security. Thành công → 302 về `/` (defaultSuccessUrl).\n\n**FR:** FR6.1",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{studentEmail}}",
+                  "type": "text",
+                  "description": "Email đăng nhập (Spring Security dùng tên field `username`)"
+                },
+                {
+                  "key": "password",
+                  "value": "{{studentPassword}}",
+                  "type": "text",
+                  "description": "Mật khẩu"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": "CSRF token lấy từ TC-AUTH-01"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập thành công → 302\", () => pm.response.to.have.status(302));",
+                  "pm.test(\"Không chuyển về /login?error\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});",
+                  "pm.test(\"Server cấp JSESSIONID mới (chống session fixation)\", function () {",
+                  "    pm.expect(pm.cookies.has(\"JSESSIONID\")).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-03 · GET / — Điều hướng theo vai trò sau đăng nhập",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": []
+            },
+            "description": "**TC-AUTH-03**\n\n`HomeController` điều hướng: ADMIN → `/admin`, COUNSELOR → `/counselor/templates`, STUDENT chưa onboarding → `/onboarding/step1`, STUDENT đã onboarding → `/dashboard`."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trả về 302 điều hướng theo vai trò\", () => pm.response.to.have.status(302));",
+                  "pm.test(\"Location thuộc tập đích hợp lệ\", function () {",
+                  "    const loc = pm.response.headers.get(\"Location\") || \"\";",
+                  "    pm.expect([\"/admin\", \"/counselor/templates\", \"/onboarding/step1\", \"/dashboard\"]",
+                  "        .some(p => loc.endsWith(p))).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-04 · GET /dashboard — Làm mới CSRF token sau khi đăng nhập",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "**TC-AUTH-04**\n\nSau khi login, session (và CSRF token) được cấp mới. Gọi request này để script cấp collection cập nhật lại `{{csrfToken}}` trước khi chạy các POST tiếp theo."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trang dashboard 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"csrfToken được làm mới\", function () {",
+                  "    pm.expect(pm.collectionVariables.get(\"csrfToken\")).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-05 · POST /login — Sai mật khẩu (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-05**\n\nKiểm thử luồng thất bại: hệ thống KHÔNG được cấp phiên và phải quay lại `/login?error`.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{studentEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "sai-mat-khau-999",
+                  "type": "text",
+                  "description": "Mật khẩu sai cố ý"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trả về 302 về /login?error\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login?error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-06 · GET /register — Mở trang đăng ký",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "**TC-AUTH-06**\n\n**FR:** FR6.1"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trang đăng ký 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-07 · POST /register — Tạo tài khoản mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "**TC-AUTH-07**\n\nTài khoản mới luôn có vai trò STUDENT, `onboardingCompleted = false`.\n\n**FR:** FR6.1",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "Nguyen Van Test",
+                  "type": "text",
+                  "description": "Bắt buộc, tối đa 100 ký tự"
+                },
+                {
+                  "key": "email",
+                  "value": "test.{{$randomInt}}@gmail.com",
+                  "type": "text",
+                  "description": "Bắt buộc, đúng định dạng email, tối đa 150 ký tự"
+                },
+                {
+                  "key": "password",
+                  "value": "123456",
+                  "type": "text",
+                  "description": "Bắt buộc, 6–30 ký tự"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng ký thành công → 302 /login?registered\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login?registered\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-08 · POST /register — Email đã tồn tại (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "**TC-AUTH-08**\n\nRàng buộc **BR-01**: email là duy nhất. Hệ thống render lại form kèm lỗi (HTTP 200, KHÔNG redirect).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "Trung Lap",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "{{studentEmail}}",
+                  "type": "text",
+                  "description": "Email đã có trong hệ thống"
+                },
+                {
+                  "key": "password",
+                  "value": "123456",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Render lại form đăng ký (200)\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Không tạo tài khoản trùng email\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.be.oneOf([null, undefined]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-09 · POST /register — Mật khẩu < 6 ký tự (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "**TC-AUTH-09**\n\nKiểm thử giá trị biên của Bean Validation `@Size(min = 6, max = 30)`.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "Mat Khau Ngan",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "short.{{$randomInt}}@gmail.com",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "123",
+                  "type": "text",
+                  "description": "Vi phạm @Size(min=6)"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Bị chặn bởi validation, trả lại form 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-10 · GET /forgot — Trang quên mật khẩu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/forgot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forgot"
+              ]
+            },
+            "description": "**TC-AUTH-10**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-11 · POST /forgot — Gửi link đặt lại mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/forgot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forgot"
+              ]
+            },
+            "description": "**TC-AUTH-11**\n\n**BR-02:** phản hồi luôn trung lập (`/forgot?sent`) dù email có tồn tại hay không — tránh lộ thông tin tài khoản (user enumeration).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "{{studentEmail}}",
+                  "type": "text",
+                  "description": "Email tài khoản LOCAL"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Luôn redirect /forgot?sent (thông báo trung lập)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/forgot?sent\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-12 · POST /forgot — Email không tồn tại (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/forgot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forgot"
+              ]
+            },
+            "description": "**TC-AUTH-12**\n\nKết quả PHẢI giống hệt TC-AUTH-11 để không lộ email nào đã đăng ký.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "khong-ton-tai-999@gmail.com",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Phản hồi giống trường hợp email hợp lệ\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/forgot?sent\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-13 · GET /reset-password — Mở form đặt lại mật khẩu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reset-password?token={{resetToken}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{resetToken}}"
+                }
+              ]
+            },
+            "description": "**TC-AUTH-13**\n\nToken lấy từ email. Token hết hạn / đã dùng → trang hiện trạng thái không hợp lệ."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AUTH-14 · POST /reset-password — Đặt lại mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reset-password"
+              ]
+            },
+            "description": "**TC-AUTH-14**\n\n**BR-03:** token dùng một lần và có hạn sử dụng.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "token",
+                  "value": "{{resetToken}}",
+                  "type": "text",
+                  "description": "Token còn hiệu lực"
+                },
+                {
+                  "key": "newPassword",
+                  "value": "123456",
+                  "type": "text",
+                  "description": "Tối thiểu 6 ký tự"
+                },
+                {
+                  "key": "confirmPassword",
+                  "value": "123456",
+                  "type": "text",
+                  "description": "Phải trùng newPassword"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Thành công → /login?resetSuccess, hoặc 200 nếu token hết hạn\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-15 · POST /logout — Đăng xuất",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "description": "**TC-AUTH-15**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 về /login?logout\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login?logout\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-16 · POST /login — Đăng nhập ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-16**\n\nChạy request này trước thư mục **09 · Admin**.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{adminEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập admin thành công\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AUTH-17 · POST /login — Đăng nhập COUNSELOR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-17**\n\nChạy request này trước thư mục **10 · Counselor**.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{counselorEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "{{counselorPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập counselor thành công\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 · Onboarding (3 bước)",
+      "description": "Chọn vai trò mục tiêu · Upload bảng điểm & GitHub · Chọn kỹ năng hiện có. (FR2.1, FR1.3, FR3.1)",
+      "item": [
+        {
+          "name": "TC-ONB-01 · GET /onboarding/step1 — Chọn Target Career Role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step1"
+              ]
+            },
+            "description": "**TC-ONB-01**\n\n**FR:** FR2.1. Nếu user đã hoàn thành onboarding → 302 về `/`."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 (chưa onboarding) hoặc 302 (đã onboarding)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-02 · POST /onboarding/step1 — Lưu vai trò mục tiêu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step1"
+              ]
+            },
+            "description": "**TC-ONB-02**\n\n**FR:** FR2.1 · **BR-10:** không chọn role và không skip → quay lại step1 kèm lỗi.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "roleId",
+                  "value": "{{roleId}}",
+                  "type": "text",
+                  "description": "ID của CareerRole được chọn"
+                },
+                {
+                  "key": "skip",
+                  "value": "false",
+                  "type": "text",
+                  "description": "true = bỏ qua bước này"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 sang bước 2\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/onboarding/step\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-03 · POST /onboarding/step1 — Không chọn role (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step1"
+              ]
+            },
+            "description": "**TC-ONB-03**\n\nThiếu `roleId` → hệ thống quay lại step1 và hiển thị thông báo lỗi.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "skip",
+                  "value": "false",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Quay lại step1\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/onboarding/step1\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-04 · GET /onboarding/step2 — Nguồn dữ liệu (transcript & GitHub)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step2"
+              ]
+            },
+            "description": "**TC-ONB-04**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 hoặc 302\", () => pm.expect(pm.response.code).to.be.oneOf([200, 302]));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-05 · POST /onboarding/step2 — Upload bảng điểm + GitHub username",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step2"
+              ]
+            },
+            "description": "**TC-ONB-05**\n\n**FR:** FR1.3, FR5.1. Hệ thống lưu file, gọi AI phân tích bảng điểm (không chặn luồng nếu AI lỗi).\n\n**Lưu ý kiểm thử:** cần chọn file thật ở tab Body → form-data trước khi Send.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "transcriptFile",
+                  "type": "file",
+                  "src": null,
+                  "description": "File PDF bảng điểm — chọn file thủ công trong Postman. Giới hạn 10MB."
+                },
+                {
+                  "key": "githubUsername",
+                  "value": "phatdayne2005",
+                  "type": "text",
+                  "description": "GitHub username để đồng bộ repo"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 sang bước 3\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/onboarding/step\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-06 · GET /onboarding/step3 — Chọn kỹ năng hiện có",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step3"
+              ]
+            },
+            "description": "**TC-ONB-06**\n\n**FR:** FR3.1"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 hoặc 302\", () => pm.expect(pm.response.code).to.be.oneOf([200, 302]));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-ONB-07 · POST /onboarding/step3 — Lưu kỹ năng & hoàn tất onboarding",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/onboarding/step3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "onboarding",
+                "step3"
+              ]
+            },
+            "description": "**TC-ONB-07**\n\n**FR:** FR3.1, FR6.2. Kết thúc bước này `onboardingCompleted = true` → lần sau vào thẳng dashboard.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "skillIds",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Có thể lặp lại key nhiều lần để chọn nhiều kỹ năng"
+                },
+                {
+                  "key": "skillIds",
+                  "value": "2",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "skillIds",
+                  "value": "3",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 về trang chủ (hoàn tất onboarding)\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 · Dashboard",
+      "description": "Trang tổng quan tiến độ của sinh viên. (FR2.4, FR6.2)",
+      "item": [
+        {
+          "name": "TC-DASH-01 · GET /dashboard — Trang tổng quan của sinh viên",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "**TC-DASH-01**\n\n**FR:** FR2.4, FR6.2. Trả về HTML chứa: % hoàn thành roadmap, số kỹ năng đã đạt / còn thiếu, danh sách hoạt động gần đây."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Content-Type là HTML\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+                  "});",
+                  "pm.test(\"Thời gian phản hồi < 2000ms (NFR-P01)\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 · AI Virtual Mentor",
+      "description": "Chat tư vấn nghề nghiệp bằng LLM, có ngữ cảnh bảng điểm + GitHub, lưu lịch sử. (FR1.1–FR1.3, FR6.2)",
+      "item": [
+        {
+          "name": "TC-MEN-01 · GET /mentor — Màn hình chat AI Mentor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mentor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mentor"
+              ]
+            },
+            "description": "**TC-MEN-01**\n\n**FR:** FR1.1, FR6.2. Hiển thị danh sách phiên chat đã lưu + tin nhắn của phiên hiện tại."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-MEN-02 · GET /mentor?session={id} — Mở lại một phiên chat cũ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/mentor?session={{sessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mentor"
+              ],
+              "query": [
+                {
+                  "key": "session",
+                  "value": "{{sessionId}}"
+                }
+              ]
+            },
+            "description": "**TC-MEN-02**\n\n**FR:** FR6.2 — lịch sử hội thoại được lưu và mở lại được."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-MEN-03 · POST /mentor/new — Tạo phiên chat mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mentor/new",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mentor",
+                "new"
+              ]
+            },
+            "description": "**TC-MEN-03**\n\nTrả về 302 `/mentor?session={id}`. Script test tự lưu id vào biến `{{sessionId}}`.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 kèm sessionId mới\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    const loc = pm.response.headers.get(\"Location\") || \"\";",
+                  "    pm.expect(loc).to.include(\"/mentor?session=\");",
+                  "    const id = loc.split(\"session=\")[1];",
+                  "    pm.collectionVariables.set(\"sessionId\", id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-MEN-04 · POST /mentor/send — Gửi câu hỏi cho AI Mentor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mentor/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mentor",
+                "send"
+              ]
+            },
+            "description": "**TC-MEN-04**\n\n**FR:** FR1.1, FR1.2, FR1.3. Server gọi Gemini, lưu cả câu hỏi và câu trả lời, trả về fragment HTML danh sách tin nhắn (HTMX swap).\n\n**Lưu ý:** phụ thuộc dịch vụ ngoài → thời gian phản hồi có thể tới ~10s (NFR-P02).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "sessionId",
+                  "value": "{{sessionId}}",
+                  "type": "text",
+                  "description": "Phiên chat phải thuộc về user đang đăng nhập"
+                },
+                {
+                  "key": "content",
+                  "value": "Em nên học gì để trở thành Backend Developer?",
+                  "type": "text",
+                  "description": "Câu hỏi của sinh viên"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trả về fragment HTML danh sách tin nhắn\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+                  "});",
+                  "pm.test(\"Thời gian phản hồi < 15000ms (phụ thuộc LLM)\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(15000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-MEN-05 · POST /mentor/send — Gửi vào phiên không thuộc về mình (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mentor/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mentor",
+                "send"
+              ]
+            },
+            "description": "**TC-MEN-05**\n\n**BR-20:** người dùng chỉ được thao tác trên phiên chat của chính mình.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "sessionId",
+                  "value": "999999",
+                  "type": "text",
+                  "description": "sessionId không tồn tại / của user khác"
+                },
+                {
+                  "key": "content",
+                  "value": "Test truy cập trái phép",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Không trả về 200 (bị từ chối)\", function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 · Dynamic Roadmap (REST API)",
+      "description": "**Nhóm REST API JSON.** Lấy template, sinh cây kỹ năng cá nhân hoá, cập nhật tiến độ. (FR2.2–FR2.4)",
+      "item": [
+        {
+          "name": "TC-RM-01 · GET /api/roadmap/templates — Danh sách Skill Tree template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "templates"
+              ]
+            },
+            "description": "**TC-RM-01**\n\n**FR:** FR2.2 · **Auth:** cần đăng nhập.\n\nTrả về mảng `RoadmapTemplateDTO`. Script test lưu `id` đầu tiên vào `{{templateId}}`."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/roadmap/templates",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roadmap",
+                    "templates"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Backend Developer Roadmap\",\n    \"description\": \"Lộ trình trở thành Backend Developer\",\n    \"targetRoleId\": 1\n  },\n  {\n    \"id\": 2,\n    \"name\": \"Frontend Developer Roadmap\",\n    \"description\": \"Lộ trình trở thành Frontend Developer\",\n    \"targetRoleId\": 2\n  }\n]"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Content-Type là JSON\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"Trả về mảng template\", function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.be.an(\"array\");",
+                  "});",
+                  "pm.test(\"Mỗi template có đủ trường id, name, targetRoleId\", function () {",
+                  "    const data = pm.response.json();",
+                  "    if (data.length > 0) {",
+                  "        pm.expect(data[0]).to.have.all.keys(\"id\", \"name\", \"description\", \"targetRoleId\");",
+                  "        pm.collectionVariables.set(\"templateId\", data[0].id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-02 · GET /api/roadmap — Lấy roadmap cá nhân hoá",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap?templateId={{templateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap"
+              ],
+              "query": [
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}"
+                }
+              ]
+            },
+            "description": "**TC-RM-02**\n\n**FR:** FR2.2, FR2.3, FR2.4 · **Auth:** cần đăng nhập.\n\n`templateId` là tuỳ chọn — bỏ trống thì hệ thống chọn template theo Target Role của user.\nTrả về cây kỹ năng 3 tầng kèm trạng thái tiến độ và ≥2 link học mỗi node."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/roadmap?templateId=1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roadmap"
+                  ],
+                  "query": [
+                    {
+                      "key": "templateId",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"template\": {\n    \"id\": 1,\n    \"name\": \"Backend Developer Roadmap\",\n    \"description\": \"Lộ trình trở thành Backend Developer\",\n    \"targetRoleId\": 1\n  },\n  \"totalNodes\": 18,\n  \"completedNodes\": 5,\n  \"completionPercent\": 27.8,\n  \"nodes\": [\n    {\n      \"id\": 101,\n      \"parentId\": null,\n      \"skillId\": 3,\n      \"skillName\": \"Java\",\n      \"title\": \"Java\",\n      \"description\": \"Ngôn ngữ nền tảng cho backend\",\n      \"tier\": 1,\n      \"orderIndex\": 0,\n      \"requiredLevel\": 1,\n      \"status\": \"DONE\",\n      \"locked\": false,\n      \"resources\": [\n        {\n          \"title\": \"Java Documentation\",\n          \"url\": \"https://docs.oracle.com/javase/tutorial/\",\n          \"type\": \"DOCUMENTATION\"\n        },\n        {\n          \"title\": \"Java Full Course\",\n          \"url\": \"https://www.youtube.com/watch?v=eIrMbAQSU34\",\n          \"type\": \"VIDEO\"\n        }\n      ]\n    },\n    {\n      \"id\": 102,\n      \"parentId\": 101,\n      \"skillId\": 7,\n      \"skillName\": \"Spring Boot\",\n      \"title\": \"Spring Boot\",\n      \"description\": \"Framework backend chủ đạo\",\n      \"tier\": 2,\n      \"orderIndex\": 1,\n      \"requiredLevel\": 2,\n      \"status\": \"IN_PROGRESS\",\n      \"locked\": false,\n      \"resources\": [\n        {\n          \"title\": \"Spring Boot Reference\",\n          \"url\": \"https://docs.spring.io/spring-boot/\",\n          \"type\": \"DOCUMENTATION\"\n        },\n        {\n          \"title\": \"Spring Boot Course\",\n          \"url\": \"https://www.youtube.com/watch?v=9SGDpanrc8U\",\n          \"type\": \"COURSE\"\n        }\n      ]\n    }\n  ]\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Có đủ khối template / totalNodes / completionPercent / nodes\", function () {",
+                  "    pm.expect(data).to.have.property(\"template\");",
+                  "    pm.expect(data).to.have.property(\"totalNodes\");",
+                  "    pm.expect(data).to.have.property(\"completedNodes\");",
+                  "    pm.expect(data).to.have.property(\"completionPercent\");",
+                  "    pm.expect(data.nodes).to.be.an(\"array\");",
+                  "});",
+                  "pm.test(\"completionPercent nằm trong [0, 100]\", function () {",
+                  "    pm.expect(data.completionPercent).to.be.at.least(0);",
+                  "    pm.expect(data.completionPercent).to.be.at.most(100);",
+                  "});",
+                  "pm.test(\"FR2.3 — mỗi node có tối thiểu 2 tài nguyên học\", function () {",
+                  "    data.nodes.forEach(n => pm.expect(n.resources.length, \"node \" + n.title).to.be.at.least(2));",
+                  "});",
+                  "pm.test(\"FR2.2 — tier của node thuộc {1,2,3}\", function () {",
+                  "    data.nodes.forEach(n => pm.expect([1, 2, 3]).to.include(n.tier));",
+                  "});",
+                  "pm.test(\"Lưu skillNodeId để dùng cho test cập nhật tiến độ\", function () {",
+                  "    if (data.nodes.length > 0) {",
+                  "        const target = data.nodes.find(n => !n.locked) || data.nodes[0];",
+                  "        pm.collectionVariables.set(\"skillNodeId\", target.id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-03 · POST /api/roadmap/progress — Đánh dấu hoàn thành node",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-03**\n\n**FR:** FR2.4 · **Auth:** cần đăng nhập + CSRF token.\n\n`status` ∈ {`NOT_STARTED`, `IN_PROGRESS`, `DONE`}. Phản hồi trả về % hoàn thành mới → dùng để cập nhật thanh tiến độ real-time.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillNodeId\": \"{{skillNodeId}}\",\n  \"status\": \"DONE\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"skillNodeId\": 101,\n  \"status\": \"DONE\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/roadmap/progress",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "roadmap",
+                    "progress"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"skillNodeId\": 101,\n  \"status\": \"DONE\",\n  \"completionPercent\": 33.3\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Phản hồi có skillNodeId / status / completionPercent\", function () {",
+                  "    pm.expect(data).to.have.all.keys(\"skillNodeId\", \"status\", \"completionPercent\");",
+                  "});",
+                  "pm.test(\"Trạng thái được ghi nhận đúng là DONE\", function () {",
+                  "    pm.expect(data.status).to.eql(\"DONE\");",
+                  "});",
+                  "pm.test(\"completionPercent hợp lệ\", function () {",
+                  "    pm.expect(data.completionPercent).to.be.at.least(0).and.at.most(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-04 · POST /api/roadmap/progress — Đặt lại trạng thái IN_PROGRESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-04**\n\nKiểm thử chuyển trạng thái hai chiều: DONE → IN_PROGRESS, % hoàn thành phải giảm tương ứng.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillNodeId\": \"{{skillNodeId}}\",\n  \"status\": \"IN_PROGRESS\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status = IN_PROGRESS\", function () {",
+                  "    pm.expect(pm.response.json().status).to.eql(\"IN_PROGRESS\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-05 · POST /api/roadmap/progress — Trạng thái không hợp lệ (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-05**\n\nGiá trị enum sai → Jackson không deserialize được → HTTP 400 Bad Request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillNodeId\": \"{{skillNodeId}}\",\n  \"status\": \"HOAN_THANH\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Trả về 400 Bad Request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-06 · POST /api/roadmap/progress — skillNodeId không tồn tại (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-06**\n\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillNodeId\": 999999999,\n  \"status\": \"DONE\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Không trả về 200\", function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-07 · POST /api/roadmap/progress — Thiếu CSRF token (negative bảo mật)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-07**\n\n**NFR-S02:** Spring Security phải từ chối request thay đổi dữ liệu không kèm CSRF token → 403.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillNodeId\": \"{{skillNodeId}}\",\n  \"status\": \"DONE\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden do thiếu CSRF token\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403, 401]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-08 · GET /roadmap — Trang Skill Tree (giao diện)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roadmap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roadmap"
+              ]
+            },
+            "description": "**TC-RM-08**\n\nTrang HTML render cây kỹ năng 3 tầng, panel chi tiết node và thanh tiến độ."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-09 · GET /roadmap?templateId&nodeId — Xem chi tiết một node",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roadmap?templateId={{templateId}}&nodeId={{skillNodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roadmap"
+              ],
+              "query": [
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}"
+                },
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}"
+                }
+              ]
+            },
+            "description": "**TC-RM-09**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-RM-10 · POST /roadmap/progress — Cập nhật tiến độ từ giao diện",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roadmap/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roadmap",
+                "progress"
+              ]
+            },
+            "description": "**TC-RM-10**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "skillNodeId",
+                  "value": "{{skillNodeId}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "status",
+                  "value": "DONE",
+                  "type": "text",
+                  "description": "NOT_STARTED | IN_PROGRESS | DONE"
+                },
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại trang roadmap\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/roadmap\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 · Skill Gap Analysis (REST API)",
+      "description": "**Nhóm REST API JSON.** Phân tích khoảng cách kỹ năng, tạo và tải báo cáo PDF. (FR3.1–FR3.3)",
+      "item": [
+        {
+          "name": "TC-SG-01 · POST /api/skill-gap/analyze — Phân tích khoảng cách kỹ năng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "analyze"
+              ]
+            },
+            "description": "**TC-SG-01**\n\n**FR:** FR3.2 · **Auth:** cần đăng nhập.\n\nBody là tuỳ chọn (`@RequestBody(required = false)`), bỏ trống thì dùng template theo Target Role.\nSo khớp kỹ năng user đang có (tự khai + node đã DONE) với kỹ năng mà template yêu cầu.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{templateId}}\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"templateId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/skill-gap/analyze",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "skill-gap",
+                    "analyze"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"template\": {\n    \"id\": 1,\n    \"name\": \"Backend Developer Roadmap\",\n    \"description\": \"Lộ trình trở thành Backend Developer\",\n    \"targetRoleId\": 1\n  },\n  \"requiredSkillCount\": 18,\n  \"matchedSkillCount\": 7,\n  \"missingSkillCount\": 11,\n  \"matchPercent\": 38.9,\n  \"matchedSkills\": [\n    {\n      \"id\": 3,\n      \"name\": \"Java\",\n      \"category\": \"Ngôn ngữ\"\n    },\n    {\n      \"id\": 5,\n      \"name\": \"SQL\",\n      \"category\": \"Database\"\n    }\n  ],\n  \"missingSkills\": [\n    {\n      \"id\": 7,\n      \"name\": \"Spring Boot\",\n      \"category\": \"Backend\"\n    },\n    {\n      \"id\": 12,\n      \"name\": \"Docker\",\n      \"category\": \"DevOps & Cloud\"\n    }\n  ]\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Có đủ các trường thống kê\", function () {",
+                  "    pm.expect(data).to.include.all.keys(",
+                  "        \"template\", \"requiredSkillCount\", \"matchedSkillCount\",",
+                  "        \"missingSkillCount\", \"matchPercent\", \"matchedSkills\", \"missingSkills\");",
+                  "});",
+                  "pm.test(\"BR-30 — matched + missing = required\", function () {",
+                  "    pm.expect(data.matchedSkillCount + data.missingSkillCount).to.eql(data.requiredSkillCount);",
+                  "});",
+                  "pm.test(\"matchPercent trong [0, 100]\", function () {",
+                  "    pm.expect(data.matchPercent).to.be.at.least(0).and.at.most(100);",
+                  "});",
+                  "pm.test(\"Số phần tử mảng khớp với số đếm\", function () {",
+                  "    pm.expect(data.matchedSkills.length).to.eql(data.matchedSkillCount);",
+                  "    pm.expect(data.missingSkills.length).to.eql(data.missingSkillCount);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-02 · POST /api/skill-gap/analyze — Không truyền body (mặc định theo Target Role)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/analyze",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "analyze"
+              ]
+            },
+            "description": "**TC-SG-02**\n\nKiểm thử tham số tuỳ chọn: không có body → hệ thống tự chọn template theo vai trò mục tiêu của user."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Vẫn trả về template mặc định\", function () {",
+                  "    pm.expect(pm.response.json().template).to.have.property(\"id\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-03 · POST /api/skill-gap/reports — Tạo báo cáo + xuất PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "reports"
+              ]
+            },
+            "description": "**TC-SG-03**\n\n**FR:** FR3.3. Phân tích lại, sinh file PDF (OpenPDF) và lưu bản ghi báo cáo. Script test lưu `id` báo cáo vào `{{reportId}}`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{templateId}}\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"templateId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/skill-gap/reports",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "skill-gap",
+                    "reports"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": 15,\n  \"template\": {\n    \"id\": 1,\n    \"name\": \"Backend Developer Roadmap\",\n    \"description\": \"Lộ trình trở thành Backend Developer\",\n    \"targetRoleId\": 1\n  },\n  \"summary\": \"Đạt 7/18 kỹ năng yêu cầu (38.9%).\",\n  \"pdfPath\": \"uploads/reports/skill-gap-15.pdf\",\n  \"requiredSkillCount\": 18,\n  \"matchedSkillCount\": 7,\n  \"missingSkillCount\": 11,\n  \"matchedSkillNames\": \"Java, SQL, Git\",\n  \"missingSkillNames\": \"Spring Boot, Docker, Kubernetes\",\n  \"createdAt\": \"2026-07-26T10:15:30\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Báo cáo được lưu kèm id và đường dẫn PDF\", function () {",
+                  "    pm.expect(data.id).to.be.a(\"number\");",
+                  "    pm.expect(data.pdfPath).to.be.a(\"string\").and.not.empty;",
+                  "    pm.collectionVariables.set(\"reportId\", data.id);",
+                  "});",
+                  "pm.test(\"Số liệu trong báo cáo nhất quán\", function () {",
+                  "    pm.expect(data.matchedSkillCount + data.missingSkillCount).to.eql(data.requiredSkillCount);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-04 · GET /api/skill-gap/reports — Danh sách báo cáo của user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "reports"
+              ]
+            },
+            "description": "**TC-SG-04**\n\n**FR:** FR3.3, FR6.2 — lịch sử báo cáo được lưu lại theo từng người dùng."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trả về mảng báo cáo\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-05 · GET /api/skill-gap/reports/:id — Chi tiết một báo cáo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/reports/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "reports",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{reportId}}",
+                  "description": "ID báo cáo"
+                }
+              ]
+            },
+            "description": "**TC-SG-05**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Đúng báo cáo được yêu cầu\", function () {",
+                  "    pm.expect(String(pm.response.json().id)).to.eql(String(pm.collectionVariables.get(\"reportId\")));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-06 · GET /api/skill-gap/reports/:id — Báo cáo của người khác (negative bảo mật)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/skill-gap/reports/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "skill-gap",
+                "reports",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "999999",
+                  "description": "ID không thuộc về user hiện tại"
+                }
+              ]
+            },
+            "description": "**TC-SG-06**\n\n**BR-31 / NFR-S03:** người dùng chỉ đọc được báo cáo của chính mình."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Không trả về 200\", function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-07 · GET /skill-gap — Trang phân tích khoảng cách kỹ năng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/skill-gap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "skill-gap"
+              ]
+            },
+            "description": "**TC-SG-07**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-08 · POST /skill-gap/skills — Thêm kỹ năng đang có",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/skill-gap/skills",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "skill-gap",
+                "skills"
+              ]
+            },
+            "description": "**TC-SG-08**\n\n**FR:** FR3.1. Sau khi thêm, tỉ lệ khớp ở TC-SG-01 phải tăng lên.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "skillId",
+                  "value": "{{skillId}}",
+                  "type": "text",
+                  "description": "ID kỹ năng trong catalog"
+                },
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại trang skill-gap\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/skill-gap\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-SG-09 · POST /skill-gap/reports — Xuất PDF trực tiếp từ giao diện",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/skill-gap/reports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "skill-gap",
+                "reports"
+              ]
+            },
+            "description": "**TC-SG-09**\n\n**FR:** FR3.3 — trả về file PDF đính kèm (`Content-Disposition: attachment`).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Content-Type là application/pdf\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");",
+                  "});",
+                  "pm.test(\"Có header tải file đính kèm\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SG-10 · GET /skill-gap/reports/:id/download — Tải lại báo cáo PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/skill-gap/reports/:id/download",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "skill-gap",
+                "reports",
+                ":id",
+                "download"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{reportId}}",
+                  "description": "ID báo cáo"
+                }
+              ]
+            },
+            "description": "**TC-SG-10**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 khi file tồn tại, 404 khi file đã bị xoá\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 · Market Pulse",
+      "description": "Xu hướng tuyển dụng & từ khoá công nghệ hot. (FR4.1–FR4.3)",
+      "item": [
+        {
+          "name": "TC-MP-01 · GET /market/pulse — Bảng điều khiển xu hướng thị trường",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/market/pulse",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "market",
+                "pulse"
+              ]
+            },
+            "description": "**TC-MP-01**\n\n**FR:** FR4.1, FR4.2, FR4.3.\n\nDữ liệu tin tuyển dụng được cào tự động mỗi ngày lúc 02:00 (`@Scheduled`) từ nguồn công khai, sau đó phân tích tần suất từ khoá để dựng biểu đồ cột."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trang có dữ liệu biểu đồ\", function () {",
+                  "    pm.expect(pm.response.text()).to.include(\"Chart\") ;",
+                  "});",
+                  "pm.test(\"Thời gian phản hồi < 3000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 · E-Portfolio",
+      "description": "Đồng bộ GitHub, tóm tắt README bằng AI, chia sẻ URL công khai. (FR5.1–FR5.3)",
+      "item": [
+        {
+          "name": "TC-PF-01 · GET /portfolio/manage — Trang quản lý E-Portfolio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/manage",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "portfolio",
+                "manage"
+              ]
+            },
+            "description": "**TC-PF-01**\n\n**FR:** FR5.1, FR5.2, FR5.3. Hiển thị repo đã đồng bộ + tóm tắt AI + URL chia sẻ công khai."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-PF-02 · POST /portfolio/sync — Đồng bộ repository từ GitHub",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "portfolio",
+                "sync"
+              ]
+            },
+            "description": "**TC-PF-02**\n\n**FR:** FR5.1, FR5.2. Gọi GitHub REST API lấy repo công khai, dùng LLM tóm tắt README. Nếu LLM lỗi → dùng tóm tắt fallback, KHÔNG chặn luồng đồng bộ.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "githubUsername",
+                  "value": "{{githubUsername}}",
+                  "type": "text",
+                  "description": "Tài khoản GitHub công khai"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại trang quản lý\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/portfolio/manage\");",
+                  "});",
+                  "pm.test(\"Thời gian phản hồi < 30000ms (gọi GitHub + LLM)\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(30000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PF-03 · POST /portfolio/sync — Username GitHub không tồn tại (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/sync",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "portfolio",
+                "sync"
+              ]
+            },
+            "description": "**TC-PF-03**\n\nHệ thống phải hiển thị thông báo lỗi thân thiện, KHÔNG trả về lỗi 500.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "githubUsername",
+                  "value": "khong-ton-tai-user-999999",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Vẫn redirect an toàn, không 500\", function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PF-04 · POST /portfolio/repos/:repoId/toggle — Ẩn/hiện repo trên trang công khai",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/portfolio/repos/:repoId/toggle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "portfolio",
+                "repos",
+                ":repoId",
+                "toggle"
+              ],
+              "variable": [
+                {
+                  "key": "repoId",
+                  "value": "{{repoId}}",
+                  "description": "ID repository"
+                }
+              ]
+            },
+            "description": "**TC-PF-04**\n\n**BR-40:** chỉ đổi được trạng thái repo thuộc portfolio của chính mình.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại trang quản lý\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PF-05 · GET /p/:slug — Trang E-Portfolio CÔNG KHAI (không cần đăng nhập)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/p/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "p",
+                ":slug"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "{{portfolioSlug}}",
+                  "description": "Slug công khai của portfolio"
+                }
+              ]
+            },
+            "description": "**TC-PF-05**\n\n**FR:** FR5.3 · **Auth:** KHÔNG cần đăng nhập (`/p/**` là permitAll).\n\nPre-request script xoá cookie phiên để kiểm chứng đúng yêu cầu này."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK khi chưa đăng nhập\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Chỉ hiển thị repo được đánh dấu công khai\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-PF-06 · GET /p/:slug — Slug không tồn tại (negative)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/p/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "p",
+                ":slug"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "khong-ton-tai-999",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-PF-06**\n\nKỳ vọng HTTP 404 Not Found (`ResponseStatusException`)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 · Profile & Settings",
+      "description": "Hồ sơ, đổi tên/email/mật khẩu, nguồn dữ liệu. (FR6.1, FR6.2, FR1.3)",
+      "item": [
+        {
+          "name": "TC-PR-01 · GET /profile — Trang hồ sơ & cài đặt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            },
+            "description": "**TC-PR-01**\n\n**FR:** FR6.1, FR6.2, FR1.3."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-PR-02 · POST /profile/name — Cập nhật họ tên",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "name"
+              ]
+            },
+            "description": "**TC-PR-02**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "Nguyen Van A (updated)",
+                  "type": "text",
+                  "description": "Không được để trống"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại /profile\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/profile\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PR-03 · POST /profile/name — Họ tên rỗng (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "name"
+              ]
+            },
+            "description": "**TC-PR-03**\n\nKiểm thử giá trị biên: chuỗi trắng phải bị từ chối kèm thông báo lỗi.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "   ",
+                  "type": "text",
+                  "description": "Chuỗi toàn khoảng trắng"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Quay lại /profile (kèm flash error)\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PR-04 · POST /profile/github — Cập nhật GitHub username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/github",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "github"
+              ]
+            },
+            "description": "**TC-PR-04**\n\n**FR:** FR1.3, FR5.1. Trả về fragment HTML (HTMX) thay vì redirect.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "githubUsername",
+                  "value": "{{githubUsername}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK trả về fragment\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-PR-05 · POST /profile/password — Đổi mật khẩu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "password"
+              ]
+            },
+            "description": "**TC-PR-05**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "currentPassword",
+                  "value": "{{studentPassword}}",
+                  "type": "text",
+                  "description": "Mật khẩu hiện tại"
+                },
+                {
+                  "key": "newPassword",
+                  "value": "123456",
+                  "type": "text",
+                  "description": "Tối thiểu 6 ký tự"
+                },
+                {
+                  "key": "confirmPassword",
+                  "value": "123456",
+                  "type": "text",
+                  "description": "Phải trùng newPassword"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại /profile\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PR-06 · POST /profile/password — Xác nhận không khớp (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "password"
+              ]
+            },
+            "description": "**TC-PR-06**\n\n**BR-04:** newPassword phải trùng confirmPassword mới được đổi.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "currentPassword",
+                  "value": "{{studentPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "newPassword",
+                  "value": "123456",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "confirmPassword",
+                  "value": "654321",
+                  "type": "text",
+                  "description": "Cố tình nhập lệch"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Quay lại /profile kèm lỗi, mật khẩu KHÔNG đổi\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-PR-07 · POST /profile/email — Đổi email đăng nhập",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "email"
+              ]
+            },
+            "description": "**TC-PR-07**\n\n**BR-05:** email là username đăng nhập → đổi email sẽ **đăng xuất** người dùng, buộc đăng nhập lại bằng email mới.\n\n⚠️ Chạy request này sẽ huỷ phiên hiện tại — nên để cuối luồng kiểm thử.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "new.email.{{$randomInt}}@gmail.com",
+                  "type": "text",
+                  "description": "Email mới, phải duy nhất"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 về /login?emailChanged hoặc /profile nếu lỗi\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 · Admin",
+      "description": "Quản trị người dùng & phân quyền. **Yêu cầu đăng nhập ADMIN (TC-AUTH-16).**",
+      "item": [
+        {
+          "name": "TC-AD-01 · GET /admin — Bảng điều khiển quản trị",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "description": "**TC-AD-01**\n\n**Auth:** ROLE_ADMIN. Thống kê tổng user, user hoạt động, số template, số lệnh gọi LLM."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AD-02 · GET /admin/users — Danh sách người dùng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "**TC-AD-02**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AD-03 · GET /admin/users?keyword — Tìm kiếm người dùng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users?keyword=student",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "student"
+                }
+              ]
+            },
+            "description": "**TC-AD-03**\n\nTìm theo tên hoặc email. Từ khoá rỗng → trả về toàn bộ danh sách."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AD-04 · POST /admin/users/:id/toggle-status — Khoá / mở khoá tài khoản",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/toggle-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "toggle-status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{targetUserId}}",
+                  "description": "ID user cần khoá/mở"
+                }
+              ]
+            },
+            "description": "**TC-AD-04**\n\nTrả về fragment HTML dòng thao tác (HTMX). **BR-50:** admin không tự khoá chính mình.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK trả về fragment\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-AD-05 · POST /admin/users/:id/change-role — Phân quyền người dùng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/change-role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "change-role"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{targetUserId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-AD-05**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "roleName",
+                  "value": "COUNSELOR",
+                  "type": "text",
+                  "description": "ADMIN | COUNSELOR | STUDENT"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại /admin/users\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/admin/users\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AD-06 · POST /admin/users/:id/change-role — Vai trò không hợp lệ (negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/change-role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "change-role"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{targetUserId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-AD-06**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "roleName",
+                  "value": "SUPER_ADMIN",
+                  "type": "text",
+                  "description": "Giá trị không có trong enum RoleName"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Không được tạo vai trò lạ\", function () {",
+                  "    pm.expect(pm.response.code).to.not.eql(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-AD-07 · POST /admin/users/:id/delete — Xoá người dùng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/:id/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                ":id",
+                "delete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{targetUserId}}",
+                  "description": "⚠️ Dữ liệu bị xoá vĩnh viễn"
+                }
+              ]
+            },
+            "description": "**TC-AD-07**\n\n⚠️ **Thao tác phá huỷ dữ liệu** — chỉ chạy trên môi trường test với tài khoản dùng thử.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại /admin/users\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 · Academic Counselor",
+      "description": "Biên soạn Skill Tree template — nguồn sinh roadmap. **Yêu cầu đăng nhập COUNSELOR (TC-AUTH-17).**",
+      "item": [
+        {
+          "name": "TC-CS-01 · GET /counselor/templates — Danh sách Skill Tree template",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates"
+              ]
+            },
+            "description": "**TC-CS-01**\n\n**Auth:** ROLE_COUNSELOR. Template ở đây là **nguồn** để hệ thống sinh roadmap cá nhân (FR2.2)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-02 · POST /counselor/templates — Tạo template mới",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates"
+              ]
+            },
+            "description": "**TC-CS-02**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Backend Developer Roadmap (test)",
+                  "type": "text",
+                  "description": "Tên template"
+                },
+                {
+                  "key": "description",
+                  "value": "Template tạo bởi kiểm thử tự động",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "careerRoleName",
+                  "value": "Backend Developer",
+                  "type": "text",
+                  "description": "Tên CareerRole đã tồn tại"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại danh sách template\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/counselor/templates\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-CS-03 · POST /counselor/templates/:id/update — Cập nhật template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:id/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":id",
+                "update"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{templateId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-03**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "name",
+                  "value": "Backend Developer Roadmap (updated)",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "description",
+                  "value": "Đã cập nhật mô tả",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "careerRoleName",
+                  "value": "Backend Developer",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 OK\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-CS-04 · GET /counselor/templates/:id/editor — Mở trình soạn Skill Tree",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:id/editor",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":id",
+                "editor"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{templateId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-04**\n\n**FR:** FR2.2, FR2.3 — soạn node theo 3 tầng và gắn ≥2 link học cho mỗi node."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-05 · POST /counselor/templates/:id/nodes — Thêm node kỹ năng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:id/nodes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":id",
+                "nodes"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{templateId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-05**\n\n**BR-60:** một skill chỉ xuất hiện tối đa 1 lần trong cùng template (unique template_id + skill_id).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "skillId",
+                  "value": "{{skillId}}",
+                  "type": "text",
+                  "description": "Chọn skill có sẵn — bỏ trống nếu tạo skill mới"
+                },
+                {
+                  "key": "newSkillName",
+                  "value": "",
+                  "type": "text",
+                  "description": "Tên skill mới (nếu không chọn skillId)"
+                },
+                {
+                  "key": "newSkillCategory",
+                  "value": "",
+                  "type": "text",
+                  "description": "Nhóm skill mới"
+                },
+                {
+                  "key": "tier",
+                  "value": "1",
+                  "type": "text",
+                  "description": "1 = Nền tảng · 2 = Cốt lõi · 3 = Nâng cao"
+                },
+                {
+                  "key": "parentId",
+                  "value": "",
+                  "type": "text",
+                  "description": "ID node cha (rỗng nếu là node gốc)"
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK trả về fragment cây node\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-06 · GET /counselor/nodes/:nodeId/details — Chi tiết node",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/nodes/:nodeId/details",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "nodes",
+                ":nodeId",
+                "details"
+              ],
+              "variable": [
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-06**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-07 · POST /counselor/templates/:templateId/nodes/:nodeId/update — Sửa tier / node cha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:templateId/nodes/:nodeId/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":templateId",
+                "nodes",
+                ":nodeId",
+                "update"
+              ],
+              "variable": [
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "description": ""
+                },
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-07**\n\n",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "tier",
+                  "value": "2",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "parentId",
+                  "value": "",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại editor\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-CS-08 · POST /counselor/nodes/:nodeId/resources — Thêm tài liệu học cho node",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/nodes/:nodeId/resources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "nodes",
+                ":nodeId",
+                "resources"
+              ],
+              "variable": [
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-08**\n\n**FR:** FR2.3 — mỗi node cần ≥2 tài liệu học.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "title",
+                  "value": "Spring Boot Reference Documentation",
+                  "type": "text",
+                  "description": "Tối đa 200 ký tự"
+                },
+                {
+                  "key": "url",
+                  "value": "https://docs.spring.io/spring-boot/",
+                  "type": "text",
+                  "description": "Tối đa 500 ký tự"
+                },
+                {
+                  "key": "resourceType",
+                  "value": "DOCUMENTATION",
+                  "type": "text",
+                  "description": "VIDEO | ARTICLE | COURSE | DOCUMENTATION | BOOK | SLIDES"
+                },
+                {
+                  "key": "description",
+                  "value": "Tài liệu chính thức",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK trả về fragment chi tiết node\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-09 · DELETE /counselor/nodes/:nodeId/resources/:resourceId — Xoá tài liệu",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/nodes/:nodeId/resources/:resourceId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "nodes",
+                ":nodeId",
+                "resources",
+                ":resourceId"
+              ],
+              "variable": [
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}",
+                  "description": ""
+                },
+                {
+                  "key": "resourceId",
+                  "value": "{{resourceId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-09**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-10 · DELETE /counselor/templates/:templateId/nodes/:nodeId — Xoá node",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              },
+              {
+                "key": "HX-Request",
+                "value": "true"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:templateId/nodes/:nodeId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":templateId",
+                "nodes",
+                ":nodeId"
+              ],
+              "variable": [
+                {
+                  "key": "templateId",
+                  "value": "{{templateId}}",
+                  "description": ""
+                },
+                {
+                  "key": "nodeId",
+                  "value": "{{skillNodeId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-10**\n\n"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-CS-11 · POST /counselor/templates/:id/delete — Xoá template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates/:id/delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates",
+                ":id",
+                "delete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "{{templateId}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-CS-11**\n\n⚠️ Thao tác phá huỷ dữ liệu — template đang được sinh viên sử dụng thì không nên xoá.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"302 quay lại danh sách\", () => pm.response.to.have.status(302));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 · Security & Negative Tests",
+      "description": "Kiểm thử phân quyền, CSRF, truy cập trái phép và các ca tiêu cực. (NFR-S01–NFR-S05)",
+      "item": [
+        {
+          "name": "TC-SEC-01 · GET /dashboard — Truy cập khi chưa đăng nhập",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "**TC-SEC-01**\n\n**NFR-S01:** mọi trang trong ứng dụng (trừ danh sách permitAll) đều yêu cầu xác thực."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Chuyển hướng 302 về trang đăng nhập\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([302, 401, 403]);",
+                  "    if (pm.response.code === 302) {",
+                  "        pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login\");",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-SEC-02 · GET /api/roadmap — Gọi REST API khi chưa đăng nhập",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/roadmap",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roadmap"
+              ]
+            },
+            "description": "**TC-SEC-02**\n\nAPI nội bộ dùng chung session của form login → chưa đăng nhập phải bị chặn."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Chuyển hướng 302 về trang đăng nhập\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([302, 401, 403]);",
+                  "    if (pm.response.code === 302) {",
+                  "        pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login\");",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "TC-SEC-03 · GET /admin/users — STUDENT truy cập khu vực ADMIN",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "**TC-SEC-03**\n\n**NFR-S03 (phân quyền theo vai trò):** đăng nhập bằng tài khoản STUDENT rồi chạy request này. Kỳ vọng HTTP 403 Forbidden."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SEC-04 · GET /counselor/templates — STUDENT truy cập khu vực COUNSELOR",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/counselor/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "counselor",
+                "templates"
+              ]
+            },
+            "description": "**TC-SEC-04**\n\nĐăng nhập bằng STUDENT trước khi chạy. Kỳ vọng 403."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SEC-05 · POST /profile/name — Thiếu CSRF token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile/name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "name"
+              ]
+            },
+            "description": "**TC-SEC-05**\n\n**NFR-S02:** chống CSRF — POST không kèm token phải bị từ chối (403).",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "fullName",
+                  "value": "Hacker",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([403, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SEC-06 · GET /p/:slug — Trang công khai KHÔNG cần đăng nhập (positive)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/p/:slug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "p",
+                ":slug"
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "{{portfolioSlug}}",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "**TC-SEC-06**\n\nKiểm chứng ngoại lệ hợp lệ của quy tắc phân quyền: `/p/**` là permitAll (FR5.3)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 OK\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SEC-07 · POST /login — Thử SQL Injection ở tham số (kiểm thử phòng thủ)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-SEC-07**\n\n**NFR-S04:** hệ thống dùng Spring Data JPA (prepared statement) nên phải chống được SQLi. Kỳ vọng đăng nhập THẤT BẠI.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "' OR '1'='1",
+                  "type": "text",
+                  "description": "Chuỗi tấn công SQL Injection"
+                },
+                {
+                  "key": "password",
+                  "value": "' OR '1'='1",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const jar = pm.cookies.jar();",
+                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập thất bại (không bypass được)\", function () {",
+                  "    const loc = pm.response.headers.get(\"Location\") || \"\";",
+                  "    pm.expect(loc).to.include(\"/login\");",
+                  "    pm.expect(loc).to.not.eql(pm.collectionVariables.get(\"baseUrl\") + \"/\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// ─── Script cấp collection: tự động trích CSRF token từ mọi phản hồi HTML ───",
+          "try {",
+          "    const ctype = pm.response.headers.get(\"Content-Type\") || \"\";",
+          "    if (ctype.indexOf(\"text/html\") !== -1) {",
+          "        const body = pm.response.text();",
+          "        // <meta name=\"_csrf\" content=\"...\"> hoặc <input name=\"_csrf\" value=\"...\">",
+          "        let m = body.match(/name=\"_csrf\"[^>]*content=\"([^\"]+)\"/)",
+          "             || body.match(/name=\"_csrf\"[^>]*value=\"([^\"]+)\"/)",
+          "             || body.match(/content=\"([^\"]+)\"[^>]*name=\"_csrf\"/)",
+          "             || body.match(/value=\"([^\"]+)\"[^>]*name=\"_csrf\"/);",
+          "        if (m && m[1]) {",
+          "            pm.collectionVariables.set(\"csrfToken\", m[1]);",
+          "        }",
+          "    }",
+          "} catch (e) { /* bỏ qua phản hồi nhị phân (PDF...) */ }",
+          "",
+          "// ─── Kiểm thử phi chức năng áp dụng cho MỌI request ───",
+          "pm.test(\"NFR-P01 · Thời gian phản hồi < 15s\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(15000);",
+          "});",
+          "pm.test(\"NFR-S05 · Không lộ stack trace trong phản hồi\", function () {",
+          "    const ctype = pm.response.headers.get(\"Content-Type\") || \"\";",
+          "    if (ctype.indexOf(\"text/html\") !== -1 || ctype.indexOf(\"json\") !== -1) {",
+          "        pm.expect(pm.response.text()).to.not.include(\"org.springframework.web.util.NestedServletException\");",
+          "    }",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "Địa chỉ gốc của ứng dụng (server.port = 8080)"
+    },
+    {
+      "key": "csrfToken",
+      "value": "",
+      "type": "string",
+      "description": "Tự động cập nhật bởi script cấp collection"
+    },
+    {
+      "key": "studentEmail",
+      "value": "student@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "studentPassword",
+      "value": "123456",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "123456",
+      "type": "string"
+    },
+    {
+      "key": "counselorEmail",
+      "value": "counselor@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "counselorPassword",
+      "value": "123456",
+      "type": "string"
+    },
+    {
+      "key": "templateId",
+      "value": "1",
+      "type": "string",
+      "description": "ID Skill Tree template"
+    },
+    {
+      "key": "skillNodeId",
+      "value": "1",
+      "type": "string",
+      "description": "ID node kỹ năng"
+    },
+    {
+      "key": "skillId",
+      "value": "1",
+      "type": "string",
+      "description": "ID kỹ năng trong catalog"
+    },
+    {
+      "key": "roleId",
+      "value": "1",
+      "type": "string",
+      "description": "ID CareerRole (vai trò mục tiêu)"
+    },
+    {
+      "key": "reportId",
+      "value": "1",
+      "type": "string",
+      "description": "ID báo cáo Skill Gap"
+    },
+    {
+      "key": "sessionId",
+      "value": "1",
+      "type": "string",
+      "description": "ID phiên chat AI Mentor"
+    },
+    {
+      "key": "repoId",
+      "value": "1",
+      "type": "string",
+      "description": "ID repository trong portfolio"
+    },
+    {
+      "key": "resourceId",
+      "value": "1",
+      "type": "string",
+      "description": "ID tài liệu học"
+    },
+    {
+      "key": "targetUserId",
+      "value": "2",
+      "type": "string",
+      "description": "ID người dùng bị admin thao tác"
+    },
+    {
+      "key": "portfolioSlug",
+      "value": "phatdayne2005",
+      "type": "string",
+      "description": "Slug trang portfolio công khai"
+    },
+    {
+      "key": "githubUsername",
+      "value": "phatdayne2005",
+      "type": "string"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "type": "string",
+      "description": "Token đặt lại mật khẩu lấy từ email"
+    }
+  ]
+}
