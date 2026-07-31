@@ -65,6 +65,4 @@ public class PasswordResetService {
         userRepository.save(user);
         prt.setUsed(true);
     }
-
-
 }
