@@ -1,2 +1,4 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+# Script chạy trên VPS Linux: giữ LF kể cả khi checkout ở Windows.
+*.sh text eol=lf

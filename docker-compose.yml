@@ -1,0 +1,80 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: careercompass-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: careercompass
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      # Mở ra ngoài để kết nối bằng MySQL Workbench (mục đích học tập).
+      # CẢNH BÁO: cổng này công khai trên internet - giữ DB_PASSWORD mạnh,
+      # nên giới hạn firewall chỉ cho IP của bạn (xem DEPLOY.md).
+      # Local đặt DB_PORT=3307 vì máy dev thường đã chạy MySQL ở 3306.
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # App chỉ start sau khi MySQL thật sự nhận kết nối.
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    build: .
+    image: careercompass:latest
+    container_name: careercompass-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Ghi đè spring.datasource.url (relaxed binding) để trỏ sang service "db".
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/careercompass?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD}
+      BASE_URL: ${BASE_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-mock}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-mock}
+      MAIL_USERNAME: ${MAIL_USERNAME:-mock}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-mock}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-mock}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      STUDENT_EMAIL: ${STUDENT_EMAIL}
+      STUDENT_PASSWORD: ${STUDENT_PASSWORD}
+      COUNSELOR_EMAIL: ${COUNSELOR_EMAIL}
+      COUNSELOR_PASSWORD: ${COUNSELOR_PASSWORD}
+
+      # Ghi đè cấu hình dev trong application.yml cho môi trường chạy thật:
+      # show-sql + bind TRACE sẽ ghi hàng trăm MB log mỗi ngày trên VPS.
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+      LOGGING_LEVEL_ORG_HIBERNATE_ORM_JDBC_BIND: WARN
+      SPRING_THYMELEAF_CACHE: "true"
+      # Chạy sau nginx TLS: bắt buộc, nếu không Spring sinh redirect_uri http://
+      # và Google OAuth2 sẽ báo redirect_uri_mismatch.
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+    ports:
+      # Chỉ mở trên loopback - nginx trên host mới là thứ hứng traffic public.
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    volumes:
+      # Giữ file bảng điểm sinh viên upload qua các lần deploy.
+      - uploads:/app/uploads
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db-data:
+  uploads:
