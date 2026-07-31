@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Deploy / cập nhật CareerCompass trên VPS.
-# Dùng cho các lần deploy LẶP LẠI (lần đầu xem DEPLOY.md).
+# Deploy CareerCompass trên VPS THỦ CÔNG.
 #
-#   cd ~/lap-trinh-java && ./deploy/deploy.sh
+# Bình thường GitHub Actions đã tự deploy khi push vào main (xem .github/workflows/ci.yml).
+# Script này để dùng khi CI hỏng, hoặc muốn deploy tay:
+#
+#   ./deploy/deploy.sh              # pull image mới nhất từ GHCR (giống CI)
+#   ./deploy/deploy.sh --build      # build tại chỗ trên VPS (chậm, tốn RAM)
 #
 set -euo pipefail
 
@@ -13,17 +16,33 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+MODE="${1:-pull}"
+
 echo "==> Kéo code mới nhất"
 git pull --ff-only
 
-echo "==> Build image + khởi động lại"
-docker compose up -d --build
+if [ "$MODE" = "--build" ]; then
+  echo "==> Build image tại chỗ"
+  # Bỏ APP_IMAGE để compose dùng tag local thay vì cố pull từ GHCR.
+  sed -i '/^APP_IMAGE=/d' .env
+  docker compose up -d --build
+else
+  echo "==> Pull image từ registry"
+  # Cần đăng nhập trước nếu package để private:
+  #   echo <GITHUB_PAT> | docker login ghcr.io -u <username> --password-stdin
+  docker compose pull app
+  docker compose up -d --no-build
+fi
 
 echo "==> Chờ app khởi động"
+PORT=$(grep '^APP_PORT=' .env | cut -d= -f2 || echo 8080)
+PORT=${PORT:-8080}
+
 for i in $(seq 1 60); do
-  if curl -fsS -o /dev/null http://127.0.0.1:"${APP_PORT:-8080}"/login; then
+  if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/login"; then
     echo "==> OK: app trả HTTP 200 ở /login"
     docker compose ps
+    docker image prune -f
     exit 0
   fi
   sleep 5

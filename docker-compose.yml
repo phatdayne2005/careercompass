@@ -30,7 +30,10 @@ services:
 
   app:
     build: .
-    image: careercompass:latest
+    # Local dev: tự build thành careercompass:latest.
+    # Trên VPS: CI ghi APP_IMAGE=ghcr.io/.../careercompass:<sha> vào .env,
+    # VPS chỉ pull image dựng sẵn chứ không build.
+    image: ${APP_IMAGE:-careercompass:latest}
     container_name: careercompass-app
     restart: unless-stopped
     depends_on:

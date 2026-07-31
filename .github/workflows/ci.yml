@@ -1,12 +1,24 @@
-name: CareerCompass CI Workflow
+name: CareerCompass CI/CD Workflow
 
 on:
   push:
     branches: [ "main", "master", "dev" ]
   pull_request:
     branches: [ "main", "master", "dev" ]
+  workflow_dispatch:        # cho phép bấm chạy tay từ tab Actions
+
+# Hai lần push liên tiếp: huỷ lần chạy cũ, tránh hai job deploy giẫm chân nhau.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/careercompass
 
 jobs:
+  # ==========================================================
+  # 1. TEST - chạy trên mọi push và pull request
+  # ==========================================================
   build:
     name: Build and Test (Java 21 & Maven)
     runs-on: ubuntu-latest
@@ -60,3 +72,105 @@ jobs:
           name: CareerCompass-application
           path: target/*.jar
           retention-days: 7
+
+  # ==========================================================
+  # 2. BUILD IMAGE - chỉ khi test pass và push vào main
+  #    Build ở đây để VPS không phải build (tiết kiệm RAM/thời gian).
+  # ==========================================================
+  docker:
+    name: Build and Push Docker Image
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write        # cần để push lên GitHub Container Registry
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Gắn 2 tag: latest (tiện tay) và SHA commit (deploy đúng phiên bản, dễ rollback).
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==========================================================
+  # 3. DEPLOY - SSH vào VPS, pull image mới, khởi động lại
+  # ==========================================================
+  deploy:
+    name: Deploy to VPS
+    needs: docker
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production   # cho phép bật "required reviewers" nếu muốn duyệt trước khi deploy
+    permissions:
+      contents: read
+      packages: read          # để VPS pull được image bằng token của workflow
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            cd ${{ secrets.VPS_APP_DIR || '~/lap-trinh-java' }}
+
+            IMAGE="${{ env.IMAGE_NAME }}:${{ github.sha }}"
+            echo "==> Deploy $IMAGE"
+
+            # Đăng nhập GHCR bằng token tạm của workflow (hết hạn khi job kết thúc).
+            echo "${{ secrets.GITHUB_TOKEN }}" \
+              | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Lấy code mới (compose file, nginx config, DEPLOY.md...) nhưng KHÔNG build.
+            git pull --ff-only
+
+            # Ghi phiên bản đang chạy vào .env để lệnh docker compose thủ công
+            # trên VPS sau này vẫn dùng đúng image.
+            if grep -q '^APP_IMAGE=' .env; then
+              sed -i "s|^APP_IMAGE=.*|APP_IMAGE=$IMAGE|" .env
+            else
+              echo "APP_IMAGE=$IMAGE" >> .env
+            fi
+
+            docker compose pull app
+            docker compose up -d --no-build
+
+            # Chờ app trả 200, không thì fail job và in log.
+            PORT=$(grep '^APP_PORT=' .env | cut -d= -f2 || echo 8080)
+            PORT=${PORT:-8080}
+            for i in $(seq 1 60); do
+              if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/login"; then
+                echo "==> OK: app trả HTTP 200"
+                docker image prune -f
+                exit 0
+              fi
+              sleep 5
+            done
+
+            echo "LỖI: app không phản hồi sau 5 phút" >&2
+            docker compose logs app --tail 50 >&2
+            exit 1

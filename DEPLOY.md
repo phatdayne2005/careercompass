@@ -186,10 +186,105 @@ Chấp nhận được cho đồ án môn học với mật khẩu mạnh, nhưn
 
 ---
 
-## Các lần deploy sau
+## 10. CI/CD tự động (GitHub Actions)
+
+Sau khi cấu hình xong mục này, **push vào `main` là tự động deploy** — không cần SSH vào VPS nữa.
+
+```
+push main ──> [test] 198 testcase + MySQL
+                 │ pass
+                 ▼
+              [docker] build image, push lên ghcr.io
+                 │
+                 ▼
+              [deploy] SSH vào VPS -> pull image -> up -d -> kiểm tra HTTP 200
+```
+
+Image được build **trên runner của GitHub**, VPS chỉ `pull`. Nhờ vậy VPS không cần RAM để chạy
+Maven, và deploy chỉ mất vài chục giây thay vì vài phút.
+
+Test fail → không build image. Build fail → không deploy. App không trả 200 sau khi deploy →
+job báo đỏ kèm log.
+
+### 10.1. Tạo SSH deploy key
+
+Tạo key **riêng cho CI** (đừng dùng key cá nhân), trên máy dev:
 
 ```bash
-cd ~/lap-trinh-java && ./deploy/deploy.sh
+ssh-keygen -t ed25519 -C "github-actions-careercompass" -f ~/.ssh/cc_deploy -N ""
+```
+
+Chép public key lên VPS:
+
+```bash
+ssh-copy-id -i ~/.ssh/cc_deploy.pub user@IP_VPS_CUA_BAN
+# hoặc thủ công: nối nội dung cc_deploy.pub vào ~/.ssh/authorized_keys trên VPS
+```
+
+Kiểm tra vào được không: `ssh -i ~/.ssh/cc_deploy user@IP_VPS_CUA_BAN`
+
+### 10.2. Khai báo secrets trên GitHub
+
+Repo → **Settings** → **Secrets and variables** → **Actions** → *New repository secret*:
+
+| Secret | Giá trị | Bắt buộc |
+|---|---|---|
+| `VPS_HOST` | `IP_VPS_CUA_BAN` | có |
+| `VPS_USER` | user SSH trên VPS (vd `root`, `ubuntu`) | có |
+| `VPS_SSH_KEY` | **toàn bộ nội dung** `~/.ssh/cc_deploy` (private key, gồm cả dòng `-----BEGIN...` và `-----END...`) | có |
+| `VPS_PORT` | port SSH nếu khác `22` | không |
+| `VPS_APP_DIR` | đường dẫn repo trên VPS nếu khác `~/lap-trinh-java` | không |
+
+`GITHUB_TOKEN` **không cần tạo** — GitHub tự cấp cho mỗi lần chạy.
+
+### 10.3. Chuẩn bị VPS một lần
+
+VPS phải `git pull` được không cần nhập mật khẩu (repo public thì mặc định đã được), và
+`.env` phải tồn tại sẵn (mục 3). Workflow chỉ ghi đè đúng dòng `APP_IMAGE`, các secret khác giữ nguyên.
+
+### 10.4. Chạy thử
+
+Vào tab **Actions** trên GitHub → chọn workflow → **Run workflow** (nhờ `workflow_dispatch`),
+hoặc push một commit nhỏ vào `main`.
+
+### 10.5. Rollback
+
+Mỗi image được gắn tag theo SHA commit nên quay lại bản cũ rất nhanh:
+
+```bash
+cd ~/lap-trinh-java
+docker images | grep careercompass                 # xem các SHA đang có
+sed -i 's|^APP_IMAGE=.*|APP_IMAGE=ghcr.io/phatdayne2005/careercompass:<sha-cu>|' .env
+docker compose up -d --no-build
+```
+
+Cách khác: vào GitHub Actions, mở lần chạy cũ đã xanh, bấm **Re-run all jobs**.
+
+### 10.6. Nếu package GHCR để private
+
+Mặc định image push lên GHCR là **private**. Workflow vẫn deploy được (nó tự `docker login`
+bằng token tạm), nhưng khi bạn chạy `./deploy/deploy.sh` **thủ công** trên VPS thì phải đăng nhập:
+
+```bash
+echo <GITHUB_PAT_co_quyen_read:packages> | docker login ghcr.io -u <github-username> --password-stdin
+```
+
+Muốn khỏi phải login: GitHub → Packages → chọn `careercompass` → Package settings →
+Change visibility → **Public**. Image không chứa secret (secret nằm ở `.env` lúc chạy),
+nhưng có chứa mã nguồn đã biên dịch — cân nhắc nếu repo đang private.
+
+---
+
+## Các lần deploy sau
+
+Bình thường **không cần làm gì** — push vào `main` là CI/CD tự lo (mục 10).
+
+Deploy tay khi CI hỏng:
+
+```bash
+cd ~/lap-trinh-java
+./deploy/deploy.sh              # pull image mới nhất từ GHCR (giống CI)
+./deploy/deploy.sh --build      # build tại chỗ trên VPS (chậm, tốn RAM)
 ```
 
 ## Vận hành
