@@ -171,7 +171,7 @@ Bấm **Test Connection**. Nếu lỗi:
   **sau** khi volume `db-data` được tạo (MySQL chỉ đọc biến này lần khởi tạo đầu tiên).
 - Kiểm tra nhanh từ chính VPS:
   ```bash
-  docker compose exec db mysql -uroot -p"$(grep '^DB_PASSWORD=' .env | cut -d= -f2)" \
+  docker compose exec db mysql -uroot -p"$(sed -n 's/^DB_PASSWORD=//p' .env | tr -d '\r"')" \
     -e "SELECT CURRENT_USER(); SHOW DATABASES;"
   ```
 
@@ -299,14 +299,14 @@ docker compose down -v              # dừng và XÓA SẠCH database - cẩn th
 Backup database:
 
 ```bash
-docker compose exec db mysqldump -uroot -p"$(grep '^DB_PASSWORD=' .env | cut -d= -f2)" \
+docker compose exec db mysqldump -uroot -p"$(sed -n 's/^DB_PASSWORD=//p' .env | tr -d '\r"')" \
   --single-transaction careercompass > backup-$(date +%F).sql
 ```
 
 Restore:
 
 ```bash
-docker compose exec -T db mysql -uroot -p"$(grep '^DB_PASSWORD=' .env | cut -d= -f2)" \
+docker compose exec -T db mysql -uroot -p"$(sed -n 's/^DB_PASSWORD=//p' .env | tr -d '\r"')" \
   careercompass < backup-2026-07-31.sql
 ```
 
@@ -331,6 +331,18 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 `SERVER_FORWARD_HEADERS_STRATEGY=framework` trong `docker-compose.yml` (đã set sẵn).
 
 **502 Bad Gateway** — container app chưa lên: `docker compose ps` + `curl -I http://127.0.0.1:8080/login`.
+
+**`curl: (3) URL using bad/illegal format`** trong job deploy — `.env` trên VPS lưu kiểu CRLF
+(soạn/copy từ Windows), khiến giá trị đọc ra có ký tự `\r` ở cuối và URL thành
+`http://127.0.0.1:8080\r/login`. Script đã tự lọc, nhưng nên chuẩn hoá luôn cho sạch:
+
+```bash
+sed -i 's/\r$//' .env
+file .env          # kỳ vọng: "ASCII text", KHÔNG có "with CRLF line terminators"
+```
+
+Cũng đừng bọc giá trị trong dấu nháy (`APP_PORT="8080"`) — Docker Compose coi dấu nháy là
+một phần của giá trị.
 
 ---
 

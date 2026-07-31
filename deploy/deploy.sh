@@ -35,8 +35,10 @@ else
 fi
 
 echo "==> Chờ app khởi động"
-PORT=$(grep '^APP_PORT=' .env | cut -d= -f2 || echo 8080)
-PORT=${PORT:-8080}
+# tr -cd '0-9' bỏ mọi ký tự không phải chữ số: chặn CR (.env kiểu CRLF từ Windows),
+# dấu nháy, khoảng trắng - những thứ khiến curl báo "(3) URL bad/illegal format".
+PORT=$(sed -n 's/^APP_PORT=//p' .env | tail -n1 | tr -cd '0-9')
+[ -n "$PORT" ] || PORT=8080
 
 for i in $(seq 1 60); do
   if curl -fsS -o /dev/null "http://127.0.0.1:$PORT/login"; then
