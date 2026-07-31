@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Eclipse workspace metadata (rác IDE, không liên quan source) ###
+.metadata/
+
 ### STS ###
 .apt_generated
 .classpath

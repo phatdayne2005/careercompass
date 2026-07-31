@@ -1,4 +1,0 @@
-2026/07/05-20:48:49.406 50cc Creating DB C:\BTLlap-trinh-java\lap-trinh-java\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Local Storage\leveldb since it was missing.
-2026/07/05-20:48:49.423 50cc Reusing MANIFEST C:\BTLlap-trinh-java\lap-trinh-java\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Local Storage\leveldb/MANIFEST-000001
-2026/07/05-20:48:49.424 50cc Recovering log #3
-2026/07/05-20:48:49.427 50cc Reusing old log C:\BTLlap-trinh-java\lap-trinh-java\.metadata\.plugins\org.eclipse.swt\EBWebView\Default\Local Storage\leveldb/000003.log 
