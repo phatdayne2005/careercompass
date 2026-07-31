@@ -1,0 +1,9 @@
+.git
+.github
+.metadata
+.mvn/wrapper/maven-wrapper.jar
+.vscode
+uploads/
+reports/
+application-local.yml
+*.log

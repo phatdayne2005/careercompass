@@ -1,14 +1,14 @@
-name: CareerCompass CI Workflow
+name: CareerCompass CI
 
 on:
   push:
-    branches: [ "main", "master", "dev" ]
+    branches: ["main", "master", "dev", "develop"]
   pull_request:
-    branches: [ "main", "master", "dev" ]
+    branches: ["main", "master", "dev", "develop"]
 
 jobs:
-  build:
-    name: Build and Test (Java 21 & Maven)
+  verify:
+    name: Verify Spring Boot app
     runs-on: ubuntu-latest
 
     services:
@@ -20,55 +20,57 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -u root -proot"
+          --health-cmd="mysqladmin ping -h localhost -u root -proot"
           --health-interval=10s
           --health-timeout=10s
           --health-retries=10
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      GOOGLE_CLIENT_ID: mock-client-id
+      GOOGLE_CLIENT_SECRET: mock-client-secret
+      GEMINI_API_KEY: mock-gemini-key
+      MAIL_USERNAME: mock@example.com
+      MAIL_PASSWORD: mock-password
+      ADMIN_EMAIL: admin@gmail.com
+      ADMIN_PASSWORD: 123456
+      STUDENT_EMAIL: student@gmail.com
+      STUDENT_PASSWORD: 123456
+      COUNSELOR_EMAIL: counselor@gmail.com
+      COUNSELOR_PASSWORD: 123456
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 and Maven
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 21
           cache: maven
 
-      - name: Wait for MySQL to be ready
-        run: |
-          for i in $(seq 1 30); do
-            if mysqladmin ping -h 127.0.0.1 -u root -proot --silent 2>/dev/null; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Waiting for MySQL... ($i/30)"
-            sleep 2
-          done
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
 
-      - name: Build with Maven (skip tests)
-        run: mvn clean compile -B
+      - name: Verify with Maven
+        run: ./mvnw -B clean verify
 
-      - name: Run tests
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root
-          GOOGLE_CLIENT_ID: mock-client-id
-          GOOGLE_CLIENT_SECRET: mock-client-secret
-          GEMINI_API_KEY: mock-gemini-key
-          MAIL_USERNAME: mock@gmail.com
-          MAIL_PASSWORD: mockpassword
-        run: mvn test -B
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+          retention-days: 7
 
-      - name: Package JAR
-        run: mvn package -B -DskipTests
-
-      - name: Upload JAR Artifact
+      - name: Upload application JAR
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: CareerCompass-application
+          name: careercompass-jar
           path: target/*.jar
           retention-days: 7
