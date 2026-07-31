@@ -20,7 +20,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping -u root -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -36,19 +36,25 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Grant execute permission for mvnw
-        run: chmod +x mvnw
+      - name: Fix line endings and permissions for mvnw
+        run: |
+          sed -i 's/\r$//' mvnw
+          chmod +x mvnw
 
       - name: Build and Test with Maven
         env:
           DB_USERNAME: root
           DB_PASSWORD: root
+          DB_URL: jdbc:mysql://127.0.0.1:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
           GOOGLE_CLIENT_ID: mock-client-id
           GOOGLE_CLIENT_SECRET: mock-client-secret
           GEMINI_API_KEY: mock-gemini-key
+          MAIL_USERNAME: mock@gmail.com
+          MAIL_PASSWORD: mockpassword
         run: ./mvnw clean package -DskipTests=false
 
       - name: Upload JAR Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: CareerCompass-application
