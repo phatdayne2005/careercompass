@@ -22,36 +22,48 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -u root -proot"
           --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK 21 and Maven
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
-      - name: Fix line endings and permissions for mvnw
+      - name: Wait for MySQL to be ready
         run: |
-          sed -i 's/\r$//' mvnw
-          chmod +x mvnw
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h 127.0.0.1 -u root -proot --silent 2>/dev/null; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL... ($i/30)"
+            sleep 2
+          done
 
-      - name: Build and Test with Maven
+      - name: Build with Maven (skip tests)
+        run: mvn clean compile -B
+
+      - name: Run tests
         env:
-          DB_USERNAME: root
-          DB_PASSWORD: root
-          DB_URL: jdbc:mysql://127.0.0.1:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/careercompass?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
           GOOGLE_CLIENT_ID: mock-client-id
           GOOGLE_CLIENT_SECRET: mock-client-secret
           GEMINI_API_KEY: mock-gemini-key
           MAIL_USERNAME: mock@gmail.com
           MAIL_PASSWORD: mockpassword
-        run: ./mvnw clean package -DskipTests=false
+        run: mvn test -B
+
+      - name: Package JAR
+        run: mvn package -B -DskipTests
 
       - name: Upload JAR Artifact
         if: success()
