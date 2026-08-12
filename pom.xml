@@ -35,6 +35,39 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+
+		<!-- ===== Phân tích chất lượng mã nguồn: SonarQube Cloud ===== -->
+		<!-- Định danh dự án trên sonarcloud.io. projectKey do SonarCloud tự sinh
+		     theo dạng <organization>_<repo>, không được tự đặt lại. -->
+		<sonar.organization>phatdayne2005</sonar.organization>
+		<sonar.projectKey>phatdayne2005_lap-trinh-java</sonar.projectKey>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+		<!-- SonarQube KHÔNG tự chạy test và KHÔNG tự đo coverage. Nó chỉ đọc lại
+		     báo cáo XML do JaCoCo sinh ra. Thiếu dòng này thì dashboard báo 0.0%. -->
+		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+		<!-- Loại khỏi phép TÍNH COVERAGE (vẫn được quét tìm lỗi) các lớp không
+		     chứa logic nghiệp vụ: DTO, entity, lớp cấu hình, lớp main.
+		     Viết unit test cho getter/setter chỉ làm đẹp con số, không bắt được lỗi. -->
+		<sonar.coverage.exclusions>
+			**/dto/**,
+			**/entity/**,
+			**/config/**,
+			**/*Application.java
+		</sonar.coverage.exclusions>
+
+		<!-- Loại HẲN khỏi phân tích: tài nguyên tĩnh và template không phải mã Java. -->
+		<sonar.exclusions>
+			**/target/**,
+			**/static/**,
+			**/*.min.js
+		</sonar.exclusions>
+
+		<!-- Ghim phiên bản để mọi máy và CI chạy ra cùng kết quả.
+		     Spring Boot 4.1 không còn quản lý sẵn jacoco.version nên phải tự khai. -->
+		<jacoco.version>0.8.13</jacoco.version>
+		<sonar-maven-plugin.version>5.7.0.6970</sonar-maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -138,6 +171,46 @@
 						</annotationProcessorPath>
 					</annotationProcessorPaths>
 				</configuration>
+			</plugin>
+
+			<!-- ===================================================================
+			     JaCoCo: đo độ bao phủ mã nguồn của bộ unit test.
+			     - prepare-agent: gắn Java agent vào JVM chạy test để ghi lại từng
+			       dòng lệnh nào được thực thi (ghi ra target/jacoco.exec).
+			     - report: chuyển file nhị phân đó thành HTML (cho người đọc) và
+			       XML (cho SonarQube đọc).
+			     Lưu ý: Spring Boot 4.1 không còn quản lý sẵn jacoco.version như bản
+			     3.x nên phải tự khai phiên bản ở khối <properties>.
+			     =================================================================== -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>jacoco-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<!-- Chạy sau khi test xong, trước khi đóng gói. -->
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- SonarScanner for Maven: chạy phân tích ngay tại máy build rồi
+			     gửi báo cáo lên SonarQube Cloud. Khai báo ở đây để lệnh rút gọn
+			     "mvn sonar:sonar" luôn dùng đúng phiên bản đã ghim. -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar-maven-plugin.version}</version>
 			</plugin>
 		</plugins>
 	</build>
