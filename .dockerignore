@@ -18,3 +18,4 @@ logs/
 application-local.yml
 .env
 .env.local
+.env.deploy

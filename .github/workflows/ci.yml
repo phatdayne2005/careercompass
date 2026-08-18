@@ -177,3 +177,28 @@ jobs:
             echo "LỖI: app không phản hồi sau 5 phút" >&2
             docker compose logs app --tail 50 >&2
             exit 1
+
+  # ==========================================================
+  # 4. DỌN DẸP - xoá bản image cũ trên GHCR, chỉ giữ 5 bản gần nhất
+  #    Mỗi lần deploy đẻ ra 1 tag SHA mới; không dọn thì package phình dần
+  #    (tài khoản free chỉ có 500MB nếu package để private).
+  # ==========================================================
+  cleanup:
+    name: Cleanup old images
+    needs: deploy
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    # Dọn dẹp hỏng thì KHÔNG được làm hỏng kết quả deploy (deploy đã xong xuôi rồi).
+    continue-on-error: true
+
+    steps:
+      - name: Delete old package versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: careercompass
+          package-type: container
+          min-versions-to-keep: 5
+          # Không đụng vào bản đang mang tag (latest, và SHA vừa deploy).
+          ignore-versions: '^latest$'

@@ -198,6 +198,9 @@ push main ──> [test] 198 testcase + MySQL
                  │
                  ▼
               [deploy] SSH vào VPS -> pull image -> up -d -> kiểm tra HTTP 200
+                 │
+                 ▼
+              [cleanup] xoá image cũ trên GHCR, giữ 5 bản gần nhất
 ```
 
 Image được build **trên runner của GitHub**, VPS chỉ `pull`. Nhờ vậy VPS không cần RAM để chạy
@@ -260,7 +263,23 @@ docker compose up -d --no-build
 
 Cách khác: vào GitHub Actions, mở lần chạy cũ đã xanh, bấm **Re-run all jobs**.
 
-### 10.6. Nếu package GHCR để private
+### 10.6. Xem và dọn image trên GHCR
+
+Image nằm ở **GitHub Container Registry**, xem bằng UI tại:
+
+```
+https://github.com/phatdayne2005?tab=packages
+```
+
+Nhờ `LABEL org.opencontainers.image.source` trong `Dockerfile`, package được gắn vào repo
+và hiện luôn ở sidebar trang repo.
+
+Mỗi lần deploy đẻ ra một tag SHA mới. Job `cleanup` tự xoá bản cũ, **giữ lại 5 bản gần nhất**
+— đủ để rollback vài phiên bản mà không làm phình package (tài khoản free giới hạn 500MB
+nếu package để private). Job này đặt `continue-on-error: true`: dọn dẹp hỏng cũng không
+làm đỏ kết quả deploy.
+
+### 10.7. Nếu package GHCR để private
 
 Mặc định image push lên GHCR là **private**. Workflow vẫn deploy được (nó tự `docker login`
 bằng token tạm), nhưng khi bạn chạy `./deploy/deploy.sh` **thủ công** trên VPS thì phải đăng nhập:

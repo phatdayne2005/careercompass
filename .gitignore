@@ -51,6 +51,10 @@ application-local.properties
 application-*-local.yml
 .env
 .env.local
+# Mọi biến thể .env.<gì đó> (.env.deploy, .env.prod...) đều chứa secret thật.
+.env.*
+# Trừ file mẫu - cái này CẦN commit để team biết phải điền biến nào.
+!.env.example
 
 ### File upload (P2 sẽ lưu transcript PDF) ###
 /uploads/
