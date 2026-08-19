@@ -4,10 +4,11 @@
   "private": true,
   "description": "Kiểm thử giao diện (E2E) cho CareerCompass bằng CodeceptJS + Playwright",
   "scripts": {
-    "test": "codeceptjs run --steps --grep \"@known-bug\" --invert",
+    "test": "codeceptjs run --steps --grep \"^(?!.*@known-bug)\"",
     "test:all": "codeceptjs run --steps",
-    "test:p0": "codeceptjs run --steps --grep \"@P0\"",
-    "test:p1": "codeceptjs run --steps --grep \"@P1\" --grep \"@known-bug\" --invert",
+    "test:p0": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@P0\"",
+    "test:p1": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@P1\"",
+    "test:smoke": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@smoke\"",
     "test:knownbug": "codeceptjs run --steps --grep \"@known-bug\"",
     "report": "node support/generate-report.js",
     "test:report": "npm test; npm run report"
