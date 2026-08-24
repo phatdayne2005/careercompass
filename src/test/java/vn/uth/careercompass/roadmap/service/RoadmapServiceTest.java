@@ -2,6 +2,9 @@ package vn.uth.careercompass.roadmap.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +29,8 @@ import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -205,6 +210,12 @@ class RoadmapServiceTest {
         assertThat(roadmapService.calculatePercent(4, 4)).isEqualTo(100.0);
     }
 
+    @Test
+    void calculatePercent_whenNoCompletedNodeAndPositiveTotal_returnsZero() {
+        // Nhánh total != 0 với tử số bằng 0 vẫn phải trả về 0.0.
+        assertThat(roadmapService.calculatePercent(0, 5)).isEqualTo(0.0);
+    }
+
     // ============================================================
     // isNodeLocked(user, node)
     // ============================================================
@@ -216,6 +227,21 @@ class RoadmapServiceTest {
         SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
 
         assertThat(roadmapService.isNodeLocked(new User(), tier1)).isFalse();
+    }
+
+    @Test
+    void isNodeLocked_whenTierIsNull_treatsNodeAsTierOne() {
+        // Nhánh tier == null phải được quy về tầng 1 và thoát sớm.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).build();
+        SkillNode nodeWithoutTier = SkillNode.builder()
+                .id(100L)
+                .template(template)
+                .skill(skill(1L, "Java"))
+                .title("Java node")
+                .tier(null)
+                .build();
+
+        assertThat(roadmapService.isNodeLocked(new User(), nodeWithoutTier)).isFalse();
     }
 
     @Test
@@ -253,6 +279,54 @@ class RoadmapServiceTest {
 
         // When + Then
         assertThat(roadmapService.isNodeLocked(user, tier2)).isFalse();
+    }
+
+    @Test
+    void isNodeLocked_whenLowerTierProgressExistsButIsNotDone_returnsLocked() {
+        // Nhánh lọc tiến độ: bản ghi IN_PROGRESS không được tính là đã hoàn thành.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        User user = new User();
+
+        UserNodeProgress inProgress = UserNodeProgress.builder()
+                .skillNode(tier1).status(ProgressStatus.IN_PROGRESS).build();
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(List.of(inProgress));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(
+                        SkillNode.builder()
+                                .id(100L)
+                                .template(template)
+                                .skill(skill(99L, "General"))
+                                .title("General node")
+                                .tier(null)
+                                .build(),
+                        tier1,
+                        tier2));
+
+        assertThat(roadmapService.isNodeLocked(user, tier2)).isTrue();
+    }
+
+    @Test
+    void isNodeLocked_dataFlow_usesDoneSetToFindAnIncompleteLowerTier() {
+        // Theo dõi luồng dữ liệu: progress DONE được đưa vào doneNodeIds,
+        // còn progress IN_PROGRESS không được đưa vào set và làm node tier 3 bị khóa.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        SkillNode tier3 = node(103L, template, skill(3L, "Docker"), 3);
+        User user = new User();
+
+        List<UserNodeProgress> progress = List.of(
+                UserNodeProgress.builder().skillNode(tier1).status(ProgressStatus.DONE).build(),
+                UserNodeProgress.builder().skillNode(tier2).status(ProgressStatus.IN_PROGRESS).build());
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(progress);
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2, tier3));
+
+        assertThat(roadmapService.isNodeLocked(user, tier3)).isTrue();
     }
 
     // ============================================================
@@ -311,6 +385,204 @@ class RoadmapServiceTest {
         RoadmapNodeDTO dockerNode = findNode(view, 103L);
         assertThat(dockerNode.getStatus()).isEqualTo(ProgressStatus.NOT_STARTED);
         assertThat(dockerNode.isLocked()).isTrue();
+    }
+
+    @Test
+    void getRoadmap_whenTierOneIsIncomplete_locksTierTwoAndTierThree() {
+        // Nhánh t == 2 && !tier1Done và nhánh t >= 3 khi tier 1 chưa xong.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).name("Backend").build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        SkillNode tier3 = node(103L, template, skill(3L, "Docker"), 3);
+        SkillNode defaultTier = SkillNode.builder()
+                .id(104L)
+                .template(template)
+                .skill(skill(4L, "General"))
+                .title("General node")
+                .tier(null)
+                .build();
+        tier2.setParent(tier1);
+        User user = new User();
+
+        when(skillTreeTemplateRepository.findById(10L)).thenReturn(Optional.of(template));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2, tier3, defaultTier));
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(List.of());
+        when(learningResourceRepository.findBySkillNode_Template_IdOrderByIdAsc(10L))
+                .thenReturn(List.of());
+        when(userSkillRepository.findByUserWithSkill(user)).thenReturn(List.of());
+
+        RoadmapViewDTO view = roadmapService.getRoadmap(user, 10L);
+
+        assertThat(findNode(view, 101L).isLocked()).isFalse();
+        assertThat(findNode(view, 102L).isLocked()).isTrue();
+        assertThat(findNode(view, 102L).getParentId()).isEqualTo(101L);
+        assertThat(findNode(view, 103L).isLocked()).isTrue();
+        assertThat(findNode(view, 104L).getTier()).isNull();
+        assertThat(findNode(view, 104L).isLocked()).isFalse();
+    }
+
+    @Test
+    void getRoadmap_whenTierOneAndTierTwoAreDone_unlocksTierThree() {
+        // Nhánh t >= 3 && !(tier1Done && tier2Done) = false.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).name("Backend").build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        SkillNode tier3 = node(103L, template, skill(3L, "Docker"), 3);
+        User user = new User();
+
+        List<UserNodeProgress> doneProgress = List.of(
+                UserNodeProgress.builder().skillNode(tier1).status(ProgressStatus.DONE).build(),
+                UserNodeProgress.builder().skillNode(tier2).status(ProgressStatus.DONE).build());
+        when(skillTreeTemplateRepository.findById(10L)).thenReturn(Optional.of(template));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2, tier3));
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(doneProgress);
+        when(learningResourceRepository.findBySkillNode_Template_IdOrderByIdAsc(10L))
+                .thenReturn(List.of());
+        when(userSkillRepository.findByUserWithSkill(user)).thenReturn(List.of());
+
+        RoadmapViewDTO view = roadmapService.getRoadmap(user, 10L);
+
+        assertThat(findNode(view, 101L).isLocked()).isFalse();
+        assertThat(findNode(view, 102L).isLocked()).isFalse();
+        assertThat(findNode(view, 103L).isLocked()).isFalse();
+    }
+
+    @Test
+    void getRoadmap_whenTierThreeIsAlreadyDone_doesNotLockCompletedNode() {
+        // Nhánh !completed = false: node DONE không bao giờ bị khóa.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).name("Backend").build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        SkillNode tier3 = node(103L, template, skill(3L, "Docker"), 3);
+        User user = new User();
+
+        List<UserNodeProgress> doneProgress = List.of(
+                UserNodeProgress.builder().skillNode(tier1).status(ProgressStatus.DONE).build(),
+                UserNodeProgress.builder().skillNode(tier2).status(ProgressStatus.DONE).build(),
+                UserNodeProgress.builder().skillNode(tier3).status(ProgressStatus.DONE).build());
+        when(skillTreeTemplateRepository.findById(10L)).thenReturn(Optional.of(template));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2, tier3));
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(doneProgress);
+        when(learningResourceRepository.findBySkillNode_Template_IdOrderByIdAsc(10L))
+                .thenReturn(List.of());
+        when(userSkillRepository.findByUserWithSkill(user)).thenReturn(List.of());
+
+        RoadmapViewDTO view = roadmapService.getRoadmap(user, 10L);
+
+        assertThat(view.getCompletedNodes()).isEqualTo(3);
+        assertThat(view.getCompletionPercent()).isEqualTo(100.0);
+        assertThat(findNode(view, 103L).isLocked()).isFalse();
+    }
+
+    // ============================================================
+    // Phần 4 — bao phủ tổ hợp điều kiện
+    // ============================================================
+
+    /**
+     * Ma trận cho biểu thức khóa node:
+     * !completed && ((t == 2 && !tier1Done) || (t >= 3 && !(tier1Done && tier2Done)))
+     *
+     * Không làm riêng mục 3 (bao phủ điều kiện đơn); các case ở đây tập trung vào
+     * tổ hợp đầu vào có ý nghĩa và cả các nhánh ngắn mạch của biểu thức.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("lockConditionCombinations")
+    void lockExpression_coversConditionCombinations(
+            String caseName,
+            boolean tier1Done,
+            boolean tier2Done,
+            boolean tier3Done,
+            Long nodeId,
+            boolean expectedLocked) {
+        RoadmapViewDTO view = roadmapForTierCombination(tier1Done, tier2Done, tier3Done);
+
+        assertThat(findNode(view, nodeId).isLocked()).as(caseName).isEqualTo(expectedLocked);
+    }
+
+    private static Stream<Arguments> lockConditionCombinations() {
+        return Stream.of(
+                Arguments.of("tier 1 chưa xong không bị khóa", false, false, false, 101L, false),
+                Arguments.of("tier 2 bị khóa khi tier 1 chưa xong", false, false, false, 102L, true),
+                Arguments.of("tier 2 mở khi tier 1 đã xong", true, false, false, 102L, false),
+                Arguments.of("tier 3 bị khóa khi tier 1 chưa xong", false, false, false, 103L, true),
+                Arguments.of("tier 3 bị khóa khi tier 2 chưa xong", true, false, false, 103L, true),
+                Arguments.of("tier 3 mở khi tier 1 và tier 2 đã xong", true, true, false, 103L, false),
+                Arguments.of("node tier 3 đã DONE không bị khóa", false, false, true, 103L, false)
+        );
+    }
+
+    private RoadmapViewDTO roadmapForTierCombination(
+            boolean tier1Done,
+            boolean tier2Done,
+            boolean tier3Done) {
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).name("Backend").build();
+        SkillNode tier1 = node(101L, template, skill(1L, "Java"), 1);
+        SkillNode tier2 = node(102L, template, skill(2L, "Spring"), 2);
+        SkillNode tier3 = node(103L, template, skill(3L, "Docker"), 3);
+        User user = new User();
+
+        List<UserNodeProgress> progress = new ArrayList<>();
+        if (tier1Done) {
+            progress.add(UserNodeProgress.builder().skillNode(tier1).status(ProgressStatus.DONE).build());
+        }
+        if (tier2Done) {
+            progress.add(UserNodeProgress.builder().skillNode(tier2).status(ProgressStatus.DONE).build());
+        }
+        if (tier3Done) {
+            progress.add(UserNodeProgress.builder().skillNode(tier3).status(ProgressStatus.DONE).build());
+        }
+
+        when(skillTreeTemplateRepository.findById(10L)).thenReturn(Optional.of(template));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2, tier3));
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(progress);
+        when(learningResourceRepository.findBySkillNode_Template_IdOrderByIdAsc(10L))
+                .thenReturn(List.of());
+        when(userSkillRepository.findByUserWithSkill(user)).thenReturn(List.of());
+
+        return roadmapService.getRoadmap(user, 10L);
+    }
+
+    // ============================================================
+    // Phần 5 — kiểm thử luồng dữ liệu
+    // ============================================================
+
+    @Test
+    void getRoadmap_dataFlow_doesNotOverwriteExistingProgressWithAcquiredSkill() {
+        // Đường def-use: progressByNodeId -> status IN_PROGRESS -> tier1Done/completedNodes,
+        // đồng thời acquiredSkillIds không được ghi đè một progress đã tồn tại.
+        SkillTreeTemplate template = SkillTreeTemplate.builder().id(10L).name("Backend").build();
+        Skill java = skill(1L, "Java");
+        Skill spring = skill(2L, "Spring");
+        SkillNode tier1 = node(101L, template, java, 1);
+        SkillNode tier2 = node(102L, template, spring, 2);
+        User user = new User();
+
+        UserNodeProgress inProgress = UserNodeProgress.builder()
+                .skillNode(tier1).status(ProgressStatus.IN_PROGRESS).build();
+        when(skillTreeTemplateRepository.findById(10L)).thenReturn(Optional.of(template));
+        when(skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(10L))
+                .thenReturn(List.of(tier1, tier2));
+        when(userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, 10L))
+                .thenReturn(List.of(inProgress));
+        when(learningResourceRepository.findBySkillNode_Template_IdOrderByIdAsc(10L))
+                .thenReturn(List.of());
+        when(userSkillRepository.findByUserWithSkill(user))
+                .thenReturn(List.of(UserSkill.builder().user(user).skill(java).build()));
+
+        RoadmapViewDTO view = roadmapService.getRoadmap(user, 10L);
+
+        assertThat(findNode(view, 101L).getStatus()).isEqualTo(ProgressStatus.IN_PROGRESS);
+        assertThat(findNode(view, 102L).isLocked()).isTrue();
+        assertThat(view.getCompletedNodes()).isZero();
+        assertThat(view.getCompletionPercent()).isEqualTo(0.0);
     }
 
     private RoadmapNodeDTO findNode(RoadmapViewDTO view, Long nodeId) {

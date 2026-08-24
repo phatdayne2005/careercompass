@@ -63,7 +63,7 @@ jobs:
           GEMINI_API_KEY: mock-gemini-key
           MAIL_USERNAME: mock@gmail.com
           MAIL_PASSWORD: mockpassword
-        run: ./mvnw clean package -DskipTests=false
+        run: ./mvnw clean verify -DskipTests=false
 
       - name: Upload JAR Artifact
         if: success()
