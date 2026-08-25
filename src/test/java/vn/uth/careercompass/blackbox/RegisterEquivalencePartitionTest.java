@@ -52,12 +52,30 @@ class RegisterEquivalencePartitionTest {
         validatorFactory.close();
     }
 
-    /** Form hợp lệ mọi trường, chỉ thay mật khẩu — kỹ thuật cô lập biến. */
-    private RegisterFormDTO formWithPassword(String password) {
+    /** Form hợp lệ mọi trường — dùng làm nền để chỉ thay đúng một trường (cô lập biến). */
+    private RegisterFormDTO validForm() {
         RegisterFormDTO dto = new RegisterFormDTO();
         dto.setFullName("Nguyen Van A");
         dto.setEmail("a@example.com");
+        dto.setPassword("matkhau123");
+        return dto;
+    }
+
+    private RegisterFormDTO formWithPassword(String password) {
+        RegisterFormDTO dto = validForm();
         dto.setPassword(password);
+        return dto;
+    }
+
+    private RegisterFormDTO formWithFullName(String fullName) {
+        RegisterFormDTO dto = validForm();
+        dto.setFullName(fullName);
+        return dto;
+    }
+
+    private RegisterFormDTO formWithEmail(String email) {
+        RegisterFormDTO dto = validForm();
+        dto.setEmail(email);
         return dto;
     }
 
@@ -107,5 +125,65 @@ class RegisterEquivalencePartitionTest {
         assertThat(validator.validateProperty(formWithPassword(null), "password"))
                 .as("Đại diện lớp không hợp lệ X4")
                 .isNotEmpty();
+    }
+
+    // ================================================================
+    // TRƯỜNG fullName — @NotBlank @Size(max = 100)
+    // ================================================================
+
+    @Test
+    @DisplayName("V2 · fullName lớp hợp lệ: 1–100 ký tự có nội dung")
+    void v2_fullName_lopHopLe() {
+        assertThat(validator.validateProperty(formWithFullName("Nguyen Van A"), "fullName")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("X5 · fullName trên 100 ký tự → bị từ chối (@Size)")
+    void x5_fullName_tren100KyTu() {
+        assertThat(validator.validateProperty(formWithFullName("x".repeat(101)), "fullName")).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("X6 · fullName toàn khoảng trắng → bị từ chối (@NotBlank)")
+    void x6_fullName_toanKhoangTrang() {
+        assertThat(validator.validateProperty(formWithFullName("     "), "fullName")).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("X7 · fullName null → bị từ chối (@NotBlank)")
+    void x7_fullName_null() {
+        assertThat(validator.validateProperty(formWithFullName(null), "fullName")).isNotEmpty();
+    }
+
+    // ================================================================
+    // TRƯỜNG email — @NotBlank @Email @Size(max = 150)
+    // ================================================================
+
+    @Test
+    @DisplayName("V3 · email lớp hợp lệ: đúng định dạng, không quá 150 ký tự")
+    void v3_email_lopHopLe() {
+        assertThat(validator.validateProperty(formWithEmail("sinhvien@uth.edu.vn"), "email")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("X8 · email sai định dạng → bị từ chối (@Email)")
+    void x8_email_saiDinhDang() {
+        assertThat(validator.validateProperty(formWithEmail("khong-phai-email"), "email")).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("X9 · email trên 150 ký tự → bị từ chối (@Size)")
+    void x9_email_tren150KyTu() {
+        // Local-part 64 + '@' + hai nhãn miền + '.com' = 153 ký tự, vẫn đúng định dạng email.
+        String longEmail = "a".repeat(64) + "@" + "b".repeat(63) + "." + "c".repeat(20) + ".com";
+        assertThat(longEmail.length()).isGreaterThan(150);
+
+        assertThat(validator.validateProperty(formWithEmail(longEmail), "email")).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("X10 · email null → bị từ chối (@NotBlank)")
+    void x10_email_null() {
+        assertThat(validator.validateProperty(formWithEmail(null), "email")).isNotEmpty();
     }
 }

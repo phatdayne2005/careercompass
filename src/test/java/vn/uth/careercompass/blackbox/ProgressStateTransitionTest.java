@@ -47,9 +47,14 @@ import static org.mockito.Mockito.when;
  *   ST-02  IN_PROGRESS      Đánh dấu DONE (mở)             DONE + completedAt    Có
  *   ST-03  DONE             Bỏ đánh dấu về NOT_STARTED     NOT_STARTED, xoá giờ  Có
  *   ST-04  DONE             Hạ về IN_PROGRESS              IN_PROGRESS, xoá giờ  Có
- *   ST-05  NOT_STARTED      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
- *   ST-06  IN_PROGRESS      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
+ *   ST-05  NOT_STARTED      Đánh dấu DONE (node mở)        DONE + completedAt    Có
+ *   ST-06  IN_PROGRESS      Bỏ đánh dấu về NOT_STARTED     NOT_STARTED           Có
+ *   ST-07  NOT_STARTED      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
+ *   ST-08  IN_PROGRESS      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
  * </pre>
+ *
+ * <p>Sáu dòng đầu phủ ĐỦ 6 cạnh chuyển giữa 3 trạng thái (3 × 2 = 6 cặp có thứ tự).
+ * Hai dòng cuối là chuyển đổi bị chặn — phần mà kiểm thử đi đường thuận sẽ bỏ sót.
  *
  * <p>Hai dòng cuối là <b>chuyển đổi không hợp lệ</b> — phần mà kiểm thử chỉ đi đường thuận
  * sẽ bỏ sót. Chúng kiểm chứng chốt chặn có thật sự hoạt động.
@@ -164,13 +169,45 @@ class ProgressStateTransitionTest {
         assertThat(result.getCompletedAt()).isNull();
     }
 
+    @Test
+    @DisplayName("ST-05 · NOT_STARTED → DONE (node mở khoá), nhảy thẳng không qua IN_PROGRESS")
+    void st05_notStarted_toDone() {
+        SkillNode node = sampleNode();
+        User user = new User();
+        givenCurrentState(node, user, ProgressStatus.NOT_STARTED);
+        when(roadmapService.isNodeLocked(user, node)).thenReturn(false);
+
+        UserNodeProgress result =
+                progressService.updateProgress(user, NODE_ID, ProgressStatus.DONE);
+
+        assertThat(result.getStatus()).isEqualTo(ProgressStatus.DONE);
+        assertThat(result.getCompletedAt()).isNotNull();
+        verify(activityLogService).log(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("ST-06 · IN_PROGRESS → NOT_STARTED, bỏ đánh dấu giữa chừng")
+    void st06_inProgress_toNotStarted() {
+        SkillNode node = sampleNode();
+        User user = new User();
+        givenCurrentState(node, user, ProgressStatus.IN_PROGRESS);
+
+        UserNodeProgress result =
+                progressService.updateProgress(user, NODE_ID, ProgressStatus.NOT_STARTED);
+
+        assertThat(result.getStatus()).isEqualTo(ProgressStatus.NOT_STARTED);
+        assertThat(result.getCompletedAt()).isNull();
+        // Về NOT_STARTED thì luật chặn không áp dụng -> không hỏi khoá.
+        verify(roadmapService, never()).isNodeLocked(any(), any());
+    }
+
     // ================================================================
     // CHUYỂN ĐỔI KHÔNG HỢP LỆ — phải bị chặn
     // ================================================================
 
     @Test
-    @DisplayName("ST-05 · NOT_STARTED → DONE khi node bị khoá: phải bị chặn")
-    void st05_notStarted_toDone_nodeLocked_biChan() {
+    @DisplayName("ST-07 · NOT_STARTED → DONE khi node bị khoá: phải bị chặn")
+    void st07_notStarted_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
         when(skillNodeRepository.findById(NODE_ID)).thenReturn(Optional.of(node));
@@ -185,8 +222,8 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-06 · IN_PROGRESS → DONE khi node bị khoá: phải bị chặn")
-    void st06_inProgress_toDone_nodeLocked_biChan() {
+    @DisplayName("ST-08 · IN_PROGRESS → DONE khi node bị khoá: phải bị chặn")
+    void st08_inProgress_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
         when(skillNodeRepository.findById(NODE_ID)).thenReturn(Optional.of(node));
