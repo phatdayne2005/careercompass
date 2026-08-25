@@ -113,11 +113,112 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ==========================================================
+  # 3. E2E - kiểm thử giao diện trên app thật, CHẶN deploy nếu đỏ
+  #    Chỉ chạy nhóm @P0 (~1 phút). Nhóm @P1 chạy tay khi cần hồi quy,
+  #    nhóm @known-bug bị loại vì đang tố cáo lỗi chưa sửa.
+  # ==========================================================
+  e2e:
+    name: E2E UI Tests (CodeceptJS + Playwright)
+    needs: docker
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dựng stack app + MySQL bằng image vừa build
+        env:
+          # Dùng đúng image của commit này, không build lại.
+          APP_IMAGE: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          # .env bị gitignore nên CI tự tạo bản tối thiểu để chạy test.
+          cat > .env <<EOF
+          DB_USERNAME=root
+          DB_PASSWORD=e2e_ci_password
+          DB_PORT=3306
+          APP_PORT=8080
+          BASE_URL=http://localhost:8080
+          APP_IMAGE=$APP_IMAGE
+          GOOGLE_CLIENT_ID=mock
+          GOOGLE_CLIENT_SECRET=mock
+          MAIL_USERNAME=mock
+          MAIL_PASSWORD=mock
+          GEMINI_API_KEY=mock
+          ADMIN_EMAIL=admin@gmail.com
+          ADMIN_PASSWORD=123456
+          STUDENT_EMAIL=student@gmail.com
+          STUDENT_PASSWORD=123456
+          COUNSELOR_EMAIL=counselor@gmail.com
+          COUNSELOR_PASSWORD=123456
+          EOF
+          docker compose up -d --no-build
+
+      - name: Chờ app sẵn sàng
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS -o /dev/null http://localhost:8080/login; then
+              echo "App đã sẵn sàng"; exit 0
+            fi
+            sleep 5
+          done
+          echo "App không lên sau 5 phút" >&2
+          docker compose logs app --tail 50 >&2
+          exit 1
+
+      - name: Cài phụ thuộc E2E
+        working-directory: e2e
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+
+      - name: Chạy kiểm thử giao diện (nhóm P0)
+        working-directory: e2e
+        env:
+          BASE_URL: http://localhost:8080
+        run: npm run test:p0
+
+      - name: Sinh báo cáo Excel
+        if: always()
+        working-directory: e2e
+        run: npm run report || true
+
+      - name: Đính kèm báo cáo và ảnh chụp lỗi
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bao-cao-kiem-thu-giao-dien
+          path: |
+            e2e/output/*.xlsx
+            e2e/output/*.png
+            e2e/output/result.json
+          retention-days: 30
+
+      - name: Gom log khi thất bại
+        if: failure()
+        run: docker compose logs app --tail 100
+
+  # ==========================================================
   # 3. DEPLOY - SSH vào VPS, pull image mới, khởi động lại
   # ==========================================================
   deploy:
     name: Deploy to VPS
-    needs: docker
+    needs: [docker, e2e]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production   # cho phép bật "required reviewers" nếu muốn duyệt trước khi deploy

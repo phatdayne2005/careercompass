@@ -1,0 +1,21 @@
+{
+  "name": "careercompass-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kiểm thử giao diện (E2E) cho CareerCompass bằng CodeceptJS + Playwright",
+  "scripts": {
+    "test": "codeceptjs run --steps --grep \"^(?!.*@known-bug)\"",
+    "test:all": "codeceptjs run --steps",
+    "test:p0": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@P0\"",
+    "test:p1": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@P1\"",
+    "test:smoke": "codeceptjs run --steps --grep \"^(?!.*@known-bug).*@smoke\"",
+    "test:knownbug": "codeceptjs run --steps --grep \"@known-bug\"",
+    "report": "node support/generate-report.js",
+    "test:report": "npm test; npm run report"
+  },
+  "devDependencies": {
+    "codeceptjs": "^4.1.0",
+    "playwright": "^1.59.0",
+    "exceljs": "^4.4.0"
+  }
+}
