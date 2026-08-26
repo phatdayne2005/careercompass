@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserProfileService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.kernel.service</a> &gt; <span class="el_source">UserProfileService.java</span></div><h1>UserProfileService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.kernel.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.entity.UserSkill;
+import vn.uth.careercompass.kernel.repository.UserRepository;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.admin.entity.CareerRole;
+import vn.uth.careercompass.admin.repository.CareerRoleRepository;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserProfileService {
+    private final UserRepository userRepository;
+    private final UserSkillRepository userSkillRepository;
+    private final SkillRepository skillRepository;
+    // Thêm repository vào danh sách các dependecy được inject
+    private final CareerRoleRepository careerRoleRepository; // thêm dòng này
+
+    public void setTargetRole(User user, Long targetRoleId) {
+        try {
+            // Tìm thực thể CareerRole theo id, Không thấy thì ném lỗi
+<span class="fc" id="L29">            CareerRole careerRole = careerRoleRepository.findById(targetRoleId)</span>
+<span class="fc" id="L30">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
+<span class="fc" id="L31">                            &quot;Không tìm thấy vai trò nghề nghiệp có ID: &quot; + targetRoleId));</span>
+            // gán thực thể CareerRole cho user
+<span class="fc" id="L33">            user.setCareerRole(careerRole);</span>
+            // Lưu user xuống DB
+<span class="fc" id="L35">            userRepository.save(user);</span>
+<span class="fc" id="L36">        } catch (Exception e) {</span>
+            // Xử lý lỗi
+<span class="fc" id="L38">            System.err.println(&quot;Lỗi khi thiết lập định hướng nghề nghiệp: &quot; + e.getMessage());</span>
+<span class="fc" id="L39">            throw new RuntimeException(&quot;Cập nhật định hướng nghề nghiệp thất bại&quot;, e);</span>
+        }
+<span class="fc" id="L41">    }</span>
+
+    public void setGithub(User user, String githubUsername) {
+<span class="fc" id="L44">        user.setGithubUsername(githubUsername);</span>
+<span class="fc" id="L45">        userRepository.save(user);</span>
+<span class="fc" id="L46">    }</span>
+
+    public void storeTranscript(User user, String transcriptPath, Double gpa) {
+<span class="fc" id="L49">        user.setTranscriptPath(transcriptPath);</span>
+<span class="fc" id="L50">        user.setGpa(gpa);</span>
+<span class="fc" id="L51">        userRepository.save(user);</span>
+<span class="fc" id="L52">    }</span>
+
+    /** Lưu tóm tắt AI của bảng điểm/CV (FR1.3). */
+    public void storeTranscriptSummary(User user, String summary) {
+<span class="fc" id="L56">        user.setTranscriptSummary(summary);</span>
+<span class="fc" id="L57">        userRepository.save(user);</span>
+<span class="fc" id="L58">    }</span>
+
+    @Transactional
+    public void replaceSkills(User user, List&lt;Long&gt; skillIds) {
+<span class="fc" id="L62">        userSkillRepository.deleteByUser(user);</span>
+<span class="fc" id="L63">        List&lt;Skill&gt; skills = skillRepository.findAllById(skillIds);</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">        for (Skill skill : skills) {</span>
+<span class="fc" id="L65">            UserSkill userSkill = UserSkill.builder().user(user).skill(skill).build();</span>
+<span class="fc" id="L66">            userSkillRepository.save(userSkill);</span>
+        }
+<span class="fc" id="L68">    }</span>
+
+    /** Đánh dấu user đã hoàn thành 3 bước Onboarding. */
+    public void completeOnboarding(User user) {
+<span class="fc" id="L72">        user.setOnboardingCompleted(true);</span>
+<span class="fc" id="L73">        userRepository.save(user);</span>
+<span class="fc" id="L74">    }</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

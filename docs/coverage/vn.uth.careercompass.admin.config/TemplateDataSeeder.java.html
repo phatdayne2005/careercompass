@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TemplateDataSeeder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.admin.config</a> &gt; <span class="el_source">TemplateDataSeeder.java</span></div><h1>TemplateDataSeeder.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.admin.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.stereotype.Component;
+import vn.uth.careercompass.admin.dto.CuratedRoadmap;
+import vn.uth.careercompass.admin.entity.CareerRole;
+import vn.uth.careercompass.admin.entity.LearningResource;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.entity.SkillNode;
+import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.CareerRoleRepository;
+import vn.uth.careercompass.admin.repository.LearningResourceRepository;
+import vn.uth.careercompass.admin.repository.SkillNodeRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Seed dữ liệu SkillTree của gói P7 từ các lộ trình CURATE ở {@code resources/data/roadmaps/*.json}.
+ * Mỗi file = 1 CareerRole + 1 SkillTreeTemplate + N SkillNode (mỗi node là 1 skill cụ thể, 3 tầng,
+ * kèm ≥2 LearningResource). Là nguồn để P2 (onboarding) và P4 (roadmap, skill-gap) đọc.
+ *
+ * &lt;p&gt;&lt;b&gt;Nguyên tắc:&lt;/b&gt;&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;Idempotent: chỉ seed khi bảng template còn rỗng — KHÔNG bao giờ xoá dữ liệu đang có.&lt;/li&gt;
+ *   &lt;li&gt;KHÔNG gọi mạng lúc khởi động — link học đã được bake sẵn trong file JSON
+ *       (nguồn: roadmap.sh scrape sẵn + curate official docs).&lt;/li&gt;
+ *   &lt;li&gt;Node = &lt;b&gt;skill cụ thể&lt;/b&gt; (đúng khái niệm Skill của document), không phải section-title.
+ *       3 tầng = trường {@code tier} (1 Nền tảng · 2 Cốt lõi · 3 Nâng cao).&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Format thô roadmap.sh ({@code data/*.json}) KHÔNG còn được seed trực tiếp — chỉ giữ làm nguồn
+ * cho công cụ scrape link của admin sau này.&lt;/p&gt;
+ *
+ * &lt;p&gt;Chạy sau {@code config/DataSeeder} (Role) nhờ {@link Order}(2).&lt;/p&gt;
+ */
+@Component
+@Order(2)
+@RequiredArgsConstructor
+public class TemplateDataSeeder implements CommandLineRunner {
+
+    private final SkillRepository skillRepository;
+    private final SkillNodeRepository skillNodeRepository;
+    private final SkillTreeTemplateRepository skillTreeTemplateRepository;
+    private final CareerRoleRepository careerRoleRepository;
+    private final LearningResourceRepository learningResourceRepository;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public void run(String... args) {
+        // KHÔNG check tổng số template ở đây: idempotent theo TỪNG role (seedRoadmap tự bỏ qua role đã có).
+        // -&gt; Đảm bảo đủ 6 lộ trình mẫu ngay cả khi DB đã có template khác (vd team pull code về DB cũ),
+        //    mà vẫn không đụng/đè dữ liệu hiện có.
+        try {
+<span class="fc" id="L63">            Resource[] files = new PathMatchingResourcePatternResolver()</span>
+<span class="fc" id="L64">                    .getResources(&quot;classpath:data/roadmaps/*.json&quot;);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            for (Resource file : files) {</span>
+                try {
+<span class="fc" id="L67">                    CuratedRoadmap roadmap = objectMapper.readValue(file.getInputStream(), CuratedRoadmap.class);</span>
+<span class="fc" id="L68">                    seedRoadmap(roadmap);</span>
+<span class="pc" id="L69">                } catch (Exception e) {</span>
+<span class="nc" id="L70">                    System.err.println(&quot;[TemplateDataSeeder] Bỏ qua file &quot; + file.getFilename() + &quot;: &quot; + e.getMessage());</span>
+                }
+            }
+<span class="pc" id="L73">        } catch (Exception e) {</span>
+<span class="nc" id="L74">            System.err.println(&quot;[TemplateDataSeeder] Lỗi quét data/roadmaps/*.json: &quot; + e.getMessage());</span>
+        }
+<span class="fc" id="L76">    }</span>
+
+    private void seedRoadmap(CuratedRoadmap cr) {
+<span class="pc bpc" id="L79" title="2 of 4 branches missed.">        if (cr.getRole() == null || cr.getNodes() == null) {</span>
+<span class="nc" id="L80">            return;</span>
+        }
+        // Idempotent theo role (phòng chạy lại khi thêm file mới mà template chưa rỗng hẳn).
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (careerRoleRepository.findByName(cr.getRole()).isPresent()) {</span>
+<span class="fc" id="L84">            return;</span>
+        }
+
+<span class="nc" id="L87">        CareerRole role = careerRoleRepository.save(CareerRole.builder()</span>
+<span class="nc" id="L88">                .name(cr.getRole())</span>
+<span class="nc" id="L89">                .description(cr.getDescription())</span>
+<span class="nc" id="L90">                .expectedSalaryRange(cr.getSalaryRange())</span>
+<span class="nc" id="L91">                .marketDemand(cr.getDemand())</span>
+<span class="nc" id="L92">                .build());</span>
+
+<span class="nc" id="L94">        SkillTreeTemplate template = skillTreeTemplateRepository.save(SkillTreeTemplate.builder()</span>
+<span class="nc" id="L95">                .name(&quot;Lộ trình &quot; + cr.getRole())</span>
+<span class="nc" id="L96">                .description(cr.getDescription())</span>
+<span class="nc" id="L97">                .targetRoleId(role.getId())</span>
+<span class="nc" id="L98">                .active(true)</span>
+<span class="nc" id="L99">                .build());</span>
+
+        // Pass 1: tạo node (skill cụ thể + tier), lưu theo tên skill để pass 2 gắn cha.
+<span class="nc" id="L102">        Map&lt;String, SkillNode&gt; bySkill = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L103">        int order = 0;</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        for (CuratedRoadmap.Node n : cr.getNodes()) {</span>
+<span class="nc" id="L105">            Skill skill = findOrCreateSkill(n.getSkill(), n.getCategory());</span>
+<span class="nc" id="L106">            SkillNode node = skillNodeRepository.save(SkillNode.builder()</span>
+<span class="nc" id="L107">                    .template(template)</span>
+<span class="nc" id="L108">                    .skill(skill)</span>
+<span class="nc" id="L109">                    .title(n.getSkill())</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                    .tier(n.getTier() == null ? 1 : n.getTier())</span>
+<span class="nc" id="L111">                    .orderIndex(order++)</span>
+<span class="nc" id="L112">                    .requiredLevel(1)</span>
+<span class="nc" id="L113">                    .build());</span>
+<span class="nc" id="L114">            bySkill.put(n.getSkill(), node);</span>
+        }
+
+        // Pass 2: gắn cha (theo tên skill trong CÙNG roadmap) + thêm link học.
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        for (CuratedRoadmap.Node n : cr.getNodes()) {</span>
+<span class="nc" id="L119">            SkillNode node = bySkill.get(n.getSkill());</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            if (n.getParent() != null) {</span>
+<span class="nc" id="L121">                SkillNode parent = bySkill.get(n.getParent());</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                if (parent != null) {</span>
+<span class="nc" id="L123">                    node.setParent(parent);</span>
+<span class="nc" id="L124">                    skillNodeRepository.save(node);</span>
+                }
+            }
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (n.getLinks() != null) {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                for (CuratedRoadmap.Link link : n.getLinks()) {</span>
+<span class="nc" id="L129">                    learningResourceRepository.save(LearningResource.builder()</span>
+<span class="nc" id="L130">                            .skillNode(node)</span>
+<span class="nc" id="L131">                            .title(link.getTitle())</span>
+<span class="nc" id="L132">                            .url(link.getUrl())</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                            .resourceType(link.getType() == null ? &quot;ARTICLE&quot; : link.getType())</span>
+<span class="nc" id="L134">                            .description(&quot;Tài liệu học cho kỹ năng &quot; + n.getSkill() + &quot;.&quot;)</span>
+<span class="nc" id="L135">                            .build());</span>
+                }
+            }
+        }
+<span class="nc" id="L139">    }</span>
+
+    private Skill findOrCreateSkill(String name, String category) {
+<span class="nc" id="L142">        return skillRepository.findByName(name)</span>
+<span class="nc" id="L143">                .orElseGet(() -&gt; skillRepository.save(Skill.builder()</span>
+<span class="nc" id="L144">                        .name(name)</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                        .category(category == null ? &quot;General&quot; : category)</span>
+<span class="nc" id="L146">                        .build()));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

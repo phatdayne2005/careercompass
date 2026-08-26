@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TranscriptAnalysisService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.onboarding.service</a> &gt; <span class="el_source">TranscriptAnalysisService.java</span></div><h1>TranscriptAnalysisService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.onboarding.service;
+
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.parser.PdfTextExtractor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import vn.uth.careercompass.mentor.service.LlmClient;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+/**
+ * &quot;Scan CV&quot; — trích text từ bảng điểm PDF rồi nhờ AI (Gemini) phân tích (FR1.3).
+ * Dùng chung {@link LlmClient} của P3. Trích PDF bằng OpenPDF.
+ *
+ * &lt;p&gt;Trả {@code null} khi không phân tích được (file ảnh cần OCR / PDF không có text / LLM lỗi)
+ * để luồng upload transcript KHÔNG bị chặn.&lt;/p&gt;
+ */
+@Service
+<span class="fc" id="L21">@Slf4j</span>
+@RequiredArgsConstructor
+public class TranscriptAnalysisService {
+
+    private final LlmClient llmClient;
+
+    public String analyze(Path transcriptPath) {
+<span class="fc" id="L28">        String text = extractPdfText(transcriptPath);</span>
+<span class="pc bpc" id="L29" title="1 of 4 branches missed.">        if (text == null || text.isBlank()) {</span>
+<span class="fc" id="L30">            return null;</span>
+        }
+<span class="pc bpc" id="L32" title="1 of 2 branches missed.">        String content = text.length() &gt; 6000 ? text.substring(0, 6000) : text;</span>
+        try {
+<span class="fc" id="L34">            return llmClient.ask(</span>
+<span class="fc" id="L35">                    &quot;Đây là nội dung bảng điểm của một sinh viên ngành Công nghệ thông tin:\n\n&quot; + content +</span>
+                    &quot;\n\nHãy phân tích ngắn gọn bằng tiếng Việt (3-5 câu): điểm mạnh học thuật, môn/lĩnh vực &quot; +
+                    &quot;nổi bật, và gợi ý định hướng nghề nghiệp phù hợp cho sinh viên này.&quot;);
+<span class="fc" id="L38">        } catch (Exception e) {</span>
+<span class="fc" id="L39">            log.warn(&quot;[TranscriptAnalysisService] LLM phân tích transcript lỗi: {}&quot;, e.toString());</span>
+<span class="fc" id="L40">            return null;</span>
+        }
+    }
+
+    private String extractPdfText(Path path) {
+<span class="fc bfc" id="L45" title="All 4 branches covered.">        if (path == null || !path.toString().toLowerCase().endsWith(&quot;.pdf&quot;)) {</span>
+<span class="fc" id="L46">            return null;   // ảnh png/jpg cần OCR — ngoài phạm vi</span>
+        }
+        try {
+<span class="fc" id="L49">            PdfReader reader = new PdfReader(Files.readAllBytes(path));</span>
+            try {
+<span class="fc" id="L51">                PdfTextExtractor extractor = new PdfTextExtractor(reader);</span>
+<span class="fc" id="L52">                StringBuilder sb = new StringBuilder();</span>
+<span class="fc" id="L53">                int pages = Math.min(reader.getNumberOfPages(), 5);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">                for (int i = 1; i &lt;= pages; i++) {</span>
+<span class="fc" id="L55">                    sb.append(extractor.getTextFromPage(i)).append('\n');</span>
+                }
+<span class="fc" id="L57">                return sb.toString();</span>
+            } finally {
+<span class="fc" id="L59">                reader.close();</span>
+            }
+<span class="fc" id="L61">        } catch (Exception e) {</span>
+<span class="fc" id="L62">            log.warn(&quot;[TranscriptAnalysisService] Không trích được text PDF: {}&quot;, e.toString());</span>
+<span class="fc" id="L63">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

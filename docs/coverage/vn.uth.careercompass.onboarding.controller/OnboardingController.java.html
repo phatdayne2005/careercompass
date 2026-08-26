@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OnboardingController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.onboarding.controller</a> &gt; <span class="el_source">OnboardingController.java</span></div><h1>OnboardingController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.onboarding.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.repository.CareerRoleRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.kernel.service.UserProfileService;
+import vn.uth.careercompass.onboarding.service.OnboardingService;
+import vn.uth.careercompass.onboarding.service.TranscriptAnalysisService;
+
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Controller
+@RequestMapping(&quot;/onboarding&quot;)
+@RequiredArgsConstructor
+public class OnboardingController {
+
+    private final AuthenticatedUserService authenticatedUserService;
+    private final UserProfileService userProfileService;
+    private final OnboardingService onboardingService;
+    private final TranscriptAnalysisService transcriptAnalysisService;
+    private final CareerRoleRepository careerRoleRepository;
+    private final SkillRepository skillRepository;
+
+    // ─── Helper: lấy user và kiểm tra đã hoàn thành chưa ────────────────────
+
+    /**
+     * Lấy user hiện tại.
+     * Nếu đã hoàn thành onboarding rồi → trả về null (để controller redirect về /).
+     */
+    private User getIncompleteUser(Authentication auth) {
+<span class="nc" id="L44">        User user = authenticatedUserService.requireCurrentUser(auth);</span>
+        // Nếu đã xong → không cho vào lại onboarding (tránh vòng lặp)
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (Boolean.TRUE.equals(user.getOnboardingCompleted())) {</span>
+<span class="nc" id="L47">            return null;</span>
+        }
+<span class="nc" id="L49">        return user;</span>
+    }
+
+    // ─── BƯỚC 1: Chọn Target Role ────────────────────────────────────────────
+
+    @GetMapping(&quot;/step1&quot;)
+    public String step1(Model model, Authentication authentication) {
+<span class="nc" id="L56">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+<span class="nc" id="L59">        model.addAttribute(&quot;roles&quot;, careerRoleRepository.findAll());</span>
+<span class="nc" id="L60">        model.addAttribute(&quot;currentStep&quot;, 1);</span>
+<span class="nc" id="L61">        return &quot;onboarding/step1_role&quot;;</span>
+    }
+
+    @PostMapping(&quot;/step1&quot;)
+    public String step1Submit(@RequestParam(required = false) Long roleId,
+                              @RequestParam(defaultValue = &quot;false&quot;) boolean skip,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+<span class="nc" id="L69">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (skip) {</span>
+<span class="nc" id="L73">            return &quot;redirect:/onboarding/step2&quot;;</span>
+        }
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (roleId == null) {</span>
+<span class="nc" id="L76">            redirectAttributes.addFlashAttribute(&quot;error&quot;, &quot;Vui lòng chọn một vị trí nghề nghiệp.&quot;);</span>
+<span class="nc" id="L77">            return &quot;redirect:/onboarding/step1&quot;;</span>
+        }
+<span class="nc" id="L79">        userProfileService.setTargetRole(user, roleId);</span>
+<span class="nc" id="L80">        return &quot;redirect:/onboarding/step2&quot;;</span>
+    }
+
+    // ─── BƯỚC 2: Upload transcript &amp; GitHub ──────────────────────────────────
+
+    @GetMapping(&quot;/step2&quot;)
+    public String step2(Model model, Authentication authentication) {
+<span class="nc" id="L87">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+<span class="nc" id="L90">        model.addAttribute(&quot;currentStep&quot;, 2);</span>
+<span class="nc" id="L91">        model.addAttribute(&quot;githubUsername&quot;, user.getGithubUsername());</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        model.addAttribute(&quot;hasTranscript&quot;, user.getTranscriptPath() != null);</span>
+<span class="nc" id="L93">        return &quot;onboarding/step2_sources&quot;;</span>
+    }
+
+    @PostMapping(&quot;/step2&quot;)
+    public String step2Submit(@RequestParam(required = false) MultipartFile transcriptFile,
+                              @RequestParam(required = false) String githubUsername,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+<span class="nc" id="L101">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+        // Xử lý file transcript
+<span class="nc bnc" id="L105" title="All 4 branches missed.">        if (transcriptFile != null &amp;&amp; !transcriptFile.isEmpty()) {</span>
+            try {
+<span class="nc" id="L107">                String savedPath = onboardingService.saveTranscript(user, transcriptFile);</span>
+<span class="nc" id="L108">                userProfileService.storeTranscript(user, savedPath, null);</span>
+                // Scan CV: AI phân tích bảng điểm (FR1.3) — không chặn upload nếu lỗi/không đọc được
+<span class="nc" id="L110">                String summary = transcriptAnalysisService.analyze(java.nio.file.Path.of(savedPath));</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (summary != null) {</span>
+<span class="nc" id="L112">                    userProfileService.storeTranscriptSummary(user, summary);</span>
+                }
+<span class="nc" id="L114">            } catch (Exception e) {</span>
+<span class="nc" id="L115">                redirectAttributes.addFlashAttribute(&quot;error&quot;, &quot;Lỗi khi tải lên bảng điểm: &quot; + e.getMessage());</span>
+<span class="nc" id="L116">                return &quot;redirect:/onboarding/step2&quot;;</span>
+            }
+        }
+
+        // Xử lý GitHub username
+<span class="nc bnc" id="L121" title="All 4 branches missed.">        if (githubUsername != null &amp;&amp; !githubUsername.isBlank()) {</span>
+<span class="nc" id="L122">            userProfileService.setGithub(user, githubUsername.trim());</span>
+        }
+
+<span class="nc" id="L125">        return &quot;redirect:/onboarding/step3&quot;;</span>
+    }
+
+    // ─── BƯỚC 3: Chọn Kỹ năng ────────────────────────────────────────────────
+
+    @GetMapping(&quot;/step3&quot;)
+    public String step3(Model model, Authentication authentication) {
+<span class="nc" id="L132">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+<span class="nc" id="L135">        model.addAttribute(&quot;currentStep&quot;, 3);</span>
+<span class="nc" id="L136">        model.addAttribute(&quot;skillsByCategory&quot;, groupSkillsByCategory());</span>
+<span class="nc" id="L137">        List&lt;Long&gt; existingSkillIds = onboardingService.getUserSkillIds(user);</span>
+<span class="nc" id="L138">        model.addAttribute(&quot;existingSkillIds&quot;, existingSkillIds);</span>
+<span class="nc" id="L139">        return &quot;onboarding/step3_skills&quot;;</span>
+    }
+
+    @PostMapping(&quot;/step3&quot;)
+    public String step3Submit(@RequestParam(value = &quot;skillIds&quot;, required = false) List&lt;Long&gt; skillIds,
+                              Authentication authentication) {
+<span class="nc" id="L145">        User user = getIncompleteUser(authentication);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+
+        // Lưu kỹ năng (nếu có chọn)
+<span class="nc bnc" id="L149" title="All 4 branches missed.">        if (skillIds != null &amp;&amp; !skillIds.isEmpty()) {</span>
+<span class="nc" id="L150">            userProfileService.replaceSkills(user, skillIds);</span>
+        }
+
+        // ✅ Đánh dấu hoàn thành onboarding — lần sau login sẽ đi thẳng vào app
+<span class="nc" id="L154">        userProfileService.completeOnboarding(user);</span>
+
+<span class="nc" id="L156">        return &quot;redirect:/&quot;;</span>
+    }
+
+    // ─── Helper: nhóm skill theo category (dễ chọn + gọn trên CV) ────────────
+
+    /** Thứ tự nhóm hiển thị ở step3; nhóm ngoài danh sách này xếp cuối. */
+<span class="fc" id="L162">    private static final List&lt;String&gt; CATEGORY_ORDER = List.of(</span>
+<span class="fc" id="L163">            &quot;Ngôn ngữ&quot;, &quot;Frontend&quot;, &quot;Backend&quot;, &quot;Database&quot;, &quot;Mobile&quot;,</span>
+<span class="fc" id="L164">            &quot;Data &amp; AI&quot;, &quot;DevOps &amp; Cloud&quot;, &quot;Network&quot;, &quot;Tools&quot;, &quot;Nền tảng&quot;);</span>
+
+    private Map&lt;String, List&lt;Skill&gt;&gt; groupSkillsByCategory() {
+<span class="nc" id="L167">        Map&lt;String, List&lt;Skill&gt;&gt; byCategory = skillRepository.findAll().stream()</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">                .collect(Collectors.groupingBy(s -&gt; s.getCategory() == null ? &quot;Khác&quot; : s.getCategory()));</span>
+
+<span class="nc" id="L170">        Map&lt;String, List&lt;Skill&gt;&gt; ordered = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        for (String category : CATEGORY_ORDER) {</span>
+<span class="nc" id="L172">            List&lt;Skill&gt; list = byCategory.remove(category);</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (list != null) {</span>
+<span class="nc" id="L174">                list.sort(Comparator.comparing(Skill::getName));</span>
+<span class="nc" id="L175">                ordered.put(category, list);</span>
+            }
+        }
+        // Nhóm lạ (nếu có) xếp sau cùng, không bỏ sót skill nào
+<span class="nc" id="L179">        byCategory.forEach((category, list) -&gt; {</span>
+<span class="nc" id="L180">            list.sort(Comparator.comparing(Skill::getName));</span>
+<span class="nc" id="L181">            ordered.put(category, list);</span>
+<span class="nc" id="L182">        });</span>
+<span class="nc" id="L183">        return ordered;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminUserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.admin.service</a> &gt; <span class="el_source">AdminUserService.java</span></div><h1>AdminUserService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.admin.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vn.uth.careercompass.admin.dto.UserAdminDto;
+import vn.uth.careercompass.admin.mapper.UserAdminMapper;
+import vn.uth.careercompass.kernel.entity.Role;
+import vn.uth.careercompass.kernel.entity.RoleName;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.repository.RoleRepository;
+import vn.uth.careercompass.kernel.repository.UserRepository;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.kernel.repository.ActivityLogRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Service quản trị người dùng cho Admin (P7).
+ *
+ * &lt;p&gt;Xử lý lỗi: validation ném {@link IllegalArgumentException} với message rõ ràng cho controller
+ * hiển thị lại; không bọc {@code catch(Exception)} nuốt lỗi thành RuntimeException chung chung.&lt;/p&gt;
+ */
+@Service
+@RequiredArgsConstructor
+public class AdminUserService {
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final UserSkillRepository userSkillRepository;
+    private final ActivityLogRepository activityLogRepository;
+
+    public List&lt;UserAdminDto&gt; getAllUsers() {
+<span class="fc" id="L36">        return userRepository.findAllWithRoleAndCareerRole().stream()</span>
+<span class="fc" id="L37">                .map(UserAdminMapper::toDto)</span>
+<span class="fc" id="L38">                .collect(Collectors.toList());</span>
+    }
+
+    public List&lt;UserAdminDto&gt; searchUsers(String keyword) {
+<span class="fc" id="L42">        return userRepository.searchUsers(keyword).stream()</span>
+<span class="fc" id="L43">                .map(UserAdminMapper::toDto)</span>
+<span class="fc" id="L44">                .collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public UserAdminDto toggleUserStatus(Long userId) {
+<span class="fc" id="L49">        User user = userRepository.findById(userId)</span>
+<span class="fc" id="L50">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy người dùng có ID: &quot; + userId));</span>
+<span class="fc" id="L51">        requireNotCurrentUser(user, &quot;Bạn không thể tự khóa tài khoản của chính mình!&quot;);</span>
+
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        user.setEnabled(!user.getEnabled());</span>
+<span class="fc" id="L54">        return UserAdminMapper.toDto(userRepository.save(user));</span>
+    }
+
+    @Transactional
+    public User changeUserRole(Long userId, String roleNameStr) {
+<span class="fc" id="L59">        User user = userRepository.findById(userId)</span>
+<span class="fc" id="L60">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy người dùng có ID: &quot; + userId));</span>
+<span class="fc" id="L61">        RoleName roleName = RoleName.valueOf(roleNameStr.toUpperCase());</span>
+<span class="fc" id="L62">        Role role = roleRepository.findByName(roleName)</span>
+<span class="fc" id="L63">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy vai trò: &quot; + roleName));</span>
+<span class="fc" id="L64">        user.setRole(role);</span>
+<span class="fc" id="L65">        return userRepository.save(user);</span>
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+<span class="fc" id="L70">        User user = userRepository.findById(userId)</span>
+<span class="fc" id="L71">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy người dùng có ID: &quot; + userId));</span>
+<span class="fc" id="L72">        requireNotCurrentUser(user, &quot;Bạn không thể tự xóa tài khoản của chính mình!&quot;);</span>
+
+        // Xóa các bảng liên quan trước (tránh vi phạm khoá ngoại)
+<span class="fc" id="L75">        userSkillRepository.deleteByUser(user);</span>
+<span class="fc" id="L76">        activityLogRepository.deleteByUser(user);</span>
+<span class="fc" id="L77">        userRepository.delete(user);</span>
+<span class="fc" id="L78">    }</span>
+
+    /** Chặn admin thao tác lên chính tài khoản đang đăng nhập (tự khoá / tự xoá). */
+    private void requireNotCurrentUser(User user, String message) {
+<span class="fc" id="L82">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="fc bfc" id="L83" title="All 4 branches covered.">        if (auth != null &amp;&amp; user.getEmail().equalsIgnoreCase(auth.getName())) {</span>
+<span class="fc" id="L84">            throw new IllegalArgumentException(message);</span>
+        }
+<span class="fc" id="L86">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfileController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.profile.controller</a> &gt; <span class="el_source">ProfileController.java</span></div><h1>ProfileController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.profile.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.profile.service.ProfileService;
+
+@Controller
+@RequestMapping(&quot;/profile&quot;)
+public class ProfileController {
+
+    private final ProfileService profileService;
+    private final AuthenticatedUserService authenticatedUserService;
+
+<span class="fc" id="L21">    public ProfileController(ProfileService profileService, AuthenticatedUserService authenticatedUserService) {</span>
+<span class="fc" id="L22">        this.profileService = profileService;</span>
+<span class="fc" id="L23">        this.authenticatedUserService = authenticatedUserService;</span>
+<span class="fc" id="L24">    }</span>
+
+    @GetMapping
+    public String settingsPage(Authentication authentication, Model model) {
+<span class="fc" id="L28">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L29">        model.addAttribute(&quot;user&quot;, profileService.getProfile(user));</span>
+<span class="fc" id="L30">        return &quot;profile/settings&quot;;</span>
+    }
+
+    @PostMapping(&quot;/github&quot;)
+    public String updateGithub(@RequestParam String githubUsername,
+                               Authentication authentication,
+                               Model model) {
+<span class="fc" id="L37">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L38">        profileService.updateGithub(user, githubUsername);</span>
+<span class="fc" id="L39">        model.addAttribute(&quot;user&quot;, user);</span>
+<span class="fc" id="L40">        return &quot;profile/settings :: githubSection&quot;;</span>
+    }
+
+    @PostMapping(&quot;/name&quot;)
+    public String updateName(@RequestParam String fullName,
+                             Authentication authentication,
+                             RedirectAttributes ra) {
+<span class="fc" id="L47">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="pc bpc" id="L48" title="1 of 4 branches missed.">        if (fullName == null || fullName.trim().isEmpty()) {</span>
+<span class="fc" id="L49">            ra.addFlashAttribute(&quot;error&quot;, &quot;Họ tên không được để trống.&quot;);</span>
+<span class="fc" id="L50">            return &quot;redirect:/profile&quot;;</span>
+        }
+<span class="fc" id="L52">        profileService.updateName(user, fullName);</span>
+<span class="fc" id="L53">        ra.addFlashAttribute(&quot;success&quot;, &quot;Đã cập nhật họ tên.&quot;);</span>
+<span class="fc" id="L54">        return &quot;redirect:/profile&quot;;</span>
+    }
+
+    @PostMapping(&quot;/password&quot;)
+    public String changePassword(@RequestParam String currentPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmPassword,
+                                 Authentication authentication,
+                                 RedirectAttributes ra) {
+<span class="fc" id="L63">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">        if (newPassword == null || newPassword.length() &lt; 6) {</span>
+<span class="fc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, &quot;Mật khẩu mới phải từ 6 ký tự trở lên.&quot;);</span>
+<span class="fc" id="L66">            return &quot;redirect:/profile&quot;;</span>
+        }
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (!newPassword.equals(confirmPassword)) {</span>
+<span class="fc" id="L69">            ra.addFlashAttribute(&quot;error&quot;, &quot;Xác nhận mật khẩu không khớp.&quot;);</span>
+<span class="fc" id="L70">            return &quot;redirect:/profile&quot;;</span>
+        }
+        try {
+<span class="fc" id="L73">            profileService.changePassword(user, currentPassword, newPassword);</span>
+<span class="fc" id="L74">            ra.addFlashAttribute(&quot;success&quot;, &quot;Đã đổi mật khẩu.&quot;);</span>
+<span class="fc" id="L75">        } catch (Exception e) {</span>
+<span class="fc" id="L76">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+        }
+<span class="fc" id="L78">        return &quot;redirect:/profile&quot;;</span>
+    }
+
+    @PostMapping(&quot;/email&quot;)
+    public String updateEmail(@RequestParam String email,
+                              Authentication authentication,
+                              HttpServletRequest request,
+                              RedirectAttributes ra) {
+<span class="fc" id="L86">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+        try {
+<span class="fc" id="L88">            profileService.updateEmail(user, email);</span>
+            // Email là username -&gt; buộc đăng nhập lại bằng email mới
+<span class="fc" id="L90">            request.logout();</span>
+<span class="fc" id="L91">            return &quot;redirect:/login?emailChanged&quot;;</span>
+<span class="fc" id="L92">        } catch (Exception e) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage() != null ? e.getMessage() : &quot;Đổi email thất bại.&quot;);</span>
+<span class="fc" id="L94">            return &quot;redirect:/profile&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

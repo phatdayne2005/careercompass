@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoadmapService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.roadmap.service</a> &gt; <span class="el_source">RoadmapService.java</span></div><h1>RoadmapService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.roadmap.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import vn.uth.careercompass.admin.entity.LearningResource;
+import vn.uth.careercompass.admin.entity.SkillNode;
+import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.LearningResourceRepository;
+import vn.uth.careercompass.admin.repository.SkillNodeRepository;
+import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.roadmap.dto.RoadmapNodeDTO;
+import vn.uth.careercompass.roadmap.dto.RoadmapResourceDTO;
+import vn.uth.careercompass.roadmap.dto.RoadmapTemplateDTO;
+import vn.uth.careercompass.roadmap.dto.RoadmapViewDTO;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
+import vn.uth.careercompass.roadmap.entity.UserNodeProgress;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RoadmapService {
+    private final SkillTreeTemplateRepository skillTreeTemplateRepository;
+    private final SkillNodeRepository skillNodeRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+    private final LearningResourceRepository learningResourceRepository;
+    private final UserSkillRepository userSkillRepository;
+
+    @Transactional(readOnly = true)
+    public List&lt;RoadmapTemplateDTO&gt; getActiveTemplates() {
+<span class="fc" id="L41">        return skillTreeTemplateRepository.findByActiveTrueOrderByNameAsc()</span>
+<span class="fc" id="L42">                .stream()</span>
+<span class="fc" id="L43">                .map(RoadmapTemplateDTO::from)</span>
+<span class="fc" id="L44">                .toList();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public RoadmapViewDTO getRoadmap(User user, Long templateId) {
+<span class="fc" id="L49">        SkillTreeTemplate template = resolveTemplate(user, templateId);</span>
+<span class="fc" id="L50">        List&lt;SkillNode&gt; nodes = skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(template.getId());</span>
+<span class="fc" id="L51">        Map&lt;Long, UserNodeProgress&gt; progressByNodeId = userNodeProgressRepository</span>
+<span class="fc" id="L52">                .findByUserAndSkillNode_Template_Id(user, template.getId())</span>
+<span class="fc" id="L53">                .stream()</span>
+<span class="fc" id="L54">                .collect(Collectors.toMap(progress -&gt; progress.getSkillNode().getId(), Function.identity()));</span>
+
+<span class="fc" id="L56">        Map&lt;Long, List&lt;RoadmapResourceDTO&gt;&gt; resourcesByNodeId = learningResourceRepository</span>
+<span class="fc" id="L57">                .findBySkillNode_Template_IdOrderByIdAsc(template.getId())</span>
+<span class="fc" id="L58">                .stream()</span>
+<span class="fc" id="L59">                .collect(Collectors.groupingBy(</span>
+<span class="fc" id="L60">                        resource -&gt; resource.getSkillNode().getId(),</span>
+<span class="fc" id="L61">                        Collectors.mapping(this::toResourceDTO, Collectors.toList())));</span>
+
+<span class="fc" id="L63">        List&lt;RoadmapNodeDTO&gt; nodeDTOs = nodes.stream()</span>
+<span class="fc" id="L64">                .map(node -&gt; toNodeDTO(node, progressByNodeId.get(node.getId()),</span>
+<span class="fc" id="L65">                        resourcesByNodeId.getOrDefault(node.getId(), List.of())))</span>
+<span class="fc" id="L66">                .toList();</span>
+
+        // Skill user đã khai ở Onboarding (UserSkill) -&gt; node tương ứng hiện ĐÃ HỌC (DONE), kể cả khi
+        // chưa bấm đánh dấu. Chỉ áp cho node CHƯA có bản ghi tiến độ (NOT_STARTED) để không đè thao tác
+        // user tự đánh dấu. -&gt; Roadmap khớp với lựa chọn onboarding (giống Skill Gap).
+<span class="fc" id="L71">        Set&lt;Long&gt; acquiredSkillIds = userSkillRepository.findByUserWithSkill(user).stream()</span>
+<span class="fc" id="L72">                .map(us -&gt; us.getSkill().getId())</span>
+<span class="fc" id="L73">                .collect(Collectors.toSet());</span>
+<span class="fc" id="L74">        nodeDTOs.stream()</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">                .filter(n -&gt; ProgressStatus.NOT_STARTED.equals(n.getStatus()) &amp;&amp; acquiredSkillIds.contains(n.getSkillId()))</span>
+<span class="fc" id="L76">                .forEach(n -&gt; n.setStatus(ProgressStatus.DONE));</span>
+
+        // Gating theo tier: tầng 2 mở khi tầng 1 xong hết; tầng 3 mở khi tầng 1+2 xong hết.
+        // (allMatch trên stream rỗng trả true → tầng không có node coi như đã &quot;xong&quot;, không chặn tầng sau.)
+<span class="fc" id="L80">        boolean tier1Done = nodeDTOs.stream().filter(n -&gt; isTier(n, 1))</span>
+<span class="fc" id="L81">                .allMatch(n -&gt; ProgressStatus.DONE.equals(n.getStatus()));</span>
+<span class="fc" id="L82">        boolean tier2Done = nodeDTOs.stream().filter(n -&gt; isTier(n, 2))</span>
+<span class="fc" id="L83">                .allMatch(n -&gt; ProgressStatus.DONE.equals(n.getStatus()));</span>
+<span class="fc" id="L84">        nodeDTOs.forEach(n -&gt; {</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">            int t = n.getTier() == null ? 1 : n.getTier();</span>
+<span class="fc" id="L86">            boolean completed = ProgressStatus.DONE.equals(n.getStatus());</span>
+<span class="fc bfc" id="L87" title="All 12 branches covered.">            n.setLocked(!completed &amp;&amp; ((t == 2 &amp;&amp; !tier1Done) || (t &gt;= 3 &amp;&amp; !(tier1Done &amp;&amp; tier2Done))));</span>
+<span class="fc" id="L88">        });</span>
+
+<span class="fc" id="L90">        int completedNodes = (int) nodeDTOs.stream()</span>
+<span class="fc" id="L91">                .filter(node -&gt; ProgressStatus.DONE.equals(node.getStatus()))</span>
+<span class="fc" id="L92">                .count();</span>
+
+<span class="fc" id="L94">        return RoadmapViewDTO.builder()</span>
+<span class="fc" id="L95">                .template(RoadmapTemplateDTO.from(template))</span>
+<span class="fc" id="L96">                .totalNodes(nodeDTOs.size())</span>
+<span class="fc" id="L97">                .completedNodes(completedNodes)</span>
+<span class="fc" id="L98">                .completionPercent(calculatePercent(completedNodes, nodeDTOs.size()))</span>
+<span class="fc" id="L99">                .nodes(nodeDTOs)</span>
+<span class="fc" id="L100">                .build();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public SkillTreeTemplate resolveTemplate(User user, Long templateId) {
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L106">            return skillTreeTemplateRepository.findById(templateId)</span>
+<span class="fc" id="L107">                    .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy roadmap&quot;));</span>
+        }
+
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (user.getTargetRoleId() != null) {</span>
+<span class="fc" id="L111">            return skillTreeTemplateRepository.findFirstByTargetRoleIdAndActiveTrueOrderByIdAsc(user.getTargetRoleId())</span>
+<span class="fc" id="L112">                    .or(() -&gt; skillTreeTemplateRepository.findFirstByActiveTrueOrderByNameAsc())</span>
+<span class="pc" id="L113">                    .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Chưa có roadmap nào&quot;));</span>
+        }
+
+<span class="fc" id="L116">        return skillTreeTemplateRepository.findFirstByActiveTrueOrderByNameAsc()</span>
+<span class="fc" id="L117">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Chưa có roadmap nào&quot;));</span>
+    }
+
+    private boolean isTier(RoadmapNodeDTO node, int tier) {
+<span class="pc bpc" id="L121" title="1 of 4 branches missed.">        return node.getTier() != null &amp;&amp; node.getTier() == tier;</span>
+    }
+
+    /**
+     * Kiểm 1 node có đang bị khóa với user không (dùng để CHẶN đánh dấu ở ProgressService).
+     * Khóa nếu tầng của node &gt; 1 và còn node ở tầng thấp hơn (cùng template) user chưa DONE.
+     */
+    @Transactional(readOnly = true)
+    public boolean isNodeLocked(User user, SkillNode node) {
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        int tier = node.getTier() == null ? 1 : node.getTier();</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if (tier &lt;= 1) {</span>
+<span class="fc" id="L132">            return false;</span>
+        }
+<span class="fc" id="L134">        Long templateId = node.getTemplate().getId();</span>
+<span class="fc" id="L135">        Set&lt;Long&gt; doneNodeIds = userNodeProgressRepository</span>
+<span class="fc" id="L136">                .findByUserAndSkillNode_Template_Id(user, templateId).stream()</span>
+<span class="fc" id="L137">                .filter(p -&gt; ProgressStatus.DONE.equals(p.getStatus()))</span>
+<span class="fc" id="L138">                .map(p -&gt; p.getSkillNode().getId())</span>
+<span class="fc" id="L139">                .collect(Collectors.toSet());</span>
+<span class="fc" id="L140">        return skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(templateId).stream()</span>
+<span class="fc bfc" id="L141" title="All 4 branches covered.">                .filter(n -&gt; (n.getTier() == null ? 1 : n.getTier()) &lt; tier)</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">                .anyMatch(n -&gt; !doneNodeIds.contains(n.getId()));</span>
+    }
+
+    public double calculatePercent(int completed, int total) {
+<span class="fc bfc" id="L146" title="All 2 branches covered.">        if (total == 0) {</span>
+<span class="fc" id="L147">            return 0.0;</span>
+        }
+<span class="fc" id="L149">        return Math.round((completed * 10000.0) / total) / 100.0;</span>
+    }
+
+    private RoadmapNodeDTO toNodeDTO(SkillNode node, UserNodeProgress progress, List&lt;RoadmapResourceDTO&gt; resources) {
+<span class="fc" id="L153">        return RoadmapNodeDTO.builder()</span>
+<span class="fc" id="L154">                .id(node.getId())</span>
+<span class="fc bfc" id="L155" title="All 2 branches covered.">                .parentId(node.getParent() == null ? null : node.getParent().getId())</span>
+<span class="fc" id="L156">                .skillId(node.getSkill().getId())</span>
+<span class="fc" id="L157">                .skillName(node.getSkill().getName())</span>
+<span class="fc" id="L158">                .title(node.getTitle())</span>
+<span class="fc" id="L159">                .description(node.getDescription())</span>
+<span class="fc" id="L160">                .tier(node.getTier())</span>
+<span class="fc" id="L161">                .orderIndex(node.getOrderIndex())</span>
+<span class="fc" id="L162">                .requiredLevel(node.getRequiredLevel())</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">                .status(progress == null ? ProgressStatus.NOT_STARTED : progress.getStatus())</span>
+<span class="fc" id="L164">                .resources(resources)</span>
+<span class="fc" id="L165">                .build();</span>
+    }
+
+    private RoadmapResourceDTO toResourceDTO(LearningResource resource) {
+<span class="fc" id="L169">        return RoadmapResourceDTO.builder()</span>
+<span class="fc" id="L170">                .title(resource.getTitle())</span>
+<span class="fc" id="L171">                .url(resource.getUrl())</span>
+<span class="fc" id="L172">                .type(resource.getResourceType())</span>
+<span class="fc" id="L173">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

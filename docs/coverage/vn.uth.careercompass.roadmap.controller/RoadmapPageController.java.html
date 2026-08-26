@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoadmapPageController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.roadmap.controller</a> &gt; <span class="el_source">RoadmapPageController.java</span></div><h1>RoadmapPageController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.roadmap.controller;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.roadmap.dto.RoadmapNodeDTO;
+import vn.uth.careercompass.roadmap.dto.RoadmapViewDTO;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
+import vn.uth.careercompass.roadmap.service.ProgressService;
+import vn.uth.careercompass.roadmap.service.RoadmapService;
+
+import java.util.List;
+
+@Controller
+@RequiredArgsConstructor
+public class RoadmapPageController {
+    private static final String SELECTED_TEMPLATE_SESSION_KEY = &quot;selectedRoadmapTemplateId&quot;;
+
+    private final RoadmapService roadmapService;
+    private final ProgressService progressService;
+    private final AuthenticatedUserService authenticatedUserService;
+
+    @GetMapping(&quot;/roadmap&quot;)
+    public String roadmapPage(
+            @RequestParam(required = false) Long templateId,
+            @RequestParam(required = false) Long nodeId,
+            Authentication authentication,
+            HttpSession session,
+            Model model
+    ) {
+<span class="fc" id="L38">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L39">        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);</span>
+<span class="fc" id="L40">        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, selectedTemplateId);</span>
+<span class="fc" id="L41">        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, roadmap.getTemplate().getId());</span>
+
+<span class="fc" id="L43">        RoadmapNodeDTO selectedNode = selectNode(roadmap.getNodes(), nodeId);</span>
+
+<span class="fc" id="L45">        model.addAttribute(&quot;activeNav&quot;, &quot;roadmap&quot;);</span>
+<span class="fc" id="L46">        model.addAttribute(&quot;templates&quot;, roadmapService.getActiveTemplates());</span>
+<span class="fc" id="L47">        model.addAttribute(&quot;roadmap&quot;, roadmap);</span>
+<span class="fc" id="L48">        model.addAttribute(&quot;selectedNode&quot;, selectedNode);</span>
+<span class="fc" id="L49">        model.addAttribute(&quot;tier1Nodes&quot;, filterByTier(roadmap.getNodes(), 1));</span>
+<span class="fc" id="L50">        model.addAttribute(&quot;tier2Nodes&quot;, filterByTier(roadmap.getNodes(), 2));</span>
+<span class="fc" id="L51">        model.addAttribute(&quot;tier3Nodes&quot;, filterByTier(roadmap.getNodes(), 3));</span>
+<span class="fc" id="L52">        model.addAttribute(&quot;estimateText&quot;, estimateFor(selectedNode));</span>
+<span class="fc" id="L53">        model.addAttribute(&quot;prerequisiteText&quot;, prerequisiteFor(selectedNode));</span>
+<span class="fc" id="L54">        return &quot;roadmap/index&quot;;</span>
+    }
+
+    @PostMapping(&quot;/roadmap/progress&quot;)
+    public String updateProgress(
+            @RequestParam Long skillNodeId,
+            @RequestParam ProgressStatus status,
+            @RequestParam(required = false) Long templateId,
+            Authentication authentication,
+            HttpSession session
+    ) {
+<span class="fc" id="L65">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L66">        progressService.updateProgress(user, skillNodeId, status);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L68">            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);</span>
+        }
+<span class="fc" id="L70">        String redirect = &quot;redirect:/roadmap?nodeId=&quot; + skillNodeId;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L72">            redirect += &quot;&amp;templateId=&quot; + templateId;</span>
+        }
+<span class="fc" id="L74">        return redirect;</span>
+    }
+
+    private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L79">            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);</span>
+<span class="fc" id="L80">            return templateId;</span>
+        }
+<span class="fc" id="L82">        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        return selected instanceof Long id ? id : null;</span>
+    }
+
+    private RoadmapNodeDTO selectNode(List&lt;RoadmapNodeDTO&gt; nodes, Long nodeId) {
+<span class="pc bpc" id="L87" title="1 of 4 branches missed.">        if (nodes == null || nodes.isEmpty()) {</span>
+<span class="fc" id="L88">            return null;</span>
+        }
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (nodeId != null) {</span>
+<span class="fc" id="L91">            return nodes.stream()</span>
+<span class="fc" id="L92">                    .filter(node -&gt; nodeId.equals(node.getId()))</span>
+<span class="fc" id="L93">                    .findFirst()</span>
+<span class="fc" id="L94">                    .orElse(nodes.get(0));</span>
+        }
+<span class="fc" id="L96">        return nodes.stream()</span>
+<span class="fc" id="L97">                .filter(node -&gt; ProgressStatus.IN_PROGRESS.equals(node.getStatus()))</span>
+<span class="fc" id="L98">                .findFirst()</span>
+<span class="pc bnc" id="L99" title="All 2 branches missed.">                .or(() -&gt; nodes.stream().filter(node -&gt; !ProgressStatus.DONE.equals(node.getStatus())).findFirst())</span>
+<span class="fc" id="L100">                .orElse(nodes.get(0));</span>
+    }
+
+    private List&lt;RoadmapNodeDTO&gt; filterByTier(List&lt;RoadmapNodeDTO&gt; nodes, int tier) {
+<span class="fc" id="L104">        return nodes.stream()</span>
+<span class="pc bpc" id="L105" title="1 of 4 branches missed.">                .filter(node -&gt; node.getTier() != null &amp;&amp; node.getTier() == tier)</span>
+<span class="fc" id="L106">                .toList();</span>
+    }
+
+    private String prerequisiteFor(RoadmapNodeDTO selectedNode) {
+<span class="pc bpc" id="L110" title="1 of 4 branches missed.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
+<span class="fc" id="L111">            return &quot;Không có&quot;;</span>
+        }
+<span class="pc bpc" id="L113" title="1 of 3 branches missed.">        return switch (selectedNode.getTier()) {</span>
+<span class="fc" id="L114">            case 1 -&gt; &quot;Không có&quot;;</span>
+<span class="fc" id="L115">            case 2 -&gt; &quot;Hoàn thành tầng Nền tảng&quot;;</span>
+<span class="nc" id="L116">            default -&gt; &quot;Hoàn thành tầng Nền tảng + Cốt lõi&quot;;</span>
+        };
+    }
+
+    private String estimateFor(RoadmapNodeDTO selectedNode) {
+<span class="pc bpc" id="L121" title="1 of 4 branches missed.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
+<span class="fc" id="L122">            return &quot;~1 tuần&quot;;</span>
+        }
+<span class="pc bpc" id="L124" title="1 of 3 branches missed.">        return switch (selectedNode.getTier()) {</span>
+<span class="fc" id="L125">            case 1 -&gt; &quot;~1 tuần&quot;;</span>
+<span class="fc" id="L126">            case 2 -&gt; &quot;~3 tuần&quot;;</span>
+<span class="nc" id="L127">            default -&gt; &quot;~4 tuần&quot;;</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

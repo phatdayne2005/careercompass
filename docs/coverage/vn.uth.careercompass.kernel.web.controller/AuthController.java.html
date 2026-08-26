@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.kernel.web.controller</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.kernel.web.controller;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import vn.uth.careercompass.kernel.exception.EmailAlreadyExistsException;
+import vn.uth.careercompass.kernel.service.AuthService;
+import vn.uth.careercompass.kernel.service.PasswordResetService;
+import vn.uth.careercompass.kernel.web.dto.request.RegisterFormDTO;
+
+@Controller
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+    private final PasswordResetService passwordResetService;
+
+    @GetMapping(&quot;/login&quot;)
+    public String login() {
+<span class="fc" id="L26">        return &quot;login&quot;;</span>
+    }
+
+    @GetMapping(&quot;/register&quot;)
+    public String registerPage(Model model) {
+<span class="fc" id="L31">        model.addAttribute(&quot;registerForm&quot;, new RegisterFormDTO());</span>
+<span class="fc" id="L32">        return &quot;register&quot;;</span>
+    }
+
+    @PostMapping(&quot;/register&quot;)
+    public String register(@Valid @ModelAttribute(&quot;registerForm&quot;) RegisterFormDTO registerFormDTO, BindingResult result) {
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (result.hasErrors()) {</span>
+<span class="fc" id="L38">            return &quot;register&quot;;</span>
+        }
+
+        try {
+<span class="fc" id="L42">            authService.register(registerFormDTO.getFullName(), registerFormDTO.getEmail(), registerFormDTO.getPassword());</span>
+<span class="fc" id="L43">        } catch (EmailAlreadyExistsException e) {</span>
+<span class="fc" id="L44">            result.rejectValue(&quot;email&quot;, &quot;error.email&quot;, e.getMessage());</span>
+<span class="fc" id="L45">            return &quot;register&quot;;</span>
+        }
+<span class="fc" id="L47">        return &quot;redirect:/login?registered&quot;;</span>
+
+    }
+
+    @GetMapping(&quot;/forgot&quot;)
+    public String forgot() {
+<span class="fc" id="L53">        return &quot;forgot&quot;;</span>
+    }
+
+    /**
+     * Xử lý quên mật khẩu: nếu email thuộc user LOCAL → sinh token + gửi link qua email.
+     * Luôn redirect về /forgot?sent với thông báo trung lập (không tiết lộ email có tồn
+     * tại hay không — best practice bảo mật). Xử lý thật nằm trong PasswordResetService.
+     */
+    @PostMapping(&quot;/forgot&quot;)
+    public String forgotSubmit(@RequestParam String email) {
+<span class="fc" id="L63">        passwordResetService.createResetToken(email);</span>
+<span class="fc" id="L64">        return &quot;redirect:/forgot?sent&quot;;</span>
+    }
+
+    /**
+     * Mở link đặt lại từ email. Kiểm token còn hợp lệ (tồn tại + chưa dùng + chưa hết hạn)
+     * → hiện form đổi mật khẩu; nếu không → hiện trạng thái &quot;link hết hạn/không hợp lệ&quot;.
+     */
+    @GetMapping(&quot;/reset-password&quot;)
+    public String resetPasswordPage(@RequestParam String token, Model model) {
+<span class="fc" id="L73">        model.addAttribute(&quot;token&quot;, token);</span>
+<span class="fc" id="L74">        model.addAttribute(&quot;tokenValid&quot;, passwordResetService.validateToken(token).isPresent());</span>
+<span class="fc" id="L75">        return &quot;reset-password&quot;;</span>
+    }
+
+    /**
+     * Nhận mật khẩu mới. Kiểm độ dài + khớp confirm, rồi đổi mật khẩu qua service.
+     * Token có thể hết hạn giữa lúc mở form và submit → bắt lỗi để báo cho người dùng.
+     */
+    @PostMapping(&quot;/reset-password&quot;)
+    public String resetPasswordSubmit(@RequestParam String token,
+                                      @RequestParam String newPassword,
+                                      @RequestParam String confirmPassword,
+                                      Model model) {
+<span class="fc" id="L87">        model.addAttribute(&quot;token&quot;, token);</span>
+<span class="fc" id="L88">        model.addAttribute(&quot;tokenValid&quot;, true);</span>
+
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">        if (newPassword == null || newPassword.length() &lt; 6) {</span>
+<span class="fc" id="L91">            model.addAttribute(&quot;error&quot;, &quot;Mật khẩu phải từ 6 ký tự trở lên.&quot;);</span>
+<span class="fc" id="L92">            return &quot;reset-password&quot;;</span>
+        }
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (!newPassword.equals(confirmPassword)) {</span>
+<span class="fc" id="L95">            model.addAttribute(&quot;error&quot;, &quot;Mật khẩu xác nhận không khớp.&quot;);</span>
+<span class="fc" id="L96">            return &quot;reset-password&quot;;</span>
+        }
+
+        try {
+<span class="fc" id="L100">            passwordResetService.resetPassword(token, newPassword);</span>
+<span class="fc" id="L101">        } catch (Exception e) {</span>
+<span class="fc" id="L102">            model.addAttribute(&quot;tokenValid&quot;, false);</span>
+<span class="fc" id="L103">            model.addAttribute(&quot;error&quot;, &quot;Link đặt lại đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu link mới.&quot;);</span>
+<span class="fc" id="L104">            return &quot;reset-password&quot;;</span>
+        }
+<span class="fc" id="L106">        return &quot;redirect:/login?resetSuccess&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

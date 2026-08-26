@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PortfolioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.portfolio.service</a> &gt; <span class="el_source">PortfolioService.java</span></div><h1>PortfolioService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.portfolio.service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Comparator;
+import java.util.TreeSet;
+
+import lombok.RequiredArgsConstructor;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.entity.UserSkill;
+import vn.uth.careercompass.kernel.repository.UserRepository;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.mentor.service.LlmClient;
+import vn.uth.careercompass.portfolio.dto.OwnerInfoDTO;
+import vn.uth.careercompass.portfolio.entity.GitHubProfile;
+import vn.uth.careercompass.portfolio.entity.ProjectRepository;
+import vn.uth.careercompass.portfolio.repository.GitHubProfileRepository;
+import vn.uth.careercompass.portfolio.repository.ProjectRepositoryRepository;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
+
+/**
+ * Đồng bộ repo GitHub công khai của user, tóm tắt README bằng AI (FR5.1/5.2), và cung cấp
+ * dữ liệu cho trang portfolio cá nhân + trang public chia sẻ qua slug (FR5.3).
+ *
+ * &lt;p&gt;Dùng LLM chung của P3 ({@link LlmClient}) để tóm tắt; nếu LLM lỗi (thiếu key/API down) thì
+ * fallback tóm tắt cơ bản để KHÔNG chặn luồng sync.&lt;/p&gt;
+ */
+@Service
+@RequiredArgsConstructor
+public class PortfolioService {
+
+    private final GitHubProfileRepository gitHubProfileRepository;
+    private final ProjectRepositoryRepository projectRepositoryRepository;
+    private final UserRepository userRepository;
+    private final UserSkillRepository userSkillRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+    private final LlmClient llmClient;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    /** Ẩn/hiện 1 repo trên trang portfolio công khai (đảo isPublic). Kiểm repo thuộc về user. */
+    @Transactional
+    public void toggleRepoVisibility(User user, Long repoId) {
+<span class="fc" id="L53">        gitHubProfileRepository.findByUserId(user.getId()).ifPresent(profile -&gt;</span>
+<span class="fc" id="L54">                projectRepositoryRepository.findById(repoId).ifPresent(repo -&gt; {</span>
+<span class="fc bfc" id="L55" title="All 4 branches covered.">                    if (repo.getGithubProfile() != null &amp;&amp; repo.getGithubProfile().getId().equals(profile.getId())) {</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">                        repo.setIsPublic(!repo.isIsPublic());</span>
+<span class="fc" id="L57">                        projectRepositoryRepository.save(repo);</span>
+                    }
+<span class="fc" id="L59">                }));</span>
+<span class="fc" id="L60">    }</span>
+
+    /** Gom thông tin chủ portfolio (mục tiêu nghề, kỹ năng, điểm mạnh) cho trang công khai. */
+    @Transactional(readOnly = true)
+    public OwnerInfoDTO getOwnerInfo(Long userId) {
+<span class="fc" id="L65">        User owner = userRepository.findById(userId).orElse(null);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (owner == null) {</span>
+<span class="fc" id="L67">            return new OwnerInfoDTO(null, List.of(), null);</span>
+        }
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        String careerGoal = owner.getCareerRole() != null ? owner.getCareerRole().getName() : null;</span>
+        // Kỹ năng = kỹ năng tự khai (UserSkill) + kỹ năng đã hoàn thành trong Roadmap (nhất quán với Skill Gap)
+<span class="fc" id="L71">        TreeSet&lt;String&gt; skills = new TreeSet&lt;&gt;(Comparator.naturalOrder());</span>
+<span class="fc" id="L72">        userSkillRepository.findByUserWithSkill(owner).forEach(us -&gt; skills.add(us.getSkill().getName()));</span>
+<span class="fc" id="L73">        userNodeProgressRepository.findByUserAndStatusWithSkill(owner, ProgressStatus.DONE)</span>
+<span class="fc" id="L74">                .forEach(p -&gt; skills.add(p.getSkillNode().getSkill().getName()));</span>
+<span class="fc" id="L75">        return new OwnerInfoDTO(careerGoal, List.copyOf(skills), owner.getTranscriptSummary());</span>
+    }
+
+    // ─── Đọc dữ liệu ─────────────────────────────────────────────────────────
+    public Optional&lt;GitHubProfile&gt; getProfileByUser(User user) {
+<span class="fc" id="L80">        return gitHubProfileRepository.findByUserId(user.getId());</span>
+    }
+
+    public Optional&lt;GitHubProfile&gt; getProfileBySlug(String slug) {
+<span class="fc" id="L84">        return gitHubProfileRepository.findBySlug(slug);</span>
+    }
+
+    public List&lt;ProjectRepository&gt; getRepos(Long profileId) {
+<span class="fc" id="L88">        return projectRepositoryRepository.findByGithubProfileId(profileId);</span>
+    }
+
+    public List&lt;ProjectRepository&gt; getPublicRepos(Long profileId) {
+<span class="fc" id="L92">        return projectRepositoryRepository.findByGithubProfileIdAndIsPublicTrue(profileId);</span>
+    }
+
+    // ─── Đồng bộ ─────────────────────────────────────────────────────────────
+    /**
+     * Đồng bộ toàn bộ repo công khai của {@code githubUsername} về portfolio của {@code user}.
+     * Xoá repo cũ trước (tránh nhân đôi khi sync lại), rồi fetch + tóm tắt README.
+     */
+    @Transactional
+    public List&lt;ProjectRepository&gt; syncGithubRepositories(User user, String githubUsername) {
+<span class="fc bfc" id="L102" title="All 4 branches covered.">        if (githubUsername == null || githubUsername.trim().isEmpty()) {</span>
+<span class="fc" id="L103">            throw new IllegalArgumentException(&quot;Vui lòng nhập GitHub username!&quot;);</span>
+        }
+<span class="fc" id="L105">        String username = githubUsername.trim();</span>
+
+<span class="fc" id="L107">        GitHubProfile profile = gitHubProfileRepository.findByUserId(user.getId())</span>
+<span class="fc" id="L108">                .orElseGet(() -&gt; GitHubProfile.builder()</span>
+<span class="fc" id="L109">                        .userId(user.getId())</span>
+<span class="fc" id="L110">                        .slug(generateSlug(username))</span>
+<span class="fc" id="L111">                        .build());</span>
+<span class="fc" id="L112">        profile.setGithubUsername(username);</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (profile.getSlug() == null) {</span>
+<span class="nc" id="L114">            profile.setSlug(generateSlug(username));</span>
+        }
+<span class="fc" id="L116">        profile = gitHubProfileRepository.save(profile);</span>
+
+        // Xoá repo cũ để sync lại không bị nhân đôi
+<span class="fc" id="L119">        projectRepositoryRepository.deleteByGithubProfileId(profile.getId());</span>
+
+<span class="fc" id="L121">        List&lt;Map&lt;String, Object&gt;&gt; response = fetchRepos(username);</span>
+<span class="fc" id="L122">        java.util.List&lt;ProjectRepository&gt; saved = new java.util.ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        for (Map&lt;String, Object&gt; repoData : response) {</span>
+<span class="fc" id="L124">            String repoName = (String) repoData.get(&quot;name&quot;);</span>
+<span class="fc" id="L125">            String htmlUrl = (String) repoData.get(&quot;html_url&quot;);</span>
+<span class="fc" id="L126">            String description = (String) repoData.get(&quot;description&quot;);</span>
+<span class="fc" id="L127">            Object starsRaw = repoData.get(&quot;stargazers_count&quot;);</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            int stars = (starsRaw instanceof Number number) ? number.intValue() : 0;</span>
+
+<span class="fc" id="L130">            String readme = fetchReadmeContent(username, repoName);</span>
+<span class="fc" id="L131">            String aiSummary = generateAiSummary(repoName, readme, description);</span>
+
+<span class="fc" id="L133">            saved.add(projectRepositoryRepository.save(ProjectRepository.builder()</span>
+<span class="fc" id="L134">                    .repoName(repoName)</span>
+<span class="fc" id="L135">                    .htmlUrl(htmlUrl)</span>
+<span class="fc" id="L136">                    .description(description)</span>
+<span class="fc" id="L137">                    .stars(stars)</span>
+<span class="fc" id="L138">                    .isPublic(true)</span>
+<span class="fc" id="L139">                    .githubProfile(profile)</span>
+<span class="fc" id="L140">                    .aiSummary(aiSummary)</span>
+<span class="fc" id="L141">                    .build()));</span>
+        }
+<span class="fc" id="L143">        return saved;</span>
+    }
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    private List&lt;Map&lt;String, Object&gt;&gt; fetchRepos(String username) {
+<span class="fc" id="L148">        String url = &quot;https://api.github.com/users/&quot; + username + &quot;/repos?per_page=100&amp;sort=updated&quot;;</span>
+        try {
+<span class="fc" id="L150">            List&lt;Map&lt;String, Object&gt;&gt; repos = restTemplate.getForObject(url, List.class);</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">            return repos == null ? List.of() : repos;</span>
+<span class="fc" id="L152">        } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="fc" id="L153">            throw new IllegalArgumentException(&quot;Không tìm thấy user GitHub '&quot; + username + &quot;'.&quot;);</span>
+<span class="fc" id="L154">        } catch (RestClientException e) {</span>
+<span class="fc" id="L155">            throw new IllegalStateException(&quot;Không gọi được GitHub API (có thể bị giới hạn tần suất). Thử lại sau.&quot;, e);</span>
+        }
+    }
+
+    private String fetchReadmeContent(String username, String repoName) {
+<span class="fc bfc" id="L160" title="All 2 branches covered.">        for (String branch : new String[]{&quot;main&quot;, &quot;master&quot;}) {</span>
+            try {
+<span class="fc" id="L162">                String content = restTemplate.getForObject(</span>
+<span class="fc" id="L163">                        &quot;https://raw.githubusercontent.com/&quot; + username + &quot;/&quot; + repoName + &quot;/&quot; + branch + &quot;/README.md&quot;,</span>
+<span class="fc" id="L164">                        String.class);</span>
+<span class="pc bpc" id="L165" title="2 of 4 branches missed.">                if (content != null &amp;&amp; !content.isBlank()) {</span>
+<span class="fc" id="L166">                    return content;</span>
+                }
+<span class="fc" id="L168">            } catch (RestClientException ignored) {</span>
+                // thử branch tiếp theo
+            }
+        }
+<span class="fc" id="L172">        return &quot;&quot;;</span>
+    }
+
+    private String generateAiSummary(String repoName, String readmeContent, String description) {
+<span class="pc bpc" id="L176" title="1 of 4 branches missed.">        String context = (readmeContent != null &amp;&amp; !readmeContent.isBlank())</span>
+<span class="fc" id="L177">                ? readmeContent</span>
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">                : (description != null ? description : &quot;&quot;);</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        if (context.isBlank()) {</span>
+<span class="fc" id="L180">            return &quot;Dự án chưa có README/mô tả để AI tóm tắt.&quot;;</span>
+        }
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">        String truncated = context.length() &gt; 3000 ? context.substring(0, 3000) : context;</span>
+        try {
+<span class="fc" id="L184">            return llmClient.ask(&quot;Tóm tắt ngắn gọn 2-3 câu bằng tiếng Việt về mục tiêu và công nghệ chính của &quot;</span>
+<span class="fc" id="L185">                    + &quot;dự án GitHub \&quot;&quot; + repoName + &quot;\&quot; dựa trên README/mô tả sau:\n\n&quot; + truncated);</span>
+<span class="fc" id="L186">        } catch (Exception e) {</span>
+            // LLM lỗi (thiếu key/API down) → fallback, không chặn sync
+<span class="pc bpc" id="L188" title="1 of 2 branches missed.">            String excerpt = truncated.length() &gt; 200 ? truncated.substring(0, 200) + &quot;...&quot; : truncated;</span>
+<span class="fc" id="L189">            return &quot;[Tóm tắt cơ bản] &quot; + repoName + &quot; — &quot; + excerpt.replaceAll(&quot;\\s+&quot;, &quot; &quot;).trim();</span>
+        }
+    }
+
+    private String generateSlug(String username) {
+<span class="fc" id="L194">        String base = username.toLowerCase().replaceAll(&quot;[^a-z0-9]+&quot;, &quot;-&quot;).replaceAll(&quot;(^-|-$)&quot;, &quot;&quot;);</span>
+<span class="fc" id="L195">        return base + &quot;-&quot; + UUID.randomUUID().toString().substring(0, 6);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

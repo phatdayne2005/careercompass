@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SkillGapPageController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.roadmap.controller</a> &gt; <span class="el_source">SkillGapPageController.java</span></div><h1>SkillGapPageController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.roadmap.controller;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.roadmap.dto.SkillGapReportDTO;
+import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
+import vn.uth.careercompass.roadmap.service.PdfService;
+import vn.uth.careercompass.roadmap.service.RoadmapService;
+import vn.uth.careercompass.roadmap.service.SkillGapService;
+
+import java.nio.file.Path;
+
+@Controller
+@RequiredArgsConstructor
+public class SkillGapPageController {
+    private static final String SELECTED_TEMPLATE_SESSION_KEY = &quot;selectedRoadmapTemplateId&quot;;
+
+    private final AuthenticatedUserService authenticatedUserService;
+    private final RoadmapService roadmapService;
+    private final SkillGapService skillGapService;
+    private final PdfService pdfService;
+    private final SkillRepository skillRepository;
+
+    @GetMapping(&quot;/skill-gap&quot;)
+    public String skillGapPage(
+            @RequestParam(required = false) Long templateId,
+            @RequestParam(required = false) Boolean reportCreated,
+            Authentication authentication,
+            HttpSession session,
+            Model model
+    ) {
+<span class="fc" id="L50">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L51">        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);</span>
+<span class="fc" id="L52">        SkillGapResultDTO result = skillGapService.analyze(user, selectedTemplateId);</span>
+<span class="fc" id="L53">        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, result.getTemplate().getId());</span>
+<span class="fc" id="L54">        model.addAttribute(&quot;activeNav&quot;, &quot;skill-gap&quot;);</span>
+<span class="fc" id="L55">        model.addAttribute(&quot;templates&quot;, roadmapService.getActiveTemplates());</span>
+<span class="fc" id="L56">        model.addAttribute(&quot;result&quot;, result);</span>
+<span class="fc" id="L57">        model.addAttribute(&quot;currentSkills&quot;, skillGapService.getAcquiredSkills(user));</span>
+<span class="fc" id="L58">        model.addAttribute(&quot;allSkills&quot;, skillRepository.findAll().stream()</span>
+<span class="fc" id="L59">                .sorted(java.util.Comparator.comparing(Skill::getName)).toList());</span>
+<span class="fc" id="L60">        model.addAttribute(&quot;reports&quot;, skillGapService.getReports(user));</span>
+<span class="fc" id="L61">        model.addAttribute(&quot;reportCreated&quot;, Boolean.TRUE.equals(reportCreated));</span>
+<span class="fc" id="L62">        return &quot;skillgap/index&quot;;</span>
+    }
+
+    @PostMapping(&quot;/skill-gap/skills&quot;)
+    public String addSkill(
+            @RequestParam Long skillId,
+            @RequestParam(required = false) Long templateId,
+            Authentication authentication,
+            HttpSession session
+    ) {
+<span class="fc" id="L72">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L73">        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);</span>
+<span class="fc" id="L74">        skillGapService.addAcquiredSkill(user, skillId, selectedTemplateId);</span>
+<span class="fc" id="L75">        return redirectSkillGap(selectedTemplateId, false);</span>
+    }
+
+    @PostMapping(&quot;/skill-gap/reports&quot;)
+    public ResponseEntity&lt;Resource&gt; createReport(
+            @RequestParam(required = false) Long templateId,
+            Authentication authentication,
+            HttpSession session
+    ) {
+<span class="fc" id="L84">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L85">        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);</span>
+<span class="fc" id="L86">        SkillGapResultDTO result = skillGapService.analyze(user, selectedTemplateId);</span>
+<span class="fc" id="L87">        session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, result.getTemplate().getId());</span>
+<span class="fc" id="L88">        String pdfPath = pdfService.generateSkillGapReport(user, result);</span>
+<span class="fc" id="L89">        SkillGapReportDTO saved = skillGapService.saveReport(user, result, pdfPath);</span>
+<span class="fc" id="L90">        Resource resource = new FileSystemResource(Path.of(pdfPath));</span>
+<span class="fc" id="L91">        return ResponseEntity.ok()</span>
+<span class="fc" id="L92">                .contentType(MediaType.APPLICATION_PDF)</span>
+<span class="fc" id="L93">                .header(HttpHeaders.CONTENT_DISPOSITION,</span>
+<span class="fc" id="L94">                        &quot;attachment; filename=\&quot;skill-gap-report-&quot; + saved.getId() + &quot;.pdf\&quot;&quot;)</span>
+<span class="fc" id="L95">                .body(resource);</span>
+    }
+
+    @GetMapping(&quot;/skill-gap/reports/{id}/download&quot;)
+    public ResponseEntity&lt;Resource&gt; downloadReport(@PathVariable Long id, Authentication authentication) {
+<span class="fc" id="L100">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L101">        SkillGapReportDTO report = skillGapService.getReport(user, id);</span>
+<span class="fc" id="L102">        Resource resource = new FileSystemResource(Path.of(report.getPdfPath()));</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (!resource.exists()) {</span>
+<span class="fc" id="L104">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy file báo cáo&quot;);</span>
+        }
+<span class="fc" id="L106">        return ResponseEntity.ok()</span>
+<span class="fc" id="L107">                .contentType(MediaType.APPLICATION_PDF)</span>
+<span class="fc" id="L108">                .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment; filename=\&quot;skill-gap-report-&quot; + id + &quot;.pdf\&quot;&quot;)</span>
+<span class="fc" id="L109">                .body(resource);</span>
+    }
+
+    private String redirectSkillGap(Long templateId, boolean reportCreated) {
+<span class="fc" id="L113">        String redirect = &quot;redirect:/skill-gap&quot;;</span>
+<span class="fc" id="L114">        boolean hasQuery = false;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L116">            redirect += &quot;?templateId=&quot; + templateId;</span>
+<span class="fc" id="L117">            hasQuery = true;</span>
+        }
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (reportCreated) {</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">            redirect += hasQuery ? &quot;&amp;reportCreated=true&quot; : &quot;?reportCreated=true&quot;;</span>
+        }
+<span class="fc" id="L122">        return redirect;</span>
+    }
+
+    private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L127">            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);</span>
+<span class="fc" id="L128">            return templateId;</span>
+        }
+<span class="fc" id="L130">        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        return selected instanceof Long id ? id : null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

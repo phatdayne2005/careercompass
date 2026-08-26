@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataSeeder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.config</a> &gt; <span class="el_source">DataSeeder.java</span></div><h1>DataSeeder.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import vn.uth.careercompass.kernel.entity.AuthProvider;
+import vn.uth.careercompass.kernel.entity.Role;
+import vn.uth.careercompass.kernel.entity.RoleName;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.repository.RoleRepository;
+import vn.uth.careercompass.kernel.repository.UserRepository;
+
+/**
+ * Seed nền tảng KERNEL (P1): 3 {@link Role} + 3 tài khoản mẫu (admin/student/counselor).
+ *
+ * &lt;p&gt;Idempotent — chỉ tạo khi chưa tồn tại, chạy đi chạy lại vô hại.
+ * Chạy TRƯỚC các seeder của gói khác nhờ {@link Order}(1) (Role phải có trước khi tạo User).&lt;/p&gt;
+ *
+ * &lt;p&gt;&lt;b&gt;Ranh giới trách nhiệm:&lt;/b&gt; seeder này CHỈ lo Role + account. Việc seed
+ * roadmap/template/skill/career-role thuộc gói P7 — xem
+ * {@code admin/config/TemplateDataSeeder}. KHÔNG nhét logic gói khác vào kernel.&lt;/p&gt;
+ */
+@Component
+@Order(1)
+@RequiredArgsConstructor
+public class DataSeeder implements CommandLineRunner {
+
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value(&quot;${app.admin.email}&quot;)
+    String adminEmail;
+    @Value(&quot;${app.admin.password}&quot;)
+    String adminPassword;
+    @Value(&quot;${app.student.email}&quot;)
+    String studentEmail;
+    @Value(&quot;${app.student.password}&quot;)
+    String studentPassword;
+    @Value(&quot;${app.counselor.email}&quot;)
+    String counselorEmail;
+    @Value(&quot;${app.counselor.password}&quot;)
+    String counselorPassword;
+
+    @Override
+    public void run(String... args) {
+<span class="fc" id="L50">        seedRoles();</span>
+<span class="fc" id="L51">        seedUser(RoleName.ADMIN, &quot;System Admin&quot;, adminEmail, adminPassword);</span>
+<span class="fc" id="L52">        seedUser(RoleName.STUDENT, &quot;System Student&quot;, studentEmail, studentPassword);</span>
+<span class="fc" id="L53">        seedUser(RoleName.COUNSELOR, &quot;System Counselor&quot;, counselorEmail, counselorPassword);</span>
+<span class="fc" id="L54">    }</span>
+
+    private void seedRoles() {
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        for (RoleName name : RoleName.values()) {</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            if (!roleRepository.existsByName(name)) {</span>
+<span class="nc" id="L59">                roleRepository.save(Role.builder()</span>
+<span class="nc" id="L60">                        .name(name)</span>
+<span class="nc" id="L61">                        .description(describe(name))</span>
+<span class="nc" id="L62">                        .build());</span>
+            }
+        }
+<span class="fc" id="L65">    }</span>
+
+    private String describe(RoleName name) {
+<span class="nc bnc" id="L68" title="All 3 branches missed.">        return switch (name) {</span>
+<span class="nc" id="L69">            case ADMIN -&gt; &quot;Quản trị hệ thống&quot;;</span>
+<span class="nc" id="L70">            case COUNSELOR -&gt; &quot;Cố vấn hướng nghiệp&quot;;</span>
+<span class="nc" id="L71">            case STUDENT -&gt; &quot;Sinh viên&quot;;</span>
+        };
+    }
+
+    /**
+     * Tạo 1 tài khoản mẫu LOCAL nếu email chưa tồn tại.
+     * Student KHÔNG gán sẵn careerRole — sinh viên tự chọn Target Role qua luồng Onboarding (P2).
+     */
+    private void seedUser(RoleName roleName, String fullName, String email, String password) {
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">        if (userRepository.findByEmail(email).isPresent()) {</span>
+<span class="fc" id="L81">            return;</span>
+        }
+<span class="nc" id="L83">        Role role = roleRepository.findByName(roleName)</span>
+<span class="nc" id="L84">                .orElseThrow(() -&gt; new IllegalStateException(&quot;Chưa seed Role &quot; + roleName));</span>
+<span class="nc" id="L85">        userRepository.save(User.builder()</span>
+<span class="nc" id="L86">                .email(email)</span>
+<span class="nc" id="L87">                .fullName(fullName)</span>
+<span class="nc" id="L88">                .passwordHash(passwordEncoder.encode(password))</span>
+<span class="nc" id="L89">                .role(role)</span>
+<span class="nc" id="L90">                .authProvider(AuthProvider.LOCAL)</span>
+<span class="nc" id="L91">                .enabled(true)</span>
+<span class="nc" id="L92">                .build());</span>
+<span class="nc" id="L93">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

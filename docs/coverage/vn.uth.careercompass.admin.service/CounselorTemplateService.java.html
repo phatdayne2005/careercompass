@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CounselorTemplateService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.admin.service</a> &gt; <span class="el_source">CounselorTemplateService.java</span></div><h1>CounselorTemplateService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.admin.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vn.uth.careercompass.admin.entity.CareerRole;
+import vn.uth.careercompass.admin.entity.LearningResource;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.entity.SkillNode;
+import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.CareerRoleRepository;
+import vn.uth.careercompass.admin.repository.LearningResourceRepository;
+import vn.uth.careercompass.admin.repository.SkillNodeRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.admin.repository.SkillTreeTemplateRepository;
+import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
+
+import java.util.List;
+
+/**
+ * Service quản lý SkillTree template cho Counselor (P7).
+ *
+ * &lt;p&gt;&lt;b&gt;Xử lý lỗi:&lt;/b&gt; KHÔNG bọc try/catch nuốt lỗi. Validation ném
+ * {@link IllegalArgumentException} với message rõ ràng (vd &quot;Vui lòng nhập vai trò...&quot;) để tầng
+ * controller hiển thị lại cho người dùng; {@code @Transactional} tự rollback khi có exception.
+ * (Trước đây mọi method bọc {@code catch(Exception)} rồi ném RuntimeException chung chung
+ * &quot;...thất bại!&quot; → nuốt mất lý do thật.)&lt;/p&gt;
+ */
+@Service
+@RequiredArgsConstructor
+public class CounselorTemplateService {
+    private final SkillTreeTemplateRepository templateRepository;
+    private final SkillNodeRepository nodeRepository;
+    private final SkillRepository skillRepository;
+    private final LearningResourceRepository resourceRepository;
+    private final CareerRoleRepository careerRoleRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+    private final SkillGapReportRepository skillGapReportRepository;
+
+    public List&lt;SkillTreeTemplate&gt; getAllTemplates() {
+<span class="fc" id="L42">        return templateRepository.findAllWithCareerRole();</span>
+    }
+
+    public SkillTreeTemplate getTemplateById(Long id) {
+<span class="fc" id="L46">        return templateRepository.findByIdWithCareerRole(id)</span>
+<span class="fc" id="L47">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy lộ trình có ID: &quot; + id));</span>
+    }
+
+    public SkillNode getNodeById(Long nodeId) {
+<span class="fc" id="L51">        return nodeRepository.findByIdWithRelations(nodeId)</span>
+<span class="fc" id="L52">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút có ID: &quot; + nodeId));</span>
+    }
+
+    public List&lt;SkillNode&gt; getNodesByTemplateId(Long templateId) {
+<span class="fc" id="L56">        return nodeRepository.findAllByTemplateIdWithRelations(templateId);</span>
+    }
+
+    @Transactional
+    public SkillNode addNode(Long templateId, Long skillId, String newSkillName, String newSkillCategory, Integer tier, Long parentId) {
+<span class="fc" id="L61">        SkillTreeTemplate template = templateRepository.findById(templateId)</span>
+<span class="fc" id="L62">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy lộ trình có ID: &quot; + templateId));</span>
+
+        Skill skill;
+<span class="fc bfc" id="L65" title="All 4 branches covered.">        if (newSkillName != null &amp;&amp; !newSkillName.trim().isEmpty()) {</span>
+<span class="fc" id="L66">            String trimmedName = newSkillName.trim();</span>
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">            String trimmedCat = (newSkillCategory != null &amp;&amp; !newSkillCategory.trim().isEmpty()) ? newSkillCategory.trim() : &quot;General&quot;;</span>
+<span class="fc" id="L68">            skill = skillRepository.findByNameIgnoreCase(trimmedName)</span>
+<span class="fc" id="L69">                    .map(existingSkill -&gt; {</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">                        if (!trimmedCat.equalsIgnoreCase(existingSkill.getCategory())) {</span>
+<span class="fc" id="L71">                            existingSkill.setCategory(trimmedCat);</span>
+<span class="fc" id="L72">                            return skillRepository.save(existingSkill);</span>
+                        }
+<span class="fc" id="L74">                        return existingSkill;</span>
+                    })
+<span class="fc" id="L76">                    .orElseGet(() -&gt; skillRepository.save(Skill.builder()</span>
+<span class="fc" id="L77">                            .name(trimmedName)</span>
+<span class="fc" id="L78">                            .category(trimmedCat)</span>
+<span class="fc" id="L79">                            .build()));</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        } else if (skillId != null) {</span>
+<span class="fc" id="L81">            skill = skillRepository.findById(skillId)</span>
+<span class="fc" id="L82">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy kỹ năng có ID: &quot; + skillId));</span>
+<span class="fc" id="L83">        } else {</span>
+<span class="fc" id="L84">            throw new IllegalArgumentException(&quot;Vui lòng chọn kỹ năng sẵn có hoặc nhập tên kỹ năng mới!&quot;);</span>
+        }
+
+<span class="fc" id="L87">        SkillNode parentNode = null;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (parentId != null) {</span>
+<span class="fc" id="L89">            parentNode = nodeRepository.findById(parentId)</span>
+<span class="fc" id="L90">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút cha có ID: &quot; + parentId));</span>
+        }
+
+<span class="fc" id="L93">        return nodeRepository.save(SkillNode.builder()</span>
+<span class="fc" id="L94">                .template(template)</span>
+<span class="fc" id="L95">                .skill(skill)</span>
+<span class="fc" id="L96">                .title(skill.getName())</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">                .tier(tier == null ? 1 : tier)</span>
+<span class="fc" id="L98">                .parent(parentNode)</span>
+<span class="fc" id="L99">                .build());</span>
+    }
+
+    @Transactional
+    public void deleteNode(Long nodeId) {
+<span class="fc" id="L104">        SkillNode node = nodeRepository.findById(nodeId)</span>
+<span class="fc" id="L105">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút có ID: &quot; + nodeId));</span>
+<span class="fc" id="L106">        nodeRepository.delete(node);</span>
+<span class="fc" id="L107">    }</span>
+
+    @Transactional
+    public SkillNode updateNode(Long nodeId, Integer tier, Long parentId) {
+<span class="fc" id="L111">        SkillNode node = nodeRepository.findById(nodeId)</span>
+<span class="fc" id="L112">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút kỹ năng có ID: &quot; + nodeId));</span>
+
+<span class="fc" id="L114">        SkillNode parentNode = null;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (parentId != null) {</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">            if (parentId.equals(nodeId)) {</span>
+<span class="fc" id="L117">                throw new IllegalArgumentException(&quot;Nút tiên quyết không thể là chính nó!&quot;);</span>
+            }
+<span class="fc" id="L119">            parentNode = nodeRepository.findById(parentId)</span>
+<span class="fc" id="L120">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút cha có ID: &quot; + parentId));</span>
+        }
+
+<span class="fc bfc" id="L123" title="All 2 branches covered.">        node.setTier(tier == null ? node.getTier() : tier);</span>
+<span class="fc" id="L124">        node.setParent(parentNode);</span>
+<span class="fc" id="L125">        return nodeRepository.save(node);</span>
+    }
+
+    @Transactional
+    public LearningResource addResource(Long nodeId, String title, String url, String type, String desc) {
+<span class="fc" id="L130">        SkillNode node = nodeRepository.findById(nodeId)</span>
+<span class="fc" id="L131">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy nút có ID: &quot; + nodeId));</span>
+
+<span class="fc" id="L133">        return resourceRepository.save(LearningResource.builder()</span>
+<span class="fc" id="L134">                .skillNode(node)</span>
+<span class="fc" id="L135">                .title(title)</span>
+<span class="fc" id="L136">                .url(url)</span>
+<span class="fc" id="L137">                .resourceType(type)</span>
+<span class="fc" id="L138">                .description(desc)</span>
+<span class="fc" id="L139">                .build());</span>
+    }
+
+    @Transactional
+    public void deleteResource(Long resourceId) {
+<span class="fc" id="L144">        LearningResource resource = resourceRepository.findById(resourceId)</span>
+<span class="fc" id="L145">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy tài nguyên có ID: &quot; + resourceId));</span>
+<span class="fc" id="L146">        resourceRepository.delete(resource);</span>
+<span class="fc" id="L147">    }</span>
+
+    @Transactional
+    public SkillTreeTemplate createTemplate(String name, String description, String careerRoleName) {
+<span class="fc" id="L151">        CareerRole careerRole = resolveOrCreateCareerRole(careerRoleName);</span>
+
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        if (templateRepository.findByCareerRoleId(careerRole.getId()).isPresent()) {</span>
+<span class="fc" id="L154">            throw new IllegalArgumentException(&quot;Vai trò nghề nghiệp này đã có lộ trình mẫu!&quot;);</span>
+        }
+
+<span class="fc" id="L157">        return templateRepository.save(SkillTreeTemplate.builder()</span>
+<span class="fc" id="L158">                .name(name)</span>
+<span class="fc" id="L159">                .description(description)</span>
+<span class="fc" id="L160">                .targetRoleId(careerRole.getId())</span>
+<span class="fc" id="L161">                .build());</span>
+    }
+
+    @Transactional
+    public SkillTreeTemplate updateTemplate(Long id, String name, String description, String careerRoleName) {
+<span class="fc" id="L166">        SkillTreeTemplate template = templateRepository.findById(id)</span>
+<span class="fc" id="L167">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy lộ trình có ID: &quot; + id));</span>
+
+<span class="fc" id="L169">        CareerRole careerRole = resolveOrCreateCareerRole(careerRoleName);</span>
+
+<span class="fc" id="L171">        templateRepository.findByCareerRoleId(careerRole.getId()).ifPresent(existingTpl -&gt; {</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">            if (!existingTpl.getId().equals(id)) {</span>
+<span class="fc" id="L173">                throw new IllegalArgumentException(&quot;Vai trò nghề nghiệp này đã được gán cho một lộ trình khác!&quot;);</span>
+            }
+<span class="fc" id="L175">        });</span>
+
+<span class="fc" id="L177">        template.setName(name);</span>
+<span class="fc" id="L178">        template.setDescription(description);</span>
+<span class="fc" id="L179">        template.setTargetRoleId(careerRole.getId());</span>
+<span class="fc" id="L180">        return templateRepository.save(template);</span>
+    }
+
+    /** Tìm CareerRole theo tên (tạo mới nếu chưa có). Ném lỗi rõ nếu tên rỗng. */
+    private CareerRole resolveOrCreateCareerRole(String careerRoleName) {
+<span class="pc bpc" id="L185" title="1 of 4 branches missed.">        if (careerRoleName == null || careerRoleName.trim().isEmpty()) {</span>
+<span class="fc" id="L186">            throw new IllegalArgumentException(&quot;Vui lòng nhập vai trò nghề nghiệp mục tiêu!&quot;);</span>
+        }
+<span class="fc" id="L188">        String trimmedRole = careerRoleName.trim();</span>
+<span class="fc" id="L189">        return careerRoleRepository.findByName(trimmedRole)</span>
+<span class="fc" id="L190">                .orElseGet(() -&gt; careerRoleRepository.save(CareerRole.builder()</span>
+<span class="fc" id="L191">                        .name(trimmedRole)</span>
+<span class="fc" id="L192">                        .description(&quot;Mô tả cho vai trò &quot; + trimmedRole)</span>
+<span class="fc" id="L193">                        .expectedSalaryRange(&quot;Thỏa thuận&quot;)</span>
+<span class="fc" id="L194">                        .marketDemand(&quot;Cao&quot;)</span>
+<span class="fc" id="L195">                        .build()));</span>
+    }
+
+    /**
+     * Xoá 1 lộ trình + toàn bộ dữ liệu phụ thuộc, đúng thứ tự khoá ngoại (KHÔNG có cascade DB).
+     * Thứ tự: skill_gap_reports → user_node_progress → learning_resources → (gỡ self-ref) skill_nodes → template.
+     *
+     * &lt;p&gt;Đụng repo của P4 (progress/report) vì các bảng đó trỏ vào node/template mà P7 sở hữu —
+     * không dọn trước sẽ vi phạm FK. CareerRole được GIỮ LẠI (catalog dùng chung); muốn xoá hẳn
+     * nghề nghiệp là hành động admin riêng.&lt;/p&gt;
+     */
+    @Transactional
+    public void deleteTemplate(Long id) {
+<span class="fc" id="L208">        SkillTreeTemplate template = templateRepository.findById(id)</span>
+<span class="fc" id="L209">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy lộ trình có ID: &quot; + id));</span>
+
+        // 1. Dữ liệu người dùng phụ thuộc (P4) — xoá trước để không vi phạm khoá ngoại.
+<span class="fc" id="L212">        skillGapReportRepository.deleteByTemplate_Id(id);</span>
+<span class="fc" id="L213">        userNodeProgressRepository.deleteBySkillNode_Template_Id(id);</span>
+
+        // 2. Tài liệu học của mọi node trong lộ trình.
+<span class="fc" id="L216">        resourceRepository.deleteBySkillNode_Template_Id(id);</span>
+
+        // 3. Gỡ liên kết cha-con (self-reference) rồi xoá toàn bộ node.
+<span class="fc" id="L219">        List&lt;SkillNode&gt; nodes = nodeRepository.findAllByTemplateIdWithRelations(id);</span>
+<span class="fc" id="L220">        nodes.forEach(node -&gt; node.setParent(null));</span>
+<span class="fc" id="L221">        nodeRepository.saveAll(nodes);</span>
+<span class="fc" id="L222">        nodeRepository.flush();</span>
+<span class="fc" id="L223">        nodeRepository.deleteAll(nodes);</span>
+
+        // 4. Xoá template (CareerRole giữ nguyên).
+<span class="fc" id="L226">        templateRepository.delete(template);</span>
+<span class="fc" id="L227">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

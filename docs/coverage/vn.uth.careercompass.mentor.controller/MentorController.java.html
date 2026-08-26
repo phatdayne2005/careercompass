@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MentorController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.mentor.controller</a> &gt; <span class="el_source">MentorController.java</span></div><h1>MentorController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.mentor.controller;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.mentor.entity.MentorSession;
+import vn.uth.careercompass.mentor.service.MentorService;
+
+import java.util.List;
+
+@Controller
+@RequestMapping(&quot;/mentor&quot;)
+public class MentorController {
+
+    private final MentorService mentorService;
+    private final AuthenticatedUserService authenticatedUserService;
+
+<span class="fc" id="L22">    public MentorController(MentorService mentorService, AuthenticatedUserService authenticatedUserService) {</span>
+<span class="fc" id="L23">        this.mentorService = mentorService;</span>
+<span class="fc" id="L24">        this.authenticatedUserService = authenticatedUserService;</span>
+<span class="fc" id="L25">    }</span>
+
+    @GetMapping
+    public String chatPage(@RequestParam(name = &quot;session&quot;, required = false) Long sessionId,
+                           Authentication authentication, Model model) {
+<span class="nc" id="L30">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="nc" id="L31">        List&lt;MentorSession&gt; sessions = mentorService.getSessionsForUser(user);</span>
+<span class="nc" id="L32">        model.addAttribute(&quot;sessions&quot;, sessions);</span>
+
+        // Chọn session theo param nếu hợp lệ, không thì lấy cuộc mới nhất
+<span class="nc" id="L35">        MentorSession current = null;</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (sessionId != null) {</span>
+<span class="nc" id="L37">            current = sessions.stream().filter(s -&gt; s.getId().equals(sessionId)).findFirst().orElse(null);</span>
+        }
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (current == null &amp;&amp; !sessions.isEmpty()) {</span>
+<span class="nc" id="L40">            current = sessions.get(0);</span>
+        }
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if (current != null) {</span>
+<span class="nc" id="L44">            model.addAttribute(&quot;currentSessionId&quot;, current.getId());</span>
+<span class="nc" id="L45">            model.addAttribute(&quot;messages&quot;, mentorService.getMessages(current));</span>
+<span class="nc" id="L46">        } else {</span>
+<span class="nc" id="L47">            model.addAttribute(&quot;currentSessionId&quot;, null);</span>
+<span class="nc" id="L48">            model.addAttribute(&quot;messages&quot;, List.of());</span>
+        }
+<span class="nc" id="L50">        return &quot;mentor/chat&quot;;</span>
+    }
+
+    @PostMapping(&quot;/new&quot;)
+    public String createSession(Authentication authentication) {
+<span class="nc" id="L55">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="nc" id="L56">        MentorSession session = mentorService.createSession(user);</span>
+<span class="nc" id="L57">        return &quot;redirect:/mentor?session=&quot; + session.getId();</span>
+    }
+
+    @PostMapping(&quot;/send&quot;)
+    public String sendMessage(@RequestParam Long sessionId,
+                              @RequestParam String content,
+                              Authentication authentication,
+                              Model model) {
+<span class="nc" id="L65">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+
+<span class="nc" id="L67">        MentorSession session = mentorService.getSessionsForUser(user).stream()</span>
+<span class="nc" id="L68">                .filter(s -&gt; s.getId().equals(sessionId))</span>
+<span class="nc" id="L69">                .findFirst()</span>
+<span class="nc" id="L70">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Session không tồn tại hoặc không thuộc về bạn&quot;));</span>
+
+<span class="nc" id="L72">        mentorService.sendMessage(user, session, content);</span>
+
+<span class="nc" id="L74">        model.addAttribute(&quot;messages&quot;, mentorService.getMessages(session));</span>
+<span class="nc" id="L75">        model.addAttribute(&quot;currentSessionId&quot;, session.getId());</span>
+<span class="nc" id="L76">        return &quot;mentor/chat :: messageList&quot;; // fragment cho HTMX swap</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

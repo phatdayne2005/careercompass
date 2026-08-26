@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OnboardingInterceptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.config</a> &gt; <span class="el_source">OnboardingInterceptor.java</span></div><h1>OnboardingInterceptor.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+
+/**
+ * Interceptor bắt mọi request của STUDENT chưa hoàn thành onboarding
+ * và redirect về /onboarding/step1.
+ *
+ * Không áp dụng với:
+ *  - Các route /onboarding/** (để không bị vòng lặp)
+ *  - /login, /logout, /register, /css/**, /js/**, /oauth2/**  (public resources)
+ *  - /admin/**, /counselor/**  (role khác không cần onboarding)
+ *  - API / error paths
+ */
+@Component
+@RequiredArgsConstructor
+public class OnboardingInterceptor implements HandlerInterceptor {
+
+    private final AuthenticatedUserService authenticatedUserService;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Object handler) throws Exception {
+
+<span class="fc" id="L34">        String uri = request.getRequestURI();</span>
+
+        // Bỏ qua các path không cần check
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (shouldSkip(uri)) {</span>
+<span class="nc" id="L38">            return true;</span>
+        }
+
+<span class="fc" id="L41">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
+<span class="pc bpc" id="L42" title="3 of 6 branches missed.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
+<span class="fc" id="L43">            return true;  // Chưa đăng nhập → Spring Security tự xử lý</span>
+        }
+
+        // Chỉ áp dụng cho STUDENT
+<span class="nc" id="L47">        boolean isStudent = auth.getAuthorities().stream()</span>
+<span class="nc" id="L48">                .anyMatch(a -&gt; &quot;ROLE_STUDENT&quot;.equals(a.getAuthority()));</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (!isStudent) {</span>
+<span class="nc" id="L50">            return true;</span>
+        }
+
+        // Kiểm tra cờ onboardingCompleted
+        try {
+<span class="nc" id="L55">            User user = authenticatedUserService.requireCurrentUser(auth);</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            if (!Boolean.TRUE.equals(user.getOnboardingCompleted())) {</span>
+<span class="nc" id="L57">                response.sendRedirect(request.getContextPath() + &quot;/onboarding/step1&quot;);</span>
+<span class="nc" id="L58">                return false;</span>
+            }
+<span class="nc" id="L60">        } catch (Exception e) {</span>
+            // Không thể load user → để Spring Security xử lý
+<span class="nc" id="L62">            return true;</span>
+        }
+
+<span class="nc" id="L65">        return true;</span>
+    }
+
+    private boolean shouldSkip(String uri) {
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        return uri.startsWith(&quot;/onboarding&quot;)</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/login&quot;)</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/logout&quot;)</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/register&quot;)</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/forgot&quot;)</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/oauth2&quot;)</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/css&quot;)</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/js&quot;)</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/images&quot;)</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/uploads&quot;)</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/admin&quot;)</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/counselor&quot;)</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/error&quot;)</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/favicon&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

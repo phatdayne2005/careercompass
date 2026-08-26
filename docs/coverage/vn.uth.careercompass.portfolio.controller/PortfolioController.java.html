@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PortfolioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.portfolio.controller</a> &gt; <span class="el_source">PortfolioController.java</span></div><h1>PortfolioController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.portfolio.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import lombok.RequiredArgsConstructor;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
+import vn.uth.careercompass.portfolio.entity.GitHubProfile;
+import vn.uth.careercompass.portfolio.entity.ProjectRepository;
+import vn.uth.careercompass.portfolio.service.PortfolioService;
+
+@Controller
+@RequestMapping(&quot;/portfolio&quot;)
+@RequiredArgsConstructor
+public class PortfolioController {
+
+    private final PortfolioService portfolioService;
+    private final AuthenticatedUserService authenticatedUserService;
+
+    @Value(&quot;${app.base-url}&quot;)
+    private String baseUrl;
+
+    @GetMapping(&quot;/manage&quot;)
+    public String managePortfolio(Authentication authentication, Model model) {
+<span class="nc" id="L35">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="nc" id="L36">        GitHubProfile profile = portfolioService.getProfileByUser(user).orElse(null);</span>
+
+        // Prefill ô username: ưu tiên profile đã sync, nếu chưa thì lấy từ hồ sơ user (onboarding)
+<span class="nc" id="L39">        model.addAttribute(&quot;githubUsername&quot;,</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">                profile != null ? profile.getGithubUsername() : user.getGithubUsername());</span>
+<span class="nc" id="L41">        model.addAttribute(&quot;profile&quot;, profile);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (profile != null) {</span>
+<span class="nc" id="L43">            model.addAttribute(&quot;repositories&quot;, portfolioService.getRepos(profile.getId()));</span>
+<span class="nc" id="L44">            model.addAttribute(&quot;shareUrl&quot;, baseUrl + &quot;/p/&quot; + profile.getSlug());</span>
+        }
+<span class="nc" id="L46">        return &quot;portfolio/manage&quot;;</span>
+    }
+
+    @PostMapping(&quot;/repos/{repoId}/toggle&quot;)
+    public String toggleRepo(@org.springframework.web.bind.annotation.PathVariable Long repoId,
+                             Authentication authentication) {
+<span class="nc" id="L52">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="nc" id="L53">        portfolioService.toggleRepoVisibility(user, repoId);</span>
+<span class="nc" id="L54">        return &quot;redirect:/portfolio/manage&quot;;</span>
+    }
+
+    @PostMapping(&quot;/sync&quot;)
+    public String syncPortfolio(@RequestParam(&quot;githubUsername&quot;) String githubUsername,
+                                Authentication authentication, RedirectAttributes ra) {
+<span class="nc" id="L60">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+        try {
+<span class="nc" id="L62">            List&lt;ProjectRepository&gt; repos = portfolioService.syncGithubRepositories(user, githubUsername);</span>
+<span class="nc" id="L63">            ra.addFlashAttribute(&quot;message&quot;, &quot;Đã đồng bộ &quot; + repos.size() + &quot; repository từ GitHub.&quot;);</span>
+<span class="nc" id="L64">        } catch (IllegalArgumentException | IllegalStateException e) {</span>
+<span class="nc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+<span class="nc" id="L66">        } catch (org.springframework.dao.DataIntegrityViolationException e) {</span>
+            // Không để crash 500 khi vướng ràng buộc dữ liệu (vd DB cũ còn unique tàn dư trên github_username)
+<span class="nc" id="L68">            ra.addFlashAttribute(&quot;error&quot;, &quot;Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác.&quot;);</span>
+        }
+<span class="nc" id="L70">        return &quot;redirect:/portfolio/manage&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

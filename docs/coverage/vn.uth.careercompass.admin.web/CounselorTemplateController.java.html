@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CounselorTemplateController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.admin.web</a> &gt; <span class="el_source">CounselorTemplateController.java</span></div><h1>CounselorTemplateController.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.admin.web;
+ 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.uth.careercompass.admin.entity.CareerRole;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.entity.SkillNode;
+import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.CareerRoleRepository;
+import vn.uth.careercompass.admin.repository.LearningResourceRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.admin.service.CounselorTemplateService;
+ 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+ 
+@Controller
+@RequiredArgsConstructor
+public class CounselorTemplateController {
+    private final CounselorTemplateService counselorTemplateService;
+    private final SkillRepository skillRepository;
+    private final LearningResourceRepository resourceRepository;
+    private final CareerRoleRepository careerRoleRepository;
+ 
+    private List&lt;Skill&gt; getAvailableSkills(List&lt;SkillNode&gt; nodes) {
+<span class="nc" id="L30">        List&lt;Skill&gt; allSkills = skillRepository.findAll();</span>
+<span class="nc" id="L31">        Set&lt;Long&gt; existingSkillIds = nodes.stream()</span>
+<span class="nc" id="L32">                .map(n -&gt; n.getSkill().getId())</span>
+<span class="nc" id="L33">                .collect(Collectors.toSet());</span>
+<span class="nc" id="L34">        return allSkills.stream()</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">                .filter(s -&gt; !existingSkillIds.contains(s.getId()))</span>
+<span class="nc" id="L36">                .collect(Collectors.toList());</span>
+    }
+ 
+    private List&lt;String&gt; getCleanResourceTypes() {
+<span class="nc" id="L40">        List&lt;String&gt; rawTypes = resourceRepository.findDistinctResourceTypes();</span>
+<span class="nc" id="L41">        Set&lt;String&gt; cleanTypes = new java.util.LinkedHashSet&lt;&gt;(List.of(&quot;VIDEO&quot;, &quot;ARTICLE&quot;, &quot;COURSE&quot;, &quot;DOCUMENTATION&quot;, &quot;BOOK&quot;, &quot;SLIDES&quot;));</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        for (String t : rawTypes) {</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">            if (t != null &amp;&amp; !t.trim().isEmpty()) {</span>
+<span class="nc" id="L44">                cleanTypes.add(t.toUpperCase().trim());</span>
+            }
+        }
+<span class="nc" id="L47">        return new java.util.ArrayList&lt;&gt;(cleanTypes);</span>
+    }
+ 
+    @GetMapping(&quot;/counselor/templates&quot;)
+    public String listTemplates(Model model) {
+<span class="nc" id="L52">        List&lt;SkillTreeTemplate&gt; templates = counselorTemplateService.getAllTemplates();</span>
+<span class="nc" id="L53">        model.addAttribute(&quot;templates&quot;, templates);</span>
+<span class="nc" id="L54">        return &quot;counselor/templates&quot;;</span>
+    }
+ 
+    @PostMapping(&quot;/counselor/templates&quot;)
+    public String createTemplate(@RequestParam String name,
+                                 @RequestParam String description,
+                                 @RequestParam String careerRoleName,
+                                 RedirectAttributes ra) {
+        try {
+<span class="nc" id="L63">            counselorTemplateService.createTemplate(name, description, careerRoleName);</span>
+<span class="nc" id="L64">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+        }
+<span class="nc" id="L67">        return &quot;redirect:/counselor/templates&quot;;</span>
+    }
+
+    @PostMapping(&quot;/counselor/templates/{id}/update&quot;)
+    public String updateTemplate(@PathVariable Long id,
+                                 @RequestParam String name,
+                                 @RequestParam String description,
+                                 @RequestParam String careerRoleName,
+                                 RedirectAttributes ra) {
+        try {
+<span class="nc" id="L77">            counselorTemplateService.updateTemplate(id, name, description, careerRoleName);</span>
+<span class="nc" id="L78">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L79">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+        }
+<span class="nc" id="L81">        return &quot;redirect:/counselor/templates&quot;;</span>
+    }
+
+    @PostMapping(&quot;/counselor/templates/{id}/delete&quot;)
+    public String deleteTemplate(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+<span class="nc" id="L87">            counselorTemplateService.deleteTemplate(id);</span>
+<span class="nc" id="L88">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L89">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+        }
+<span class="nc" id="L91">        return &quot;redirect:/counselor/templates&quot;;</span>
+    }
+ 
+    @GetMapping(&quot;/counselor/templates/{id}/editor&quot;)
+    public String editor(@PathVariable Long id, Model model) {
+<span class="nc" id="L96">        SkillTreeTemplate template = counselorTemplateService.getTemplateById(id);</span>
+<span class="nc" id="L97">        List&lt;SkillNode&gt; nodes = counselorTemplateService.getNodesByTemplateId(id);</span>
+<span class="nc" id="L98">        List&lt;Skill&gt; availableSkills = getAvailableSkills(nodes);</span>
+<span class="nc" id="L99">        List&lt;String&gt; categories = skillRepository.findDistinctCategories();</span>
+<span class="nc" id="L100">        List&lt;String&gt; resourceTypes = getCleanResourceTypes();</span>
+ 
+<span class="nc" id="L102">        model.addAttribute(&quot;template&quot;, template);</span>
+<span class="nc" id="L103">        model.addAttribute(&quot;nodes&quot;, nodes);</span>
+<span class="nc" id="L104">        model.addAttribute(&quot;allSkills&quot;, availableSkills);</span>
+<span class="nc" id="L105">        model.addAttribute(&quot;categories&quot;, categories);</span>
+<span class="nc" id="L106">        model.addAttribute(&quot;resourceTypes&quot;, resourceTypes);</span>
+<span class="nc" id="L107">        model.addAttribute(&quot;currentNode&quot;, null); // Bảng chi tiết bên phải lúc đầu trống</span>
+<span class="nc" id="L108">        return &quot;counselor/editor&quot;;</span>
+    }
+ 
+    @PostMapping(&quot;/counselor/templates/{id}/nodes&quot;)
+    public String addNode(@PathVariable Long id,
+                           @RequestParam(required = false) String skillId,
+                           @RequestParam(required = false) String newSkillName,
+                           @RequestParam(required = false) String newSkillCategory,
+                           @RequestParam Integer tier,
+                           @RequestParam(required = false) String parentId,
+                           Model model) {
+<span class="nc bnc" id="L119" title="All 4 branches missed.">        Long skillIdLong = (skillId != null &amp;&amp; !skillId.trim().isEmpty()) ? Long.valueOf(skillId.trim()) : null;</span>
+<span class="nc bnc" id="L120" title="All 4 branches missed.">        Long parentIdLong = (parentId != null &amp;&amp; !parentId.trim().isEmpty()) ? Long.valueOf(parentId.trim()) : null;</span>
+ 
+<span class="nc" id="L122">        counselorTemplateService.addNode(id, skillIdLong, newSkillName, newSkillCategory, tier, parentIdLong);</span>
+        
+<span class="nc" id="L124">        SkillTreeTemplate template = counselorTemplateService.getTemplateById(id);</span>
+<span class="nc" id="L125">        List&lt;SkillNode&gt; nodes = counselorTemplateService.getNodesByTemplateId(id);</span>
+<span class="nc" id="L126">        List&lt;Skill&gt; availableSkills = getAvailableSkills(nodes);</span>
+<span class="nc" id="L127">        List&lt;String&gt; categories = skillRepository.findDistinctCategories();</span>
+ 
+<span class="nc" id="L129">        model.addAttribute(&quot;template&quot;, template);</span>
+<span class="nc" id="L130">        model.addAttribute(&quot;nodes&quot;, nodes);</span>
+<span class="nc" id="L131">        model.addAttribute(&quot;allSkills&quot;, availableSkills);</span>
+<span class="nc" id="L132">        model.addAttribute(&quot;categories&quot;, categories);</span>
+<span class="nc" id="L133">        return &quot;counselor/editor :: editor-left-pane&quot;;</span>
+    }
+ 
+    @DeleteMapping(&quot;/counselor/templates/{templateId}/nodes/{nodeId}&quot;)
+    public String deleteNode(@PathVariable Long templateId,
+                             @PathVariable Long nodeId,
+                             Model model) {
+<span class="nc" id="L140">        counselorTemplateService.deleteNode(nodeId);</span>
+ 
+<span class="nc" id="L142">        SkillTreeTemplate template = counselorTemplateService.getTemplateById(templateId);</span>
+<span class="nc" id="L143">        List&lt;SkillNode&gt; nodes = counselorTemplateService.getNodesByTemplateId(templateId);</span>
+<span class="nc" id="L144">        List&lt;Skill&gt; availableSkills = getAvailableSkills(nodes);</span>
+<span class="nc" id="L145">        List&lt;String&gt; categories = skillRepository.findDistinctCategories();</span>
+ 
+<span class="nc" id="L147">        model.addAttribute(&quot;template&quot;, template);</span>
+<span class="nc" id="L148">        model.addAttribute(&quot;nodes&quot;, nodes);</span>
+<span class="nc" id="L149">        model.addAttribute(&quot;allSkills&quot;, availableSkills);</span>
+<span class="nc" id="L150">        model.addAttribute(&quot;categories&quot;, categories);</span>
+<span class="nc" id="L151">        return &quot;counselor/editor :: editor-left-pane&quot;;</span>
+    }
+ 
+    @GetMapping(&quot;/counselor/nodes/{nodeId}/details&quot;)
+    public String nodeDetails(@PathVariable Long nodeId, Model model) {
+<span class="nc" id="L156">        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));</span>
+<span class="nc" id="L157">        return &quot;counselor/editor :: node-details&quot;;</span>
+    }
+
+    /**
+     * Nạp đủ model cho fragment node-details: node hiện tại, danh sách node (dropdown cha),
+     * loại tài nguyên, và DANH SÁCH TÀI LIỆU của node (SkillNode không có @OneToMany nên phải
+     * load riêng — trước đây template gọi currentNode.learningResources -&gt; lỗi SpEL 500).
+     */
+    private void populateNodeDetails(Model model, SkillNode node) {
+<span class="nc" id="L166">        model.addAttribute(&quot;currentNode&quot;, node);</span>
+<span class="nc" id="L167">        model.addAttribute(&quot;nodes&quot;, counselorTemplateService.getNodesByTemplateId(node.getTemplate().getId()));</span>
+<span class="nc" id="L168">        model.addAttribute(&quot;resourceTypes&quot;, getCleanResourceTypes());</span>
+<span class="nc" id="L169">        model.addAttribute(&quot;resources&quot;, resourceRepository.findBySkillNode_IdOrderByIdAsc(node.getId()));</span>
+<span class="nc" id="L170">    }</span>
+ 
+    @PostMapping(&quot;/counselor/templates/{templateId}/nodes/{nodeId}/update&quot;)
+    public String updateNode(@PathVariable Long templateId,
+                             @PathVariable Long nodeId,
+                             @RequestParam Integer tier,
+                             @RequestParam(required = false) String parentId) {
+<span class="nc bnc" id="L177" title="All 4 branches missed.">        Long parentIdLong = (parentId != null &amp;&amp; !parentId.trim().isEmpty()) ? Long.valueOf(parentId.trim()) : null;</span>
+<span class="nc" id="L178">        counselorTemplateService.updateNode(nodeId, tier, parentIdLong);</span>
+<span class="nc" id="L179">        return &quot;redirect:/counselor/templates/&quot; + templateId + &quot;/editor&quot;;</span>
+    }
+ 
+    @PostMapping(&quot;/counselor/nodes/{nodeId}/resources&quot;)
+    public String addResource(@PathVariable Long nodeId,
+                              @RequestParam String title,
+                              @RequestParam String url,
+                              @RequestParam String resourceType,
+                              @RequestParam(required = false) String description,
+                              Model model) {
+<span class="nc" id="L189">        counselorTemplateService.addResource(nodeId, title, url, resourceType, description);</span>
+<span class="nc" id="L190">        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));</span>
+<span class="nc" id="L191">        return &quot;counselor/editor :: node-details&quot;;</span>
+    }
+
+    @DeleteMapping(&quot;/counselor/nodes/{nodeId}/resources/{resourceId}&quot;)
+    public String deleteResource(@PathVariable Long nodeId,
+                                 @PathVariable Long resourceId,
+                                 Model model) {
+<span class="nc" id="L198">        counselorTemplateService.deleteResource(resourceId);</span>
+<span class="nc" id="L199">        populateNodeDetails(model, counselorTemplateService.getNodeById(nodeId));</span>
+<span class="nc" id="L200">        return &quot;counselor/editor :: node-details&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

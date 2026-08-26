@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WebMvcConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.config</a> &gt; <span class="el_source">WebMvcConfig.java</span></div><h1>WebMvcConfig.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Cấu hình Spring MVC:
+ * 1. Đăng ký OnboardingInterceptor để redirect STUDENT chưa onboard.
+ * 2. Expose thư mục uploads/ làm static resource (để hiển thị transcript đã upload).
+ */
+@Configuration
+@RequiredArgsConstructor
+public class WebMvcConfig implements WebMvcConfigurer {
+
+    private final OnboardingInterceptor onboardingInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+<span class="fc" id="L22">        registry.addInterceptor(onboardingInterceptor)</span>
+<span class="fc" id="L23">                .addPathPatterns(&quot;/**&quot;)</span>
+                // Bỏ qua các path public và các path của chính onboarding
+<span class="fc" id="L25">                .excludePathPatterns(</span>
+<span class="fc" id="L26">                        &quot;/onboarding/**&quot;,</span>
+<span class="fc" id="L27">                        &quot;/login&quot;, &quot;/logout&quot;, &quot;/register&quot;, &quot;/forgot&quot;,</span>
+<span class="fc" id="L28">                        &quot;/oauth2/**&quot;,</span>
+<span class="fc" id="L29">                        &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/images/**&quot;,</span>
+<span class="fc" id="L30">                        &quot;/uploads/**&quot;,</span>
+<span class="fc" id="L31">                        &quot;/p/**&quot;,</span>
+<span class="fc" id="L32">                        &quot;/admin/**&quot;, &quot;/counselor/**&quot;,</span>
+<span class="fc" id="L33">                        &quot;/error&quot;, &quot;/favicon.ico&quot;</span>
+                );
+<span class="fc" id="L35">    }</span>
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Expose thư mục uploads/ (transcript files) dưới URL /uploads/**
+<span class="fc" id="L40">        registry.addResourceHandler(&quot;/uploads/**&quot;)</span>
+<span class="fc" id="L41">                .addResourceLocations(&quot;file:uploads/&quot;);</span>
+<span class="fc" id="L42">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

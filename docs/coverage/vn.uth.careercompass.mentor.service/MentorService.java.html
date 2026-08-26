@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MentorService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.mentor.service</a> &gt; <span class="el_source">MentorService.java</span></div><h1>MentorService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.mentor.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.mentor.entity.ChatMessage;
+import vn.uth.careercompass.mentor.entity.MentorSession;
+import vn.uth.careercompass.mentor.entity.Sender;
+import vn.uth.careercompass.mentor.repository.ChatMessageRepository;
+import vn.uth.careercompass.mentor.repository.MentorSessionRepository;
+
+import java.util.List;
+
+@Service
+<span class="fc" id="L17">@Slf4j</span>
+public class MentorService {
+
+    private final MentorSessionRepository sessionRepo;
+    private final ChatMessageRepository messageRepo;
+    private final LlmClient llmClient;
+
+<span class="fc" id="L24">    public MentorService(MentorSessionRepository sessionRepo,</span>
+                          ChatMessageRepository messageRepo,
+                          LlmClient llmClient) {
+<span class="fc" id="L27">        this.sessionRepo = sessionRepo;</span>
+<span class="fc" id="L28">        this.messageRepo = messageRepo;</span>
+<span class="fc" id="L29">        this.llmClient = llmClient;</span>
+<span class="fc" id="L30">    }</span>
+
+    public List&lt;MentorSession&gt; getSessionsForUser(User user) {
+<span class="fc" id="L33">        return sessionRepo.findByUserOrderByCreatedAtDesc(user);</span>
+    }
+
+    public MentorSession createSession(User user) {
+<span class="fc" id="L37">        MentorSession session = new MentorSession();</span>
+<span class="fc" id="L38">        session.setUser(user);</span>
+<span class="fc" id="L39">        session.setTitle(&quot;Cuộc trò chuyện mới&quot;);</span>
+<span class="fc" id="L40">        return sessionRepo.save(session);</span>
+    }
+
+    public List&lt;ChatMessage&gt; getMessages(MentorSession session) {
+<span class="fc" id="L44">        return messageRepo.findBySessionOrderByCreatedAtAsc(session);</span>
+    }
+
+    @Transactional
+    public ChatMessage sendMessage(User user, MentorSession session, String userText) {
+        // 0. Đặt tiêu đề session từ câu hỏi đầu tiên (thay cho &quot;Cuộc trò chuyện mới&quot;)
+<span class="pc bpc" id="L50" title="1 of 4 branches missed.">        if (session.getTitle() == null || session.getTitle().isBlank()</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">                || &quot;Cuộc trò chuyện mới&quot;.equals(session.getTitle())) {</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">            session.setTitle(userText.length() &gt; 60 ? userText.substring(0, 60) + &quot;…&quot; : userText);</span>
+<span class="fc" id="L53">            sessionRepo.save(session);</span>
+        }
+
+        // 1. Lưu tin nhắn của user
+<span class="fc" id="L57">        ChatMessage userMsg = new ChatMessage();</span>
+<span class="fc" id="L58">        userMsg.setSession(session);</span>
+<span class="fc" id="L59">        userMsg.setSender(Sender.USER);</span>
+<span class="fc" id="L60">        userMsg.setContent(userText);</span>
+<span class="fc" id="L61">        messageRepo.save(userMsg);</span>
+
+        // 2. Dựng prompt cá nhân hoá + gọi LLM (fallback nếu lỗi để không chặn chat)
+        String aiReply;
+        try {
+<span class="fc" id="L66">            aiReply = llmClient.ask(buildPrompt(user, userText));</span>
+<span class="fc" id="L67">        } catch (Exception e) {</span>
+<span class="fc" id="L68">            log.error(&quot;[MentorService] Gọi LLM thất bại: {}&quot;, e.toString(), e);</span>
+<span class="fc" id="L69">            aiReply = &quot;Xin lỗi, hiện chưa kết nối được AI Mentor (kiểm tra cấu hình GEMINI_API_KEY). &quot;</span>
+                    + &quot;Bạn vui lòng thử lại sau.&quot;;
+        }
+
+        // 3. Lưu phản hồi AI
+<span class="fc" id="L74">        ChatMessage aiMsg = new ChatMessage();</span>
+<span class="fc" id="L75">        aiMsg.setSession(session);</span>
+<span class="fc" id="L76">        aiMsg.setSender(Sender.AI);</span>
+<span class="fc" id="L77">        aiMsg.setContent(aiReply);</span>
+<span class="fc" id="L78">        return messageRepo.save(aiMsg);</span>
+    }
+
+    private String buildPrompt(User user, String userText) {
+    // TODO: khi P7 hoàn thành refactor targetRoleId -&gt; CareerRole,
+    // đổi dòng dưới thành user.getTargetRole().getName() để lấy tên role dạng chữ
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    String targetRoleInfo = (user.getTargetRoleId() != null)</span>
+<span class="fc" id="L85">            ? &quot;Role ID #&quot; + user.getTargetRoleId()</span>
+<span class="fc" id="L86">            : &quot;chưa chọn định hướng nghề nghiệp&quot;;</span>
+<span class="pc bpc" id="L87" title="1 of 4 branches missed.">    String transcriptInfo = (user.getTranscriptSummary() != null &amp;&amp; !user.getTranscriptSummary().isBlank())</span>
+<span class="fc" id="L88">            ? user.getTranscriptSummary()</span>
+<span class="fc" id="L89">            : &quot;chưa có / chưa phân tích bảng điểm&quot;;</span>
+
+<span class="fc" id="L91">    return &quot;&quot;&quot;</span>
+        Bạn là mentor tư vấn định hướng nghề nghiệp.
+        Hồ sơ học viên:
+        - Định hướng nghề nghiệp: %s
+        - GitHub: %s
+        - Phân tích bảng điểm (AI): %s
+
+        Câu hỏi: %s
+<span class="fc" id="L99">        &quot;&quot;&quot;.formatted(</span>
+<span class="fc" id="L100">            targetRoleInfo,</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            user.getGithubUsername() != null ? user.getGithubUsername() : &quot;chưa liên kết&quot;,</span>
+<span class="fc" id="L102">            transcriptInfo,</span>
+<span class="fc" id="L103">            userText</span>
+    );
+}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

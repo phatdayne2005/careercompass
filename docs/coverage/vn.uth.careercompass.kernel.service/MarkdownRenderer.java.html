@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MarkdownRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.kernel.service</a> &gt; <span class="el_source">MarkdownRenderer.java</span></div><h1>MarkdownRenderer.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.kernel.service;
+
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
+import org.springframework.stereotype.Component;
+
+/**
+ * Chuyển markdown (do AI trả về: **đậm**, *nghiêng*, danh sách...) thành HTML để hiển thị đúng.
+ * Dùng trong template qua {@code th:utext=&quot;${@markdownRenderer.toHtml(...)}&quot;}.
+ *
+ * &lt;p&gt;{@code escapeHtml(true)}: escape mọi HTML thô trong nội dung -&gt; an toàn XSS khi render bằng
+ * th:utext (nội dung AI/README không chèn được thẻ HTML độc).&lt;/p&gt;
+ */
+@Component(&quot;markdownRenderer&quot;)
+<span class="fc" id="L15">public class MarkdownRenderer {</span>
+
+<span class="fc" id="L17">    private final Parser parser = Parser.builder().build();</span>
+<span class="fc" id="L18">    private final HtmlRenderer renderer = HtmlRenderer.builder().escapeHtml(true).build();</span>
+
+    public String toHtml(String markdown) {
+<span class="fc bfc" id="L21" title="All 4 branches covered.">        if (markdown == null || markdown.isBlank()) {</span>
+<span class="fc" id="L22">            return &quot;&quot;;</span>
+        }
+<span class="fc" id="L24">        return renderer.render(parser.parse(markdown));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

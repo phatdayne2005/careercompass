@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JobTrendSeeder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.marketpulse.config</a> &gt; <span class="el_source">JobTrendSeeder.java</span></div><h1>JobTrendSeeder.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.marketpulse.config;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import vn.uth.careercompass.marketpulse.entity.JobTrend;
+import vn.uth.careercompass.marketpulse.repository.JobTrendRepository;
+import vn.uth.careercompass.marketpulse.service.ScraperService;
+
+import java.util.List;
+
+/**
+ * Seed dữ liệu JobTrend mẫu để Market Pulse (Màn ⑦) có biểu đồ ngay khi demo.
+ *
+ * &lt;p&gt;&lt;b&gt;Vì sao cần:&lt;/b&gt; {@code ScraperService} cào LinkedIn/TopCV thật theo lịch (@Scheduled 2h sáng),
+ * nhưng các trang này chặn bot mạnh nên thường trả rỗng — biểu đồ sẽ trống lúc bảo vệ. Seeder này
+ * cung cấp bộ JD mẫu thực tế (phủ các công nghệ đang theo dõi) để FR4.2/4.3 luôn có dữ liệu.
+ * Idempotent: chỉ seed khi bảng còn rỗng, không đụng dữ liệu scrape thật nếu đã có.&lt;/p&gt;
+ */
+@Component
+@Order(3)
+@RequiredArgsConstructor
+public class JobTrendSeeder implements CommandLineRunner {
+
+    private final JobTrendRepository jobTrendRepository;
+    private final ScraperService scraperService;
+
+    @Override
+    public void run(String... args) {
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">        if (jobTrendRepository.count() &gt; 0) {</span>
+<span class="fc" id="L32">            return;</span>
+        }
+        // Ưu tiên cào dữ liệu THẬT từ The Muse; nếu lỗi/rỗng (mất mạng...) mới dùng bộ demo.
+<span class="nc" id="L35">        int scraped = scraperService.scrapeJobs();</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (scraped &gt; 0) {</span>
+<span class="nc" id="L37">            return;</span>
+        }
+<span class="nc" id="L39">        jobTrendRepository.saveAll(List.of(</span>
+<span class="nc" id="L40">                job(&quot;TOPCV&quot;, &quot;Java Backend Developer&quot;, &quot;FPT Software&quot;,</span>
+<span class="nc" id="L41">                        &quot;Tuyển Java Backend: thành thạo Java, Spring Boot, RESTful API, SQL (MySQL/PostgreSQL), Docker. Ưu tiên biết Microservices và CI/CD.&quot;),</span>
+<span class="nc" id="L42">                job(&quot;TOPCV&quot;, &quot;Senior Java Engineer&quot;, &quot;MoMo&quot;,</span>
+<span class="nc" id="L43">                        &quot;Yêu cầu Java, Spring Boot, Microservices, Kubernetes, AWS, SQL. Kinh nghiệm hệ thống fintech quy mô lớn.&quot;),</span>
+<span class="nc" id="L44">                job(&quot;LINKEDIN&quot;, &quot;Backend Developer (Spring)&quot;, &quot;VNPay&quot;,</span>
+<span class="nc" id="L45">                        &quot;Java, Spring Boot, SQL, Redis, Docker, CI/CD. Thiết kế API cho hệ thống thanh toán.&quot;),</span>
+<span class="nc" id="L46">                job(&quot;TOPCV&quot;, &quot;Frontend Developer (React)&quot;, &quot;Tiki&quot;,</span>
+<span class="nc" id="L47">                        &quot;Thành thạo React, TypeScript, JavaScript, HTML/CSS. Biết Node.js là lợi thế.&quot;),</span>
+<span class="nc" id="L48">                job(&quot;LINKEDIN&quot;, &quot;Fullstack Developer&quot;, &quot;Shopee&quot;,</span>
+<span class="nc" id="L49">                        &quot;React, TypeScript, Node.js phía frontend; Java, Spring Boot, SQL phía backend. Triển khai bằng Docker.&quot;),</span>
+<span class="nc" id="L50">                job(&quot;TOPCV&quot;, &quot;DevOps Engineer&quot;, &quot;Viettel Digital&quot;,</span>
+<span class="nc" id="L51">                        &quot;Docker, Kubernetes, AWS, CI/CD (Jenkins/GitLab). Quản trị hạ tầng microservices.&quot;),</span>
+<span class="nc" id="L52">                job(&quot;LINKEDIN&quot;, &quot;Cloud Engineer (AWS)&quot;, &quot;VNG Cloud&quot;,</span>
+<span class="nc" id="L53">                        &quot;AWS, Kubernetes, Docker, Terraform. Vận hành hạ tầng cloud cho sản phẩm quy mô lớn.&quot;),</span>
+<span class="nc" id="L54">                job(&quot;TOPCV&quot;, &quot;Data Engineer&quot;, &quot;Be Group&quot;,</span>
+<span class="nc" id="L55">                        &quot;Python, SQL, AWS, ETL pipeline. Xử lý dữ liệu lớn, tối ưu truy vấn.&quot;),</span>
+<span class="nc" id="L56">                job(&quot;LINKEDIN&quot;, &quot;Python Developer&quot;, &quot;Zalo AI&quot;,</span>
+<span class="nc" id="L57">                        &quot;Python, SQL, Docker. Xây dựng dịch vụ AI/ML, tích hợp Microservices.&quot;),</span>
+<span class="nc" id="L58">                job(&quot;TOPCV&quot;, &quot;Backend Engineer (Node.js)&quot;, &quot;Grab&quot;,</span>
+<span class="nc" id="L59">                        &quot;Node.js, TypeScript, SQL, AWS, Docker. Phát triển API hiệu năng cao.&quot;),</span>
+<span class="nc" id="L60">                job(&quot;LINKEDIN&quot;, &quot;Java Developer (Fresher)&quot;, &quot;NashTech&quot;,</span>
+<span class="nc" id="L61">                        &quot;Java, Spring Boot cơ bản, SQL. Đào tạo thêm Docker, CI/CD.&quot;),</span>
+<span class="nc" id="L62">                job(&quot;TOPCV&quot;, &quot;Senior Frontend Engineer&quot;, &quot;Base.vn&quot;,</span>
+<span class="nc" id="L63">                        &quot;React, TypeScript, JavaScript. Tối ưu hiệu năng, kiến trúc component.&quot;),</span>
+<span class="nc" id="L64">                job(&quot;LINKEDIN&quot;, &quot;Software Engineer&quot;, &quot;Axon&quot;,</span>
+<span class="nc" id="L65">                        &quot;Java, Spring Boot, Microservices, Kubernetes, AWS, SQL. Hệ thống phân tán.&quot;),</span>
+<span class="nc" id="L66">                job(&quot;TOPCV&quot;, &quot;Full-stack Java + React&quot;, &quot;KMS Technology&quot;,</span>
+<span class="nc" id="L67">                        &quot;Java, Spring Boot, React, TypeScript, SQL, Docker, CI/CD. Làm sản phẩm cho thị trường Mỹ.&quot;),</span>
+<span class="nc" id="L68">                job(&quot;LINKEDIN&quot;, &quot;Platform Engineer&quot;, &quot;Sky Mavis&quot;,</span>
+<span class="nc" id="L69">                        &quot;Kubernetes, Docker, AWS, Python, CI/CD. Vận hành nền tảng blockchain.&quot;),</span>
+<span class="nc" id="L70">                job(&quot;TOPCV&quot;, &quot;Backend Developer (Python)&quot;, &quot;Got It AI&quot;,</span>
+<span class="nc" id="L71">                        &quot;Python, SQL, Docker, Microservices. Xây dựng API cho sản phẩm AI.&quot;)</span>
+        ));
+<span class="nc" id="L73">        System.out.println(&quot;[JobTrendSeeder] Đã seed 16 JobTrend mẫu cho Market Pulse.&quot;);</span>
+<span class="nc" id="L74">    }</span>
+
+    private JobTrend job(String source, String title, String company, String description) {
+<span class="nc" id="L77">        return JobTrend.builder()</span>
+<span class="nc" id="L78">                .source(source)</span>
+<span class="nc" id="L79">                .jobTitle(title)</span>
+<span class="nc" id="L80">                .company(company)</span>
+<span class="nc" id="L81">                .rawDescription(description)</span>
+<span class="nc" id="L82">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DashboardService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.dashboard.service</a> &gt; <span class="el_source">DashboardService.java</span></div><h1>DashboardService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.dashboard.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import vn.uth.careercompass.dashboard.dto.ActivityLogDTO;
+import vn.uth.careercompass.dashboard.dto.DashboardViewDTO;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.repository.ActivityLogRepository;
+import vn.uth.careercompass.roadmap.dto.RoadmapViewDTO;
+import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
+import vn.uth.careercompass.roadmap.service.RoadmapService;
+import vn.uth.careercompass.roadmap.service.SkillGapService;
+
+@Service
+@RequiredArgsConstructor
+public class DashboardService {
+
+    private final RoadmapService roadmapService;
+    private final SkillGapService skillGapService;
+    private final ActivityLogRepository activityLogRepository;
+
+    public DashboardViewDTO getDashboard(User user) {
+        // % tiến độ + số node — đọc UserNodeProgress qua RoadmapService (P4) có sẵn
+<span class="fc" id="L25">        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, null);</span>
+
+        // Đếm skill gap — tái dùng SkillGapService (P4), cùng template đang xem
+<span class="fc" id="L28">        SkillGapResultDTO skillGap = skillGapService.analyze(user, roadmap.getTemplate().getId());</span>
+
+        // 5 hoạt động gần nhất — đọc ActivityLog (Kernel)
+<span class="fc" id="L31">        var recentActivities = activityLogRepository</span>
+<span class="fc" id="L32">                .findByUserOrderByCreatedAtDesc(user, PageRequest.of(0, 5))</span>
+<span class="fc" id="L33">                .getContent()</span>
+<span class="fc" id="L34">                .stream()</span>
+<span class="fc" id="L35">                .map(ActivityLogDTO::from)</span>
+<span class="fc" id="L36">                .toList();</span>
+
+<span class="fc" id="L38">        return DashboardViewDTO.builder()</span>
+<span class="fc" id="L39">                .roadmapCompletionPercent(roadmap.getCompletionPercent())</span>
+<span class="fc" id="L40">                .completedNodes(roadmap.getCompletedNodes())</span>
+<span class="fc" id="L41">                .totalNodes(roadmap.getTotalNodes())</span>
+<span class="fc" id="L42">                .matchedSkillCount(skillGap.getMatchedSkillCount())</span>
+<span class="fc" id="L43">                .missingSkillCount(skillGap.getMissingSkillCount())</span>
+<span class="fc" id="L44">                .recentActivities(recentActivities)</span>
+<span class="fc" id="L45">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

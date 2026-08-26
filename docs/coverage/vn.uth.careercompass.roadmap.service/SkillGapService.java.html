@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SkillGapService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.roadmap.service</a> &gt; <span class="el_source">SkillGapService.java</span></div><h1>SkillGapService.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.roadmap.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import vn.uth.careercompass.admin.entity.Skill;
+import vn.uth.careercompass.admin.entity.SkillNode;
+import vn.uth.careercompass.admin.entity.SkillTreeTemplate;
+import vn.uth.careercompass.admin.repository.SkillNodeRepository;
+import vn.uth.careercompass.admin.repository.SkillRepository;
+import vn.uth.careercompass.kernel.entity.User;
+import vn.uth.careercompass.kernel.entity.UserSkill;
+import vn.uth.careercompass.kernel.repository.UserSkillRepository;
+import vn.uth.careercompass.roadmap.dto.RoadmapTemplateDTO;
+import vn.uth.careercompass.roadmap.dto.SkillGapReportDTO;
+import vn.uth.careercompass.roadmap.dto.SkillGapResultDTO;
+import vn.uth.careercompass.roadmap.dto.SkillSummaryDTO;
+import vn.uth.careercompass.roadmap.entity.ProgressStatus;
+import vn.uth.careercompass.roadmap.entity.SkillGapReport;
+import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
+
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class SkillGapService {
+    private final RoadmapService roadmapService;
+    private final SkillNodeRepository skillNodeRepository;
+    private final SkillRepository skillRepository;
+    private final UserSkillRepository userSkillRepository;
+    private final SkillGapReportRepository skillGapReportRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+
+    @Transactional(readOnly = true)
+    public SkillGapResultDTO analyze(User user, Long templateId) {
+<span class="fc" id="L45">        SkillTreeTemplate template = roadmapService.resolveTemplate(user, templateId);</span>
+<span class="fc" id="L46">        List&lt;SkillNode&gt; nodes = skillNodeRepository.findByTemplateIdOrderByTierAscOrderIndexAscIdAsc(template.getId());</span>
+
+<span class="fc" id="L48">        Map&lt;Long, Skill&gt; requiredSkills = nodes.stream()</span>
+<span class="fc" id="L49">                .map(SkillNode::getSkill)</span>
+<span class="pc" id="L50">                .collect(Collectors.toMap(Skill::getId, skill -&gt; skill, (left, right) -&gt; left, LinkedHashMap::new));</span>
+
+<span class="fc" id="L52">        Set&lt;Long&gt; acquiredSkillIds = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L53">        userSkillRepository.findByUser(user).stream()</span>
+<span class="fc" id="L54">                .map(UserSkill::getSkill)</span>
+<span class="fc" id="L55">                .map(Skill::getId)</span>
+<span class="fc" id="L56">                .forEach(acquiredSkillIds::add);</span>
+<span class="fc" id="L57">        userNodeProgressRepository.findByUserAndSkillNode_Template_Id(user, template.getId()).stream()</span>
+<span class="fc" id="L58">                .filter(progress -&gt; ProgressStatus.DONE.equals(progress.getStatus()))</span>
+<span class="fc" id="L59">                .forEach(progress -&gt; acquiredSkillIds.add(progress.getSkillNode().getSkill().getId()));</span>
+
+<span class="fc" id="L61">        List&lt;SkillSummaryDTO&gt; matchedSkills = requiredSkills.values().stream()</span>
+<span class="fc" id="L62">                .filter(skill -&gt; acquiredSkillIds.contains(skill.getId()))</span>
+<span class="fc" id="L63">                .sorted(Comparator.comparing(Skill::getName))</span>
+<span class="fc" id="L64">                .map(this::toSkillSummary)</span>
+<span class="fc" id="L65">                .toList();</span>
+
+<span class="fc" id="L67">        List&lt;SkillSummaryDTO&gt; missingSkills = requiredSkills.values().stream()</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">                .filter(skill -&gt; !acquiredSkillIds.contains(skill.getId()))</span>
+<span class="fc" id="L69">                .sorted(Comparator.comparing(Skill::getName))</span>
+<span class="fc" id="L70">                .map(this::toSkillSummary)</span>
+<span class="fc" id="L71">                .toList();</span>
+
+<span class="fc" id="L73">        return SkillGapResultDTO.builder()</span>
+<span class="fc" id="L74">                .template(RoadmapTemplateDTO.from(template))</span>
+<span class="fc" id="L75">                .requiredSkillCount(requiredSkills.size())</span>
+<span class="fc" id="L76">                .matchedSkillCount(matchedSkills.size())</span>
+<span class="fc" id="L77">                .missingSkillCount(missingSkills.size())</span>
+<span class="fc" id="L78">                .matchPercent(roadmapService.calculatePercent(matchedSkills.size(), requiredSkills.size()))</span>
+<span class="fc" id="L79">                .matchedSkills(matchedSkills)</span>
+<span class="fc" id="L80">                .missingSkills(missingSkills)</span>
+<span class="fc" id="L81">                .build();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;SkillSummaryDTO&gt; getAcquiredSkills(User user) {
+<span class="fc" id="L86">        Map&lt;Long, SkillSummaryDTO&gt; byId = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L87">        userSkillRepository.findByUserWithSkill(user)</span>
+<span class="fc" id="L88">                .forEach(us -&gt; byId.putIfAbsent(us.getSkill().getId(), toSkillSummary(us.getSkill())));</span>
+<span class="fc" id="L89">        userNodeProgressRepository.findByUserAndStatusWithSkill(user, ProgressStatus.DONE)</span>
+<span class="fc" id="L90">                .forEach(p -&gt; byId.putIfAbsent(p.getSkillNode().getSkill().getId(),</span>
+<span class="fc" id="L91">                        toSkillSummary(p.getSkillNode().getSkill())));</span>
+<span class="fc" id="L92">        return byId.values().stream()</span>
+<span class="fc" id="L93">                .sorted(Comparator.comparing(SkillSummaryDTO::getName))</span>
+<span class="fc" id="L94">                .toList();</span>
+    }
+
+    @Transactional
+    public void addAcquiredSkill(User user, Long skillId, Long templateId) {
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (skillId == null) {</span>
+<span class="fc" id="L100">            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, &quot;Thiếu skillId&quot;);</span>
+        }
+
+<span class="fc" id="L103">        Skill skill = skillRepository.findById(skillId)</span>
+<span class="fc" id="L104">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy kỹ năng&quot;));</span>
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (!userSkillRepository.existsByUserAndSkill(user, skill)) {</span>
+<span class="fc" id="L107">            userSkillRepository.save(UserSkill.builder().user(user).skill(skill).build());</span>
+        }
+
+<span class="fc" id="L110">        SkillTreeTemplate template = roadmapService.resolveTemplate(user, templateId);</span>
+<span class="fc" id="L111">        skillNodeRepository.findByTemplate_IdAndSkill_Id(template.getId(), skill.getId())</span>
+<span class="fc" id="L112">                .orElseGet(() -&gt; createSupplementalRoadmapNode(template, skill));</span>
+<span class="fc" id="L113">    }</span>
+
+    @Transactional
+    public SkillGapReportDTO saveReport(User user, SkillGapResultDTO result, String pdfPath) {
+<span class="fc" id="L117">        SkillTreeTemplate template = roadmapService.resolveTemplate(user, result.getTemplate().getId());</span>
+<span class="fc" id="L118">        SkillGapReport report = SkillGapReport.builder()</span>
+<span class="fc" id="L119">                .user(user)</span>
+<span class="fc" id="L120">                .template(template)</span>
+<span class="fc" id="L121">                .summary(buildSummary(result))</span>
+<span class="fc" id="L122">                .pdfPath(pdfPath)</span>
+<span class="fc" id="L123">                .requiredSkillCount(result.getRequiredSkillCount())</span>
+<span class="fc" id="L124">                .matchedSkillCount(result.getMatchedSkillCount())</span>
+<span class="fc" id="L125">                .missingSkillCount(result.getMissingSkillCount())</span>
+<span class="fc" id="L126">                .matchedSkillNames(joinSkillNames(result.getMatchedSkills()))</span>
+<span class="fc" id="L127">                .missingSkillNames(joinSkillNames(result.getMissingSkills()))</span>
+<span class="fc" id="L128">                .build();</span>
+
+<span class="fc" id="L130">        return SkillGapReportDTO.from(skillGapReportRepository.save(report));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;SkillGapReportDTO&gt; getReports(User user) {
+<span class="fc" id="L135">        return skillGapReportRepository.findByUserOrderByCreatedAtDesc(user)</span>
+<span class="fc" id="L136">                .stream()</span>
+<span class="fc" id="L137">                .map(SkillGapReportDTO::from)</span>
+<span class="fc" id="L138">                .toList();</span>
+    }
+
+    @Transactional(readOnly = true)
+    public SkillGapReportDTO getReport(User user, Long reportId) {
+<span class="fc" id="L143">        return skillGapReportRepository.findByIdAndUser(reportId, user)</span>
+<span class="fc" id="L144">                .map(SkillGapReportDTO::from)</span>
+<span class="fc" id="L145">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy báo cáo skill gap&quot;));</span>
+    }
+
+    private SkillSummaryDTO toSkillSummary(Skill skill) {
+<span class="fc" id="L149">        return SkillSummaryDTO.builder()</span>
+<span class="fc" id="L150">                .id(skill.getId())</span>
+<span class="fc" id="L151">                .name(skill.getName())</span>
+<span class="fc" id="L152">                .category(skill.getCategory())</span>
+<span class="fc" id="L153">                .build();</span>
+    }
+
+    private SkillNode createSupplementalRoadmapNode(SkillTreeTemplate template, Skill skill) {
+<span class="fc" id="L157">        return skillNodeRepository.save(SkillNode.builder()</span>
+<span class="fc" id="L158">                .template(template)</span>
+<span class="fc" id="L159">                .skill(skill)</span>
+<span class="fc" id="L160">                .title(skill.getName())</span>
+<span class="fc" id="L161">                .description(&quot;Kỹ năng bổ sung từ Skill Gap.&quot;)</span>
+<span class="fc" id="L162">                .tier(1)</span>
+<span class="fc" id="L163">                .orderIndex(nextOrderIndex(template.getId()))</span>
+<span class="fc" id="L164">                .requiredLevel(1)</span>
+<span class="fc" id="L165">                .customNode(true)</span>
+<span class="fc" id="L166">                .build());</span>
+    }
+
+    private int nextOrderIndex(Long templateId) {
+<span class="fc" id="L170">        return skillNodeRepository.findTopByTemplate_IdOrderByOrderIndexDesc(templateId)</span>
+<span class="pc bnc" id="L171" title="All 2 branches missed.">                .map(node -&gt; node.getOrderIndex() == null ? 1 : node.getOrderIndex() + 1)</span>
+<span class="fc" id="L172">                .orElse(0);</span>
+    }
+
+    private String buildSummary(SkillGapResultDTO result) {
+<span class="fc" id="L176">        return &quot;Đã đạt &quot; + result.getMatchedSkillCount() + &quot;/&quot; + result.getRequiredSkillCount()</span>
+<span class="fc" id="L177">                + &quot; kỹ năng, còn thiếu &quot; + result.getMissingSkillCount() + &quot; kỹ năng.&quot;;</span>
+    }
+
+    private String joinSkillNames(List&lt;SkillSummaryDTO&gt; skills) {
+<span class="fc" id="L181">        return skills.stream()</span>
+<span class="fc" id="L182">                .map(SkillSummaryDTO::getName)</span>
+<span class="fc" id="L183">                .collect(Collectors.joining(&quot;, &quot;));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
