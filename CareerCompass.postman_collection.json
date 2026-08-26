@@ -893,6 +893,69 @@
           "protocolProfileBehavior": {
             "followRedirects": false
           }
+        },
+        {
+          "name": "TC-AUTH-18 · POST /login — Đăng nhập lại STUDENT cho các thư mục nghiệp vụ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AUTH-18**\n\nĐăng nhập lại tài khoản STUDENT để tiếp tục chạy tự động các thư mục nghiệp vụ tiếp theo.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{studentEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "{{studentPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập lại STUDENT thành công\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
         }
       ]
     },
@@ -3503,6 +3566,69 @@
       "description": "Quản trị người dùng & phân quyền. **Yêu cầu đăng nhập ADMIN (TC-AUTH-16).**",
       "item": [
         {
+          "name": "TC-AD-00 · POST /login — Đăng nhập ADMIN cho thư mục Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-AD-00**\n\nChuyển sang tài khoản ADMIN để thực hiện các chức năng quản trị.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{adminEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập ADMIN thành công\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
           "name": "TC-AD-01 · GET /admin — Bảng điều khiển quản trị",
           "request": {
             "method": "GET",
@@ -3857,6 +3983,69 @@
       "name": "10 · Academic Counselor",
       "description": "Biên soạn Skill Tree template — nguồn sinh roadmap. **Yêu cầu đăng nhập COUNSELOR (TC-AUTH-17).**",
       "item": [
+        {
+          "name": "TC-CS-00 · POST /login — Đăng nhập COUNSELOR cho thư mục Counselor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "**TC-CS-00**\n\nChuyển sang tài khoản COUNSELOR để thực hiện các chức năng tư vấn / biên soạn template.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{counselorEmail}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "{{counselorPassword}}",
+                  "type": "text",
+                  "description": ""
+                },
+                {
+                  "key": "_csrf",
+                  "value": "{{csrfToken}}",
+                  "type": "text",
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Đăng nhập COUNSELOR thành công\", function () {",
+                  "    pm.response.to.have.status(302);",
+                  "    pm.expect(pm.response.headers.get(\"Location\")).to.not.include(\"error\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
         {
           "name": "TC-CS-01 · GET /counselor/templates — Danh sách Skill Tree template",
           "request": {
