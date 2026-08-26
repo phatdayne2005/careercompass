@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
  *   ST-06  IN_PROGRESS      Bỏ đánh dấu về NOT_STARTED     NOT_STARTED           Có
  *   ST-07  NOT_STARTED      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
  *   ST-08  IN_PROGRESS      Đánh dấu DONE khi node KHOÁ    Bị chặn 403           KHÔNG
+ *   ST-09  DONE             Hạ về IN_PROGRESS khi node KHOÁ Bị chặn 403           KHÔNG
  * </pre>
  *
  * <p>Sáu dòng đầu phủ ĐỦ 6 cạnh chuyển giữa 3 trạng thái (3 × 2 = 6 cặp có thứ tự).
@@ -236,5 +237,21 @@ class ProgressStateTransitionTest {
 
         verify(userNodeProgressRepository, never()).save(any());
         verify(activityLogService, never()).log(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("ST-09 · DONE → IN_PROGRESS khi node bị khoá: phải bị chặn")
+    void st09_done_toInProgress_nodeLocked_biChan() {
+        SkillNode node = sampleNode();
+        User user = new User();
+        when(skillNodeRepository.findById(NODE_ID)).thenReturn(Optional.of(node));
+        when(roadmapService.isNodeLocked(user, node)).thenReturn(true);
+
+        assertThatThrownBy(() ->
+                progressService.updateProgress(user, NODE_ID, ProgressStatus.IN_PROGRESS))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        ex -> assertThat(ex.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN));
+
+        verify(userNodeProgressRepository, never()).save(any());
     }
 }
