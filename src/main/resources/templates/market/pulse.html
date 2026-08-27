@@ -1,79 +1,103 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/base :: head('Market Pulse · CareerCompass')}"></head>
-<body class="min-h-screen bg-[#0f172a] font-sans text-[#d7deea] antialiased">
+<body class="bg-[#090d16] font-sans text-slate-200 antialiased min-h-screen flex flex-col">
 
-<div th:replace="~{layout/base :: appNav(${activeNav})}"></div>
+<!-- Navigation Bar -->
+<div th:replace="~{layout/base :: appNav('market')}"></div>
 
-<main class="px-6 py-8 lg:px-[52px]">
-    <h1 class="text-[34px] font-extrabold tracking-[-0.03em] text-[#e6ebf5] sm:text-[40px]">
-        Market Pulse — Xu hướng tuyển dụng
-    </h1>
-    <p class="mt-2 text-[18px] font-medium text-[#7f8ba0]">
-        FR4.1 scraper theo lịch · FR4.2 công nghệ hot · FR4.3 biểu đồ trực quan
-        (<span th:text="${pulse.totalJobsScraped}">0</span> tin đã thu thập)
-    </p>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-8">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-white/[0.06]">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs font-semibold text-purple-300 mb-2">
+                <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                <span>Thị trường tuyển dụng IT</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Market Pulse &mdash; Xu hướng công nghệ
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">
+                Phân tích dữ liệu thực tế từ <span th:text="${pulse.totalJobsScraped}">0</span> tin tuyển dụng công nghệ gần nhất
+            </p>
+        </div>
+    </div>
 
-    <!-- Biểu đồ cột từ khoá hot -->
-    <section class="mt-8 rounded-2xl border border-[#334155] bg-[#1e293b] p-6">
-        <h2 class="mb-4 text-[20px] font-bold text-[#e6ebf5]">Công nghệ được nhắc nhiều nhất (30 ngày)</h2>
-        <canvas id="keywordChart" height="110"></canvas>
+    <!-- Keyword Analysis Chart Card -->
+    <section class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Công nghệ được nhắc đến nhiều nhất (30 ngày gần đây)</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Tần suất xuất hiện của từ khóa kỹ năng trong mô tả công việc (JD)</p>
+            </div>
+        </div>
+
+        <div class="h-72 w-full relative">
+            <canvas id="keywordChart"></canvas>
+        </div>
     </section>
 
-    <!-- Bảng tin tuyển dụng gần đây -->
-    <section class="mt-8 rounded-2xl border border-[#334155] bg-[#1e293b] p-6">
-        <h2 class="mb-4 text-[20px] font-bold text-[#e6ebf5]">Tin tuyển dụng gần đây</h2>
-        <table class="w-full text-left text-sm">
-            <thead class="text-[#7f8ba0]">
-            <tr>
-                <th class="pb-2">Vị trí</th>
-                <th class="pb-2">Công ty</th>
-                <th class="pb-2">Nguồn</th>
-                <th class="pb-2">Ngày</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="job : ${pulse.recentJobs}" class="border-t border-[#334155]">
-                <td class="py-2 font-semibold" th:text="${job.jobTitle}">Backend Developer</td>
-                <td class="py-2" th:text="${job.company}">ABC Corp</td>
-                <td class="py-2" th:text="${job.source}">TOPCV</td>
-                <td class="py-2" th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
-            </tr>
-            <tr th:if="${pulse.recentJobs.isEmpty()}">
-                <td colspan="4" class="py-4 text-center text-[#7f8ba0]">Chưa có dữ liệu — chờ scraper chạy.</td>
-            </tr>
-            </tbody>
-        </table>
-        <p class="mt-4 text-xs text-[#7f8ba0]">
-            Nguồn dữ liệu tuyển dụng IT thật, cập nhật hằng ngày từ
-            <a href="https://www.themuse.com" target="_blank" rel="noopener" class="text-[#8b5cf6] hover:underline">The Muse</a>.
+    <!-- Recent Job Postings Table Card -->
+    <section class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <span>Tin tuyển dụng IT thu thập gần đây</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Dữ liệu việc làm cập nhật tự động từ các nguồn tin cậy</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+                <thead>
+                    <tr class="border-b border-white/[0.06] text-slate-400 text-xs uppercase font-bold tracking-wider">
+                        <th class="pb-3 px-3">Vị trí tuyển dụng</th>
+                        <th class="pb-3 px-3">Công ty</th>
+                        <th class="pb-3 px-3">Nguồn thu thập</th>
+                        <th class="pb-3 px-3 text-right">Ngày ghi nhận</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.04]">
+                    <tr th:each="job : ${pulse.recentJobs}" class="hover:bg-white/[0.02] transition">
+                        <td class="py-3.5 px-3 font-semibold text-white truncate max-w-xs" th:text="${job.jobTitle}">Backend Developer</td>
+                        <td class="py-3.5 px-3 text-slate-300 truncate max-w-xs" th:text="${job.company}">Tech Corp</td>
+                        <td class="py-3.5 px-3">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                                  th:text="${job.source}">THEMUSE</span>
+                        </td>
+                        <td class="py-3.5 px-3 text-right text-slate-500 font-mono text-xs"
+                            th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">01/01/2026</td>
+                    </tr>
+                    <tr th:if="${pulse.recentJobs.isEmpty()}">
+                        <td colspan="4" class="py-8 text-center text-slate-500 text-xs italic">
+                            Chưa có dữ liệu tin tuyển dụng &mdash; đang đợi bộ thu thập chạy.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p class="mt-6 text-xs text-slate-500 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Nguồn dữ liệu tuyển dụng IT được cập nhật định kỳ từ</span>
+            <a href="https://www.themuse.com" target="_blank" rel="noopener" class="text-indigo-400 hover:underline font-semibold">The Muse API</a>.
         </p>
     </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script th:src="@{/js/market-chart.js}"></script>
 <script th:inline="javascript">
     const labels = /*[[${pulse.topKeywords.![keyword]}]]*/ [];
     const counts = /*[[${pulse.topKeywords.![count]}]]*/ [];
-
-    new Chart(document.getElementById('keywordChart'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Số tin JD nhắc tới',
-                data: counts,
-                backgroundColor: '#8b5cf6'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#d7deea' }, grid: { color: '#334155' } },
-                y: { ticks: { color: '#d7deea' }, grid: { color: '#334155' } }
-            }
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        initKeywordChart(labels, counts);
     });
 </script>
 </body>

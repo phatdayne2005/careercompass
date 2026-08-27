@@ -1,95 +1,130 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/base :: head('Quản lý E-Portfolio · CareerCompass')}"></head>
-<body class="bg-[#0F172A] text-white font-sans min-h-screen">
+<body class="bg-[#090d16] text-slate-100 font-sans min-h-screen flex flex-col">
 
-    <nav th:replace="~{layout/base :: appNav('portfolio')}"></nav>
+<!-- Navigation Bar -->
+<div th:replace="~{layout/base :: appNav('portfolio')}"></div>
 
-    <main class="p-6 max-w-7xl mx-auto space-y-6 text-white">
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-8">
+    
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-white/[0.06]">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-300 mb-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                <span>Hồ sơ năng lực trực tuyến</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                E-Portfolio cá nhân
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">Kết nối kho chứa GitHub và để AI tóm tắt dự án của bạn một cách chuyên nghiệp</p>
+        </div>
+
+        <div th:if="${shareUrl}" class="flex items-center gap-2.5 bg-[#0e1424] border border-white/[0.08] px-4 py-2.5 rounded-2xl shadow-sm">
+            <span class="text-xs text-slate-400">Link công khai:</span>
+            <a th:href="${shareUrl}" th:text="${shareUrl}" target="_blank"
+               class="text-indigo-400 hover:text-indigo-300 font-mono text-xs font-semibold hover:underline flex items-center gap-1">
+                <span>/p/...</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${message}"
+         class="auto-dismiss-alert rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300 flex items-center gap-2"
+         th:text="${message}">
+        Đã đồng bộ thành công.
+    </div>
+    <div th:if="${error}"
+         class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300 flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <span th:text="${error}">Lỗi</span>
+    </div>
+
+    <!-- GitHub Connection Box -->
+    <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 shadow-sm max-w-2xl">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2.5">
+            <svg class="w-5 h-5 text-slate-200" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>Kết nối tài khoản GitHub</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1 mb-4">Nhập username GitHub của bạn để hệ thống nạp các repository và tạo bản tóm tắt tự động bằng AI.</p>
         
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-slate-7xl pb-4">
-            <div>
-                <h1 class="text-3xl font-bold text-white tracking-tight">E-Portfolio cá nhân</h1>
-                <p class="text-slate-4xl mt-1">Kết nối kho chứa GitHub của bạn và để AI tóm tắt dự án một cách chuyên nghiệp.</p>
+        <form th:action="@{/portfolio/sync}" method="post" class="flex flex-col sm:flex-row gap-3" onsubmit="document.getElementById('syncLoading').classList.remove('hidden');">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500 text-xs font-mono select-none">github.com/</span>
+                <input type="text" name="githubUsername" required th:value="${githubUsername}"
+                       class="w-full bg-[#090d16] border border-white/[0.08] rounded-xl pl-[95px] pr-4 py-2.5 text-white text-xs sm:text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition"
+                       placeholder="username">
             </div>
-            <div th:if="${shareUrl}" class="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-800 p-3 rounded-lg border border-slate-700">
-                <span class="text-sm text-slate-400">Link công khai:</span>
-                <a th:href="${shareUrl}" th:text="${shareUrl}" target="_blank" class="text-blue-400 hover:underline font-medium text-sm">/p/...</a>
+            <button type="submit" 
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-indigo-600/25 shrink-0 cursor-pointer">
+                Đồng bộ ngay
+            </button>
+        </form>
+        
+        <div id="syncLoading" class="mt-4 text-xs text-amber-300 hidden flex items-center gap-2">
+            <svg class="w-4 h-4 animate-spin text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>AI đang đọc file README và tóm tắt dự án, vui lòng đợi trong giây lát...</span>
+        </div>
+    </div>
+
+    <!-- Connected Repositories Section -->
+    <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2">
+            <div>
+                <h2 class="text-xl font-bold text-white">Danh sách dự án đã kết nối</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Bấm nút trạng thái <span class="text-emerald-400 font-semibold">Công khai</span> hoặc <span class="text-slate-400 font-semibold">Ẩn</span> để tùy biến danh mục hiển thị trên Portfolio công khai.</p>
             </div>
         </div>
 
-        <!-- Flash message / error -->
-        <div th:if="${message}" class="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300" th:text="${message}">Đã đồng bộ.</div>
-        <div th:if="${error}" class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">⚠ <span th:text="${error}">Lỗi</span></div>
+        <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl max-w-2xl">
-            <h2 class="text-xl font-semibold text-white flex items-center space-x-2">
-                <span class="font-bold text-blue-500">#</span>
-                <span>Kết nối tài khoản GitHub</span>
-            </h2>
-            
-            <form th:action="@{/portfolio/sync}" method="post" class="mt-4 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">github.com/</span>
-                    <input type="text" name="githubUsername" required th:value="${githubUsername}"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-28 pr-4 py-2.5 text-white focus:outline-none focus:border-blue-500 placeholder-slate-500 text-sm"
-                           placeholder="nhập-username">
-                </div>
-                <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm transition-all duration-200 shadow-lg shadow-blue-500/20">
-                    Đồng bộ ngay
-                </button>
-            </form>
-            
-            <div id="loading" class="mt-3 text-sm text-amber-400 hidden">
-                <span class="inline-block animate-spin mr-2">🔄</span> AI đang đọc file README và tóm tắt dự án, vui lòng đợi...
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <h2 class="text-2xl font-bold text-white">Danh sách dự án đã kết nối</h2>
-                <p class="text-sm text-slate-400 mt-1">Bấm nhãn <span class="text-emerald-400">Công khai</span>/<span class="text-slate-400">Ẩn</span> ở mỗi dự án để chọn dự án nào hiển thị trên trang portfolio công khai.</p>
+            <div th:if="${repositories == null or repositories.isEmpty()}"
+                 class="md:col-span-2 text-center text-slate-500 border border-dashed border-white/[0.08] rounded-3xl py-12">
+                <svg class="w-10 h-10 mx-auto mb-2 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                Chưa có repository nào. Nhập username GitHub rồi bấm &ldquo;Đồng bộ ngay&rdquo;.
             </div>
 
-            <div id="repo-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div th:if="${repositories == null or repositories.isEmpty()}"
-                     class="md:col-span-2 text-center text-slate-400 border border-dashed border-slate-700 rounded-xl py-10">
-                    Chưa có repository nào. Nhập GitHub username rồi bấm “Đồng bộ ngay”.
-                </div>
-
-                <div th:each="repo : ${repositories}"
-                     class="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between shadow-md">
-                    <div>
-                        <div class="flex items-center justify-between gap-2">
-                            <h3 class="text-lg font-bold text-blue-400 hover:underline truncate">
-                                <a th:href="${repo.htmlUrl}" th:text="${repo.repoName}" target="_blank">repo-name</a>
-                            </h3>
-                            <div class="flex shrink-0 items-center gap-2">
-                                <span class="flex items-center gap-1 text-xs font-semibold text-yellow-400">⭐ <span th:text="${repo.stars}">0</span></span>
-                                <form th:action="@{'/portfolio/repos/' + ${repo.id} + '/toggle'}" method="post">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                    <button type="submit"
-                                            class="text-xs px-2.5 py-0.5 rounded-full border whitespace-nowrap transition cursor-pointer hover:opacity-80"
-                                            th:classappend="${repo.isPublic} ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' : 'text-slate-400 border-slate-600 bg-slate-700/30'"
-                                            th:title="${repo.isPublic} ? 'Đang hiện trên portfolio — bấm để ẩn' : 'Đang ẩn — bấm để hiện'"
-                                            th:text="${repo.isPublic} ? '👁 Công khai' : '🚫 Ẩn'">Công khai</button>
-                                </form>
-                            </div>
+            <div th:each="repo : ${repositories}"
+                 class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 hover:border-indigo-500/40 transition-all duration-200 flex flex-col justify-between shadow-sm">
+                <div>
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h3 class="text-base font-bold text-indigo-400 hover:underline truncate">
+                            <a th:href="${repo.htmlUrl}" th:text="${repo.repoName}" target="_blank">repo-name</a>
+                        </h3>
+                        <div class="flex shrink-0 items-center gap-2">
+                            <span class="flex items-center gap-1 text-xs font-semibold text-amber-400">
+                                <span>⭐</span> <span th:text="${repo.stars}">0</span>
+                            </span>
+                            <form th:action="@{'/portfolio/repos/' + ${repo.id} + '/toggle'}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit"
+                                        class="text-xs px-3 py-1 rounded-full border transition cursor-pointer hover:opacity-90 font-semibold"
+                                        th:classappend="${repo.isPublic} ? 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10' : 'text-slate-400 border-slate-700 bg-slate-800'"
+                                        th:text="${repo.isPublic} ? '👁 Công khai' : '🚫 Ẩn'">Công khai</button>
+                            </form>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1" th:text="${repo.description != null and !repo.description.isBlank() ? repo.description : 'Không có mô tả'}">mô tả</p>
+                    </div>
+                    
+                    <p class="text-xs text-slate-400 line-clamp-2 mb-4"
+                       th:text="${repo.description != null and !repo.description.isBlank() ? repo.description : 'Không có mô tả'}">Mô tả repo</p>
 
-                        <div class="mt-3 bg-slate-900/50 rounded-lg p-3 border border-slate-700/50">
-                            <span class="text-xs font-bold uppercase tracking-wider text-purple-400 block mb-1">AI Tóm tắt (README):</span>
-                            <div class="text-sm text-slate-300 leading-relaxed md" th:utext="${markdown.toHtml(repo.aiSummary)}">tóm tắt AI</div>
-                        </div>
+                    <div class="rounded-2xl bg-[#090d16] p-4 border border-white/[0.04]">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400 block mb-1.5 flex items-center gap-1">
+                            <span>🤖</span> <span>AI Tóm tắt (README):</span>
+                        </span>
+                        <div class="text-xs text-slate-300 leading-relaxed md-content" th:utext="${markdown.toHtml(repo.aiSummary)}">Tóm tắt AI</div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-    </main>
-
+</main>
 </body>
 </html>

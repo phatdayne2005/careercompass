@@ -1,0 +1,185 @@
+/* ===================================================================
+   CareerCompass - Global Styles & Custom Utilities
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --brand-primary: #6366f1;
+    --brand-secondary: #8b5cf6;
+    --bg-dark: #090d16;
+    --card-bg: #111726;
+    --card-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Custom Smooth Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #090d16;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #273149;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3b4766;
+}
+
+/* Glassmorphism & Surface Utilities */
+.glass-panel {
+    background: rgba(17, 24, 39, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+    background: rgba(17, 23, 38, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card-hover {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgba(139, 92, 246, 0.35);
+    box-shadow: 0 15px 35px -10px rgba(99, 102, 241, 0.18);
+}
+
+.glow-brand {
+    box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4);
+}
+
+/* Markdown Rendering for AI Responses */
+.md-content {
+    color: #cbd5e1;
+    font-size: 0.925rem;
+    line-height: 1.65;
+}
+
+.md-content > :first-child { margin-top: 0; }
+.md-content > :last-child { margin-bottom: 0; }
+
+.md-content p {
+    margin-bottom: 0.75rem;
+}
+
+.md-content strong, .md-content b {
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+.md-content em {
+    color: #cbd5e1;
+    font-style: italic;
+}
+
+.md-content ul {
+    list-style-type: disc;
+    padding-left: 1.4rem;
+    margin-bottom: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+.md-content ol {
+    list-style-type: decimal;
+    padding-left: 1.4rem;
+    margin-bottom: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+.md-content li {
+    margin-bottom: 0.3rem;
+}
+
+.md-content a {
+    color: #818cf8;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.15s;
+}
+
+.md-content a:hover {
+    color: #a5b4fc;
+}
+
+.md-content code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f472b6;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.375rem;
+    font-size: 0.85em;
+}
+
+.md-content pre {
+    background: #0b101b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+}
+
+.md-content pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #e2e8f0;
+}
+
+.md-content h1, .md-content h2, .md-content h3, .md-content h4 {
+    color: #f8fafc;
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.md-content h1 { font-size: 1.25rem; }
+.md-content h2 { font-size: 1.1rem; }
+.md-content h3 { font-size: 1rem; }
+
+.md-content blockquote {
+    border-left: 3px solid #6366f1;
+    padding-left: 0.875rem;
+    margin: 0.75rem 0;
+    color: #94a3b8;
+    font-style: italic;
+    background: rgba(99, 102, 241, 0.04);
+    border-radius: 0 0.375rem 0.375rem 0;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+/* HTMX Request Indicator Animations */
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+    opacity: 1;
+}
+
+/* Pulse animation for active nodes */
+@keyframes subtle-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(0.98); }
+}
+
+.animate-subtle-pulse {
+    animation: subtle-pulse 3s infinite ease-in-out;
+}

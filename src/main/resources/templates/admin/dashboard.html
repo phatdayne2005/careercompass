@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/base :: head(title='Admin Dashboard - CareerCompass')}"></head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
+<head th:replace="~{layout/base :: head(title='Admin Dashboard · CareerCompass')}"></head>
+<body class="bg-[#090d16] text-slate-100 font-sans antialiased min-h-screen flex">
  
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 p-6">
+    <aside class="w-64 bg-[#0c1220] border-r border-white/[0.06] flex flex-col justify-between shrink-0 p-6">
         <div>
             <!-- Brand Logo -->
             <div class="mb-8 flex justify-center">
@@ -13,28 +13,28 @@
             
             <!-- Navigation Links -->
             <nav class="space-y-1.5">
-                <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-violet-600 text-white font-semibold shadow-lg shadow-violet-500/20 transition-all duration-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
-                    Dashboard
+                <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/30 transition-all">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
+                    <span>Dashboard</span>
                 </a>
-                <a href="/admin/users" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-200">
+                <a href="/admin/users" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] transition-all font-medium text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    Quản lý User
+                    <span>Quản lý User</span>
                 </a>
             </nav>
         </div>
         
         <!-- User Section Footer -->
-        <div class="border-t border-slate-800 pt-4 flex items-center justify-between">
+        <div class="border-t border-white/[0.06] pt-4 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold text-sm">AD</div>
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs">AD</div>
                 <div class="truncate">
-                    <p class="text-xs font-semibold text-slate-200">System Admin</p>
+                    <p class="text-xs font-bold text-slate-200">System Admin</p>
                     <p class="text-[10px] text-slate-500 truncate">admin@gmail.com</p>
                 </div>
             </div>
             <form th:action="@{/logout}" method="post">
-                <button type="submit" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all duration-150">
+                <button type="submit" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer" title="Đăng xuất">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 </button>
             </form>
@@ -42,104 +42,113 @@
     </aside>
  
     <!-- MAIN CONTENT -->
-    <main class="flex-1 p-10 overflow-y-auto">
+    <main class="flex-1 p-8 sm:p-10 overflow-y-auto space-y-8">
         <!-- Header -->
-        <header class="mb-10 flex justify-between items-center">
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-white/[0.06]">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-white">Dashboard Quản Trị</h1>
-                <p class="text-sm text-slate-400 mt-1">Tổng quan về người dùng, định hướng nghề nghiệp và tiến độ của hệ thống.</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Dashboard Quản Trị</h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Tổng quan về số lượng người dùng, định hướng nghề nghiệp và lộ trình hệ thống.</p>
             </div>
-            <div class="px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-medium text-slate-400 rounded-lg">
-                Hôm nay: <span id="current-date" class="text-slate-200"></span>
+            <div class="px-4 py-2 bg-[#0e1424] border border-white/[0.08] text-xs font-semibold text-slate-400 rounded-xl w-max">
+                Hôm nay: <span id="current-date" class="text-indigo-300"></span>
             </div>
         </header>
  
         <!-- STATISTICS GRID -->
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <!-- Card 1: Total Users -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800/80 shadow-md flex items-center justify-between hover:border-slate-700/80 transition-all duration-200">
+            <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex items-center justify-between hover:border-indigo-500/30 transition duration-200">
                 <div>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tổng Thành Viên</p>
-                    <h3 class="text-4xl font-extrabold text-white mt-2" th:text="${totalUsers}">0</h3>
-                    <p class="text-[10px] text-slate-500 mt-1.5">Tất cả tài khoản trong hệ thống</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng Thành Viên</p>
+                    <h3 class="text-3xl font-extrabold text-white mt-2" th:text="${totalUsers}">0</h3>
+                    <p class="text-[11px] text-slate-500 mt-1">Tất cả tài khoản hệ thống</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-violet-600/10 flex items-center justify-center text-violet-400">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600/15 text-indigo-400 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
             </div>
  
             <!-- Card 2: Students -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800/80 shadow-md flex items-center justify-between hover:border-slate-700/80 transition-all duration-200">
+            <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex items-center justify-between hover:border-emerald-500/30 transition duration-200">
                 <div>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tổng Sinh Viên</p>
-                    <h3 class="text-4xl font-extrabold text-white mt-2" th:text="${totalStudents}">0</h3>
-                    <p class="text-[10px] text-emerald-400 mt-1.5 flex items-center gap-1 font-medium">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Đang tham gia hướng nghiệp
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng Sinh Viên</p>
+                    <h3 class="text-3xl font-extrabold text-emerald-400 mt-2" th:text="${totalStudents}">0</h3>
+                    <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Đang tham gia học tập
                     </p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-400">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600/15 text-emerald-400 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222 4 2.222V20"></path></svg>
                 </div>
             </div>
  
             <!-- Card 3: Counselors -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800/80 shadow-md flex items-center justify-between hover:border-slate-700/80 transition-all duration-200">
+            <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex items-center justify-between hover:border-amber-500/30 transition duration-200">
                 <div>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cố Vấn Học Tập</p>
-                    <h3 class="text-4xl font-extrabold text-white mt-2" th:text="${totalCounselors}">0</h3>
-                    <p class="text-[10px] text-slate-500 mt-1.5">Người thiết kế và duyệt lộ trình</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cố Vấn Học Tập</p>
+                    <h3 class="text-3xl font-extrabold text-amber-400 mt-2" th:text="${totalCounselors}">0</h3>
+                    <p class="text-[11px] text-slate-500 mt-1">Biên soạn và quản lý lộ trình</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-amber-600/10 flex items-center justify-center text-amber-400">
+                <div class="w-12 h-12 rounded-2xl bg-amber-600/15 text-amber-400 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                 </div>
             </div>
  
             <!-- Card 4: Career Roles -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800/80 shadow-md flex items-center justify-between hover:border-slate-700/80 transition-all duration-200">
+            <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex items-center justify-between hover:border-purple-500/30 transition duration-200">
                 <div>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vai Trò Nghề Nghiệp</p>
-                    <h3 class="text-4xl font-extrabold text-white mt-2" th:text="${totalCareerRoles}">0</h3>
-                    <p class="text-[10px] text-slate-500 mt-1.5">Định hướng nghề nghiệp IT mẫu</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Vai Trò Nghề Nghiệp</p>
+                    <h3 class="text-3xl font-extrabold text-white mt-2" th:text="${totalCareerRoles}">0</h3>
+                    <p class="text-[11px] text-slate-500 mt-1">Vị trí mục tiêu IT</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-pink-600/10 flex items-center justify-center text-pink-400">
+                <div class="w-12 h-12 rounded-2xl bg-purple-600/15 text-purple-400 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </div>
             </div>
  
             <!-- Card 5: Roadmaps -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 p-6 rounded-2xl border border-slate-800/80 shadow-md flex items-center justify-between hover:border-slate-700/80 transition-all duration-200">
+            <div class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex items-center justify-between hover:border-indigo-500/30 transition duration-200">
                 <div>
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cây Lộ Trình Mẫu</p>
-                    <h3 class="text-4xl font-extrabold text-white mt-2" th:text="${totalRoadmaps}">0</h3>
-                    <p class="text-[10px] text-slate-500 mt-1.5">Bản mẫu lộ trình của cố vấn</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cây Lộ Trình Mẫu</p>
+                    <h3 class="text-3xl font-extrabold text-white mt-2" th:text="${totalRoadmaps}">0</h3>
+                    <p class="text-[11px] text-slate-500 mt-1">Bản mẫu roadmap chuẩn hóa</p>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-indigo-600/10 flex items-center justify-center text-indigo-400">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600/15 text-indigo-400 flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                 </div>
             </div>
         </section>
  
-        <!-- QUICK INFORMATION OR RECENT SYSTEM ANNOUNCEMENTS -->
-        <section class="bg-slate-900 rounded-2xl border border-slate-800 p-8">
-            <h2 class="text-xl font-bold text-white mb-4">Hướng Dẫn Vận Hành Hệ Thống</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-400">
-                <div class="space-y-3">
-                    <h4 class="font-bold text-slate-200">Quản lý người dùng</h4>
-                    <p>Truy cập vào menu <strong class="text-slate-200">Quản lý User</strong> ở thanh điều hướng bên trái để kích hoạt/khóa tài khoản của Sinh viên và Cố vấn học tập, hoặc thăng chức/phân quyền lại cho họ.</p>
+        <!-- Quick Guidance Section -->
+        <section class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 shadow-sm">
+            <h2 class="text-lg font-bold text-white mb-4">Hướng Dẫn Vận Hành Hệ Thống</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm text-slate-400">
+                <div class="space-y-2 p-4 rounded-2xl bg-[#090d16] border border-white/[0.04]">
+                    <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                        <span>Quản lý tài khoản</span>
+                    </h4>
+                    <p>Truy cập vào menu <strong>Quản lý User</strong> ở thanh bên trái để kích hoạt/khóa tài khoản của Sinh viên và Cố vấn học tập, hoặc cập nhật vai trò phân quyền.</p>
                 </div>
-                <div class="space-y-3">
-                    <h4 class="font-bold text-slate-200">Thiết lập Lộ trình</h4>
-                    <p>Các lộ trình mẫu được thiết kế và cập nhật trực tiếp bởi người dùng có vai trò <strong class="text-slate-200">Cố vấn học tập</strong> (COUNSELOR) tại phân hệ của cố vấn.</p>
+                <div class="space-y-2 p-4 rounded-2xl bg-[#090d16] border border-white/[0.04]">
+                    <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                        <span>Thiết lập lộ trình</span>
+                    </h4>
+                    <p>Các lộ trình mẫu được thiết kế và quản lý trực tiếp bởi tài khoản có vai trò <strong>Cố vấn học tập</strong> (COUNSELOR) tại phân hệ quản lý lộ trình.</p>
                 </div>
             </div>
         </section>
     </main>
  
     <script>
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('vi-VN', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
+        const dateEl = document.getElementById('current-date');
+        if (dateEl) {
+            dateEl.innerText = new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
     </script>
 </body>
 </html>
