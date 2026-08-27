@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/base :: head(title='Quản Lý Người Dùng · CareerCompass')}"></head>
-<body class="bg-[#090d16] text-slate-100 font-sans antialiased min-h-screen flex">
+<body class="bg-[#030712] text-slate-100 font-sans antialiased min-h-screen flex cyber-grid">
  
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-[#0c1220] border-r border-white/[0.06] flex flex-col justify-between shrink-0 p-6">
+    <aside class="w-64 bg-[#070b16] border-r border-white/[0.08] flex flex-col justify-between shrink-0 p-6">
         <div>
             <!-- Brand Logo -->
             <div class="mb-8 flex justify-center">
@@ -13,21 +13,21 @@
             
             <!-- Navigation Links -->
             <nav class="space-y-1.5">
-                <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] transition-all font-medium text-sm">
+                <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-2xl text-slate-400 hover:text-slate-100 hover:bg-white/[0.04] transition-all font-medium text-xs sm:text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
                     <span>Dashboard</span>
                 </a>
-                <a href="/admin/users" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-indigo-600/20 text-indigo-300 font-bold border border-indigo-500/30 transition-all">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <a href="/admin/users" class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <span>Quản lý User</span>
                 </a>
             </nav>
         </div>
         
         <!-- User Section Footer -->
-        <div class="border-t border-white/[0.06] pt-4 flex items-center justify-between">
+        <div class="border-t border-white/[0.08] pt-4 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xs">AD</div>
+                <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 font-black text-xs">AD</div>
                 <div class="truncate">
                     <p class="text-xs font-bold text-slate-200">System Admin</p>
                     <p class="text-[10px] text-slate-500 truncate">admin@gmail.com</p>
@@ -44,9 +44,9 @@
     <!-- MAIN CONTENT -->
     <main class="flex-1 p-8 sm:p-10 overflow-y-auto space-y-8">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-white/[0.06]">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-white/[0.08]">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Quản Lý Thành Viên</h1>
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">Quản Lý Thành Viên</h1>
                 <p class="text-xs sm:text-sm text-slate-400 mt-1">Quản lý trạng thái kích hoạt/khóa tài khoản và phân bổ vai trò hệ thống.</p>
             </div>
             
@@ -57,29 +57,29 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </span>
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm theo tên hoặc email..." 
-                           class="w-full bg-[#0e1424] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition">
+                           class="w-full bg-[#070b16] border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2 text-xs sm:text-sm text-slate-200 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 transition">
                 </div>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-sm cursor-pointer shrink-0">
+                <button type="submit" class="px-5 py-2 bg-gradient-to-r from-cyan-500 to-violet-600 hover:opacity-95 text-slate-950 text-xs sm:text-sm font-black rounded-2xl transition shadow-md shadow-cyan-500/25 cursor-pointer shrink-0">
                     Tìm kiếm
                 </button>
                 <a th:if="${keyword != null && !keyword.isEmpty()}" th:href="@{/admin/users}" 
-                   class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-semibold rounded-xl transition flex items-center justify-center shrink-0">
+                   class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-bold rounded-2xl transition flex items-center justify-center shrink-0">
                     Xóa lọc
                 </a>
             </form>
         </header>
  
         <!-- USER TABLE CARD -->
-        <section class="rounded-3xl border border-white/[0.08] bg-[#0e1424] overflow-hidden shadow-sm">
+        <section class="cyber-card rounded-3xl border border-white/[0.08] overflow-hidden shadow-2xl">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-white/[0.06]">
-                    <thead class="bg-[#090d16]/80">
+                <table class="min-w-full divide-y divide-white/[0.08]">
+                    <thead class="bg-[#070b16]">
                         <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Họ Tên &amp; Email</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Ngày đăng ký</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Định Hướng Nghề</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Vai trò (Role)</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Hành Động</th>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Họ Tên &amp; Email</th>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Ngày đăng ký</th>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Định Hướng Nghề</th>
+                            <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Vai trò (Role)</th>
+                            <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Hành Động</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/[0.04]">
@@ -87,10 +87,10 @@
                             <!-- Name & Email -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-2xl bg-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-extrabold text-sm"
+                                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-400/20 flex items-center justify-center text-cyan-400 font-black text-sm"
                                          th:text="${user.fullName != null && !user.fullName.isEmpty() ? #strings.substring(user.fullName, 0, 1).toUpperCase() : 'U'}">U</div>
                                     <div>
-                                        <p class="text-sm font-bold text-white" th:text="${user.fullName}">User Fullname</p>
+                                        <p class="text-sm font-extrabold text-white" th:text="${user.fullName}">User Fullname</p>
                                         <p class="text-xs text-slate-500" th:text="${user.email}">user@email.com</p>
                                     </div>
                                 </div>
@@ -99,13 +99,13 @@
                             <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400" th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                             <!-- Target Career Role -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span th:if="${user.careerRoleName}" class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20" th:text="${user.careerRoleName}">Role Name</span>
+                                <span th:if="${user.careerRoleName}" class="px-3 py-1 text-xs font-bold rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-400/20" th:text="${user.careerRoleName}">Role Name</span>
                                 <span th:unless="${user.careerRoleName}" class="text-xs text-slate-600 font-medium">Chưa định hướng</span>
                             </td>
                             <!-- Role Switcher Form -->
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <form th:action="@{'/admin/users/' + ${user.id} + '/change-role'}" method="post" class="inline-block">
-                                    <select name="roleName" onchange="this.form.submit()" class="bg-[#090d16] text-slate-200 border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs font-semibold focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 cursor-pointer">
+                                    <select name="roleName" onchange="this.form.submit()" class="bg-[#070b16] text-slate-200 border border-white/[0.08] rounded-xl px-3 py-1.5 text-xs font-bold focus:border-cyan-400 focus:outline-none cursor-pointer">
                                         <option th:each="r : ${roles}" 
                                                 th:value="${r.name()}" 
                                                 th:text="${r.name()}" 

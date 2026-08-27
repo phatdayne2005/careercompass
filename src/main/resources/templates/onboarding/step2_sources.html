@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/base :: head('Onboarding — Hồ sơ | CareerCompass')}"></head>
-<body class="bg-[#090d16] text-slate-100 font-sans min-h-screen flex flex-col">
+<body class="bg-[#030712] text-slate-100 font-sans min-h-screen flex flex-col cyber-grid">
 
 <!-- Navigation Bar -->
 <nav th:replace="~{layout/base :: appNav('onboarding')}"></nav>
 
 <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
 
-    <!-- Stepper Tracker -->
+    <!-- Cyber Stepper Tracker -->
     <div class="mb-10 max-w-xl mx-auto">
         <div class="flex items-center justify-between relative">
             <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 w-full bg-slate-800 -z-0"></div>
             
-            <!-- Step 1 (Completed) -->
+            <!-- Step 1 (Done) -->
             <div class="relative z-10 flex flex-col items-center">
-                <div class="w-9 h-9 rounded-full bg-emerald-600 border-2 border-emerald-400 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-emerald-600/30">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 flex items-center justify-center text-xs font-black shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                    <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <span class="mt-2 text-xs font-semibold text-emerald-400">Mục tiêu nghề</span>
+                <span class="mt-2 text-xs font-bold text-emerald-400">Mục tiêu nghề</span>
             </div>
 
             <!-- Step 2 (Active) -->
             <div class="relative z-10 flex flex-col items-center">
-                <div class="w-9 h-9 rounded-full bg-indigo-600 border-2 border-indigo-400 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-indigo-600/30">
+                <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 border-2 border-cyan-400 text-cyan-300 flex items-center justify-center text-xs font-black shadow-[0_0_20px_rgba(6,182,212,0.4)]">
                     2
                 </div>
-                <span class="mt-2 text-xs font-semibold text-indigo-400">Hồ sơ / GitHub</span>
+                <span class="mt-2 text-xs font-bold text-cyan-400">Hồ sơ / GitHub</span>
             </div>
 
             <!-- Step 3 (Pending) -->
             <div class="relative z-10 flex flex-col items-center">
-                <div class="w-9 h-9 rounded-full bg-slate-900 border border-slate-700 text-slate-400 flex items-center justify-center text-xs font-bold">
+                <div class="w-10 h-10 rounded-2xl bg-[#090d16] border border-slate-800 text-slate-500 flex items-center justify-center text-xs font-bold">
                     3
                 </div>
                 <span class="mt-2 text-xs font-medium text-slate-500">Kỹ năng</span>
@@ -41,12 +41,16 @@
 
     <!-- Header Section -->
     <div class="text-center max-w-2xl mx-auto mb-10">
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Kết nối hồ sơ của bạn</h1>
-        <p class="mt-2 text-sm text-slate-400">Giúp AI Mentor cá nhân hoá định hướng dựa trên bảng điểm môn học và kho dự án thực tế</p>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold text-cyan-300 mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+            <span>Telemetry &amp; Identity Sync</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">Kết nối hồ sơ của bạn</h1>
+        <p class="mt-2 text-xs sm:text-sm text-slate-400">Giúp AI Gemini cá nhân hoá định hướng dựa trên kết quả môn học &amp; kho dự án thực tế</p>
     </div>
 
     <!-- Error message -->
-    <div th:if="${error}" class="max-w-2xl mx-auto mb-6 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-sm flex items-center gap-2">
+    <div th:if="${error}" class="max-w-2xl mx-auto mb-6 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs sm:text-sm flex items-center gap-2">
         <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         <span th:text="${error}"></span>
     </div>
@@ -58,66 +62,66 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
             <!-- Card 1: Transcript Upload -->
-            <div class="rounded-2xl p-6 border border-white/[0.08] bg-[#0e1424] flex flex-col justify-between">
+            <div class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-600/15 text-indigo-400 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-400/20 text-cyan-400 flex items-center justify-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
-                        <h3 class="font-bold text-white text-base">Bảng điểm (Transcript)</h3>
+                        <h3 class="font-extrabold text-white text-base">Bảng điểm (Transcript)</h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-5">AI Gemini sẽ đọc môn học và điểm số để gợi ý các kỹ năng bạn đã tích lũy.</p>
+                    <p class="text-xs text-slate-400 mb-5">AI Gemini sẽ phân tích điểm số môn học để xác định thế mạnh công nghệ của bạn.</p>
 
                     <!-- Drop zone -->
                     <label for="transcriptFile"
                            id="dropZone"
-                           class="block border-2 border-dashed border-slate-700/80 rounded-2xl p-6 text-center cursor-pointer hover:border-indigo-500 hover:bg-[#141c30] transition-all duration-200 group">
+                           class="block border-2 border-dashed border-slate-700/80 rounded-2xl p-6 text-center cursor-pointer hover:border-cyan-400 hover:bg-cyan-950/10 transition-all duration-200 group">
                         <input type="file" id="transcriptFile" name="transcriptFile"
                                accept=".pdf,.png,.jpg,.jpeg" class="hidden"
                                onchange="handleFileSelect(this)">
                         
                         <div id="dropZoneContent">
-                            <svg class="w-9 h-9 text-slate-500 mx-auto mb-2.5 group-hover:text-indigo-400 group-hover:scale-110 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-10 h-10 text-slate-500 mx-auto mb-2 group-hover:text-cyan-400 group-hover:scale-110 transition duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
-                            <p class="text-slate-300 text-sm font-semibold">Kéo thả file PDF vào đây</p>
-                            <p class="text-slate-500 text-xs mt-1">hoặc nhấp để chọn tệp từ máy tính</p>
+                            <p class="text-slate-200 text-xs sm:text-sm font-bold">Kéo thả file PDF vào đây</p>
+                            <p class="text-slate-500 text-[11px] mt-1">hoặc nhấp để chọn tệp</p>
                         </div>
                         
                         <div id="fileSelected" class="hidden">
-                            <div class="w-10 h-10 rounded-full bg-emerald-500/15 text-emerald-400 mx-auto flex items-center justify-center mb-2">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 mx-auto flex items-center justify-center mb-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </div>
-                            <p id="fileName" class="text-emerald-300 text-sm font-semibold truncate max-w-xs mx-auto"></p>
-                            <p class="text-slate-500 text-xs mt-1">Nhấp để thay đổi file khác</p>
+                            <p id="fileName" class="text-emerald-300 text-xs sm:text-sm font-bold truncate max-w-xs mx-auto"></p>
+                            <p class="text-slate-500 text-[11px] mt-1">Nhấp để thay đổi file khác</p>
                         </div>
                     </label>
 
-                    <div th:if="${hasTranscript}" class="mt-3 flex items-center gap-2 text-emerald-400 text-xs">
+                    <div th:if="${hasTranscript}" class="mt-3 flex items-center gap-2 text-emerald-400 text-xs font-semibold">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>Đã có bảng điểm đã nạp. Tải file mới sẽ ghi đè.</span>
+                        <span>Đã có dữ liệu bảng điểm. Tải file mới sẽ thay thế.</span>
                     </div>
                 </div>
 
-                <p class="mt-4 text-[11px] text-slate-500">Hỗ trợ file PDF, ảnh scan · Tối đa 10MB · Bảo mật riêng tư</p>
+                <p class="mt-4 text-[10px] text-slate-500 font-mono">Tối đa 10MB &middot; Bảo mật riêng tư</p>
             </div>
 
             <!-- Card 2: GitHub Username -->
-            <div class="rounded-2xl p-6 border border-white/[0.08] bg-[#0e1424] flex flex-col justify-between">
+            <div class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl bg-violet-500/15 border border-violet-400/20 text-violet-400 flex items-center justify-center">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                             </svg>
                         </div>
-                        <h3 class="font-bold text-white text-base">Tài khoản GitHub</h3>
+                        <h3 class="font-extrabold text-white text-base">Tài khoản GitHub</h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-5">Đồng bộ các repository công khai và để AI tóm tắt dự án cho E-Portfolio của bạn.</p>
+                    <p class="text-xs text-slate-400 mb-5">Đồng bộ các repository công khai để dựng E-Portfolio kèm tóm tắt README bằng AI.</p>
 
                     <div class="relative mt-2">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-mono select-none">github.com/</span>
@@ -126,28 +130,28 @@
                                id="githubUsername"
                                th:value="${githubUsername}"
                                placeholder="username"
-                               class="w-full bg-[#090d16] border border-white/[0.08] rounded-xl pl-[95px] pr-4 py-3 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition">
+                               class="w-full bg-[#070b16] border border-white/[0.08] rounded-2xl pl-[95px] pr-4 py-3 text-white text-xs sm:text-sm placeholder-slate-600 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/20 transition">
                     </div>
 
-                    <div th:if="${githubUsername}" class="mt-3 flex items-center gap-2 text-emerald-400 text-xs">
+                    <div th:if="${githubUsername}" class="mt-3 flex items-center gap-2 text-emerald-400 text-xs font-semibold">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        <span>Đã liên kết: <span class="font-semibold" th:text="${githubUsername}"></span></span>
+                        <span>Đã liên kết: <span class="font-bold" th:text="${githubUsername}"></span></span>
                     </div>
                 </div>
 
-                <p class="mt-4 text-[11px] text-slate-500">Chỉ đọc dữ liệu công khai (public repositories)</p>
+                <p class="mt-4 text-[10px] text-slate-500 font-mono">Chỉ đọc dữ liệu công khai</p>
             </div>
         </div>
 
         <!-- Form Actions -->
-        <div class="flex items-center justify-between pt-4 border-t border-white/[0.06]">
+        <div class="flex items-center justify-between pt-6 border-t border-white/[0.08]">
             <a th:href="@{/onboarding/step1}"
-               class="px-5 py-2.5 rounded-xl border border-white/[0.08] text-slate-400 text-sm font-medium hover:text-white hover:bg-white/[0.04] transition">
+               class="px-5 py-2.5 rounded-2xl border border-white/[0.08] text-slate-400 text-xs sm:text-sm font-bold hover:text-white hover:bg-white/[0.04] transition">
                 ← Quay lại
             </a>
             <div class="flex items-center gap-3">
                 <button type="submit"
-                        class="px-7 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition cursor-pointer">
+                        class="px-8 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 text-white text-xs sm:text-sm font-black shadow-lg shadow-cyan-500/25 hover:opacity-95 transition cursor-pointer">
                     Tiếp tục →
                 </button>
             </div>
@@ -169,14 +173,14 @@
     if (dropZone) {
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('border-indigo-500', 'bg-[#141c30]');
+            dropZone.classList.add('border-cyan-400', 'bg-cyan-950/20');
         });
         dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('border-indigo-500', 'bg-[#141c30]');
+            dropZone.classList.remove('border-cyan-400', 'bg-cyan-950/20');
         });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('border-indigo-500', 'bg-[#141c30]');
+            dropZone.classList.remove('border-cyan-400', 'bg-cyan-950/20');
             const file = e.dataTransfer.files[0];
             if (file) {
                 document.getElementById('transcriptFile').files = e.dataTransfer.files;

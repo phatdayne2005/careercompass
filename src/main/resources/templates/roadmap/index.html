@@ -1,257 +1,279 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/base :: head('Roadmap · CareerCompass')}"></head>
-<body class="bg-[#090d16] font-sans text-slate-200 antialiased min-h-screen flex flex-col">
+<head th:replace="~{layout/base :: head('Lộ trình Kỹ năng · CareerCompass')}"></head>
+<body class="bg-[#030712] font-sans text-slate-200 antialiased min-h-screen flex flex-col cyber-grid">
 
 <!-- Navigation Bar -->
 <div th:replace="~{layout/base :: appNav('roadmap')}"></div>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-8">
     
-    <!-- Top Header & Roadmap Template Switcher -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-white/[0.06]">
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-white/[0.08]">
         <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-300 mb-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                <span>Lộ trình phát triển năng lực</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-black text-cyan-300 mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                <span>Neural Skill Constellation</span>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Dynamic Roadmap &middot; Skill Tree
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Lộ trình học tập &middot; <span class="text-gradient-cyan-violet" th:text="${roadmap != null and roadmap.template != null ? roadmap.template.name : 'Đang tải...'}">Java Backend</span>
             </h1>
-            <p class="text-sm text-slate-400 mt-1">Cây kỹ năng phân tầng trực quan theo chuẩn vị trí tuyển dụng thực tế</p>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Cấu trúc 3 cấp độ: Nền tảng &rarr; Cốt lõi &rarr; Chuyên sâu</p>
         </div>
 
-        <form th:if="${templates != null and !templates.isEmpty()}" method="get" th:action="@{/roadmap}" class="w-full md:w-80">
-            <label for="templateId" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Chọn Lộ trình</label>
-            <div class="relative">
-                <select id="templateId" name="templateId" onchange="this.form.submit()"
-                        class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#0e1424] px-4 py-2.5 text-sm font-semibold text-slate-200 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 cursor-pointer">
-                    <option th:each="template : ${templates}"
-                            th:value="${template.id}"
-                            th:text="${template.name}"
-                            th:selected="${roadmap.template != null and template.id == roadmap.template.id}">
-                        Backend Developer Roadmap
-                    </option>
-                </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-            </div>
+        <!-- Template Selector Switcher -->
+        <form th:action="@{/roadmap}" method="get" class="flex items-center gap-2 bg-[#0d1424] p-1.5 rounded-2xl border border-white/[0.08] shadow-lg">
+            <select name="templateId" id="templateId" onchange="this.form.submit()"
+                    class="bg-[#070b16] text-slate-200 border border-white/[0.08] rounded-xl px-4 py-2 text-xs sm:text-sm font-bold focus:border-cyan-400 focus:outline-none cursor-pointer">
+                <option th:each="tpl : ${templates}"
+                        th:value="${tpl.id}"
+                        th:text="${tpl.name}"
+                        th:selected="${roadmap != null and roadmap.template != null && roadmap.template.id == tpl.id}">
+                    Backend Roadmap
+                </option>
+            </select>
         </form>
     </div>
 
-    <!-- Overall Progress Bar -->
-    <div class="rounded-2xl border border-white/[0.08] bg-[#0e1424] p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex-1 max-w-2xl">
-            <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                <span>Tiến độ hoàn thành</span>
-                <span class="text-indigo-400 font-bold" th:text="${#numbers.formatDecimal(roadmap.completionPercent, 0, 0)} + '%'">0%</span>
+    <!-- Progress Statistics Banner -->
+    <div class="cyber-card rounded-3xl p-6 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-6"
+         th:if="${roadmap != null}">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-400/20 text-cyan-400 flex items-center justify-center font-black text-base shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                <span th:text="${roadmap.completionPercent} + '%'">0%</span>
             </div>
-            <div class="h-3 w-full overflow-hidden rounded-full bg-slate-800">
-                <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 transition-all duration-500"
-                     th:style="'width:' + ${roadmap.completionPercent} + '%'"></div>
+            <div>
+                <h3 class="text-base font-extrabold text-white">Mức độ hoàn thành mục tiêu</h3>
+                <p class="text-xs text-slate-400" th:text="'Đã đạt ' + ${roadmap.completedNodes} + '/' + ${roadmap.totalNodes} + ' nodes hoàn thành'"></p>
             </div>
         </div>
-        <div class="shrink-0 text-sm font-bold text-slate-200">
-            <span class="text-indigo-400 text-base" th:text="${roadmap.completedNodes}">0</span> /
-            <span th:text="${roadmap.totalNodes}">0</span> nodes hoàn thành
+        
+        <!-- Quick Legend Badges -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs font-bold">
+            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Đã hoàn thành
+            </span>
+            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> Đang học
+            </span>
+            <span class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                <span class="w-2 h-2 rounded-full bg-slate-500"></span> Chưa bắt đầu
+            </span>
         </div>
     </div>
 
-    <!-- Main Grid: Skill Tree (Left) & Node Detail Drawer (Right) -->
+    <!-- 2 Column Layout: Left Constellation Tree / Right Sticky HUD Detail -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        <!-- Skill Tree (Left 7-8 cols) -->
-        <div class="lg:col-span-7 xl:col-span-8 rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8">
-            <div class="relative space-y-10 before:absolute before:left-[19px] before:top-6 before:bottom-6 before:w-0.5 before:bg-slate-800">
+        <!-- Left: Neural Constellation Tree -->
+        <div class="lg:col-span-7 space-y-8">
+            
+            <!-- Tier 1: Nền tảng -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="px-3.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-black border border-cyan-500/20 uppercase tracking-wider">
+                        Tầng 1 &middot; Nền tảng cơ sở
+                    </span>
+                    <span class="h-px flex-1 bg-gradient-to-r from-cyan-500/30 to-transparent"></span>
+                </div>
                 
-                <!-- Tier 1: Nền tảng -->
-                <section class="relative pl-12">
-                    <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-[#090d16] text-xs font-extrabold text-indigo-400 shadow-md shadow-indigo-500/20">
-                        1
-                    </div>
-                    <div>
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-1">Tầng 1 &middot; Nền tảng</h2>
-                        <p class="text-xs text-slate-500 mb-4">Các kỹ năng và kiến thức cơ sở bắt buộc</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <a th:each="node : ${tier1Nodes}"
-                           th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                           class="group relative rounded-xl border p-4 transition-all duration-200"
-                           th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-indigo-500 bg-[#162038] ring-2 ring-indigo-500/30' : (node.status.name() == 'DONE' ? ' border-emerald-500/40 bg-emerald-950/20 text-emerald-300 hover:border-emerald-500' : (node.locked ? ' border-slate-800 bg-[#090d16]/60 text-slate-500 opacity-60' : ' border-white/[0.08] bg-[#12192c] text-slate-200 hover:border-indigo-500/50 hover:bg-[#162038]'))}">
-                            <div class="flex items-center gap-2.5">
-                                <span class="h-2.5 w-2.5 shrink-0 rounded-full"
-                                      th:classappend="${node.status.name() == 'DONE' ? ' bg-emerald-400 ring-4 ring-emerald-500/20' : (node.locked ? ' bg-slate-600' : (node.status.name() == 'IN_PROGRESS' ? ' bg-indigo-400 ring-4 ring-indigo-500/20' : ' bg-slate-400'))}"></span>
-                                <span class="text-sm font-bold truncate leading-tight" th:text="${node.title}">Node Title</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div th:each="node : ${tier1Nodes}"
+                         class="cyber-card cyber-card-interactive rounded-2xl p-5 border relative overflow-hidden group transition-all"
+                         th:classappend="${selectedNode != null && selectedNode.id == node.id} ? 'border-cyan-400 bg-cyan-950/20 ring-2 ring-cyan-400/40 glow-cyan' : 'border-white/[0.08]'">
+                        
+                        <a th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}" class="block">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <h4 class="font-extrabold text-white text-sm group-hover:text-cyan-300 transition truncate" th:text="${node.skillName}">Skill Name</h4>
+                                
+                                <!-- Status Badge -->
+                                <span th:if="${node.status != null && node.status.name() == 'DONE'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                    ✓ Xong
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'IN_PROGRESS'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                    ⟳ Đang học
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'LOCKED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
+                                    🔒 Khóa
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'NOT_STARTED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#070b16] text-slate-400 border border-white/[0.06]">
+                                    Chưa học
+                                </span>
                             </div>
+                            <p class="text-xs text-slate-400 line-clamp-1" th:text="${node.description != null ? node.description : node.title}">Description</p>
                         </a>
                     </div>
-                </section>
+                </div>
+            </div>
 
-                <!-- Tier 2: Cốt lõi -->
-                <section class="relative pl-12">
-                    <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border-2 border-purple-500 bg-[#090d16] text-xs font-extrabold text-purple-400 shadow-md shadow-purple-500/20">
-                        2
-                    </div>
-                    <div>
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Tầng 2 &middot; Cốt lõi</h2>
-                        <p class="text-xs text-slate-500 mb-4">Khung công nghệ và kỹ năng chuyên sâu</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <a th:each="node : ${tier2Nodes}"
-                           th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                           class="group relative rounded-xl border p-4 transition-all duration-200"
-                           th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-indigo-500 bg-[#162038] ring-2 ring-indigo-500/30' : (node.status.name() == 'DONE' ? ' border-emerald-500/40 bg-emerald-950/20 text-emerald-300 hover:border-emerald-500' : (node.locked ? ' border-slate-800 bg-[#090d16]/60 text-slate-500 opacity-60' : ' border-white/[0.08] bg-[#12192c] text-slate-200 hover:border-indigo-500/50 hover:bg-[#162038]'))}">
-                            <div class="flex items-center gap-2.5">
-                                <span class="h-2.5 w-2.5 shrink-0 rounded-full"
-                                      th:classappend="${node.status.name() == 'DONE' ? ' bg-emerald-400 ring-4 ring-emerald-500/20' : (node.locked ? ' bg-slate-600' : (node.status.name() == 'IN_PROGRESS' ? ' bg-indigo-400 ring-4 ring-indigo-500/20' : ' bg-slate-400'))}"></span>
-                                <span class="text-sm font-bold truncate leading-tight" th:text="${node.title}">Node Title</span>
+            <!-- Tier 2: Cốt lõi -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="px-3.5 py-1 rounded-full bg-violet-500/10 text-violet-400 text-xs font-black border border-violet-500/20 uppercase tracking-wider">
+                        Tầng 2 &middot; Kỹ năng Cốt lõi
+                    </span>
+                    <span class="h-px flex-1 bg-gradient-to-r from-violet-500/30 to-transparent"></span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div th:each="node : ${tier2Nodes}"
+                         class="cyber-card cyber-card-interactive rounded-2xl p-5 border relative overflow-hidden group transition-all"
+                         th:classappend="${selectedNode != null && selectedNode.id == node.id} ? 'border-violet-400 bg-violet-950/20 ring-2 ring-violet-400/40 glow-violet' : 'border-white/[0.08]'">
+                        
+                        <a th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}" class="block">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <h4 class="font-extrabold text-white text-sm group-hover:text-violet-300 transition truncate" th:text="${node.skillName}">Skill Name</h4>
+                                
+                                <!-- Status Badge -->
+                                <span th:if="${node.status != null && node.status.name() == 'DONE'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                    ✓ Xong
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'IN_PROGRESS'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                    ⟳ Đang học
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'LOCKED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
+                                    🔒 Khóa
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'NOT_STARTED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#070b16] text-slate-400 border border-white/[0.06]">
+                                    Chưa học
+                                </span>
                             </div>
+                            <p class="text-xs text-slate-400 line-clamp-1" th:text="${node.description != null ? node.description : node.title}">Description</p>
                         </a>
                     </div>
-                </section>
+                </div>
+            </div>
 
-                <!-- Tier 3: Nâng cao -->
-                <section class="relative pl-12">
-                    <div class="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border-2 border-amber-500 bg-[#090d16] text-xs font-extrabold text-amber-400 shadow-md shadow-amber-500/20">
-                        3
-                    </div>
-                    <div>
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Tầng 3 &middot; Nâng cao / Bổ sung</h2>
-                        <p class="text-xs text-slate-500 mb-4">Kỹ năng nâng cao gia tăng lợi thế cạnh tranh</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <a th:each="node : ${tier3Nodes}"
-                           th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}"
-                           class="group relative rounded-xl border p-4 transition-all duration-200"
-                           th:classappend="${selectedNode != null and selectedNode.id == node.id ? ' border-indigo-500 bg-[#162038] ring-2 ring-indigo-500/30' : (node.status.name() == 'DONE' ? ' border-emerald-500/40 bg-emerald-950/20 text-emerald-300 hover:border-emerald-500' : (node.locked ? ' border-slate-800 bg-[#090d16]/60 text-slate-500 opacity-60' : ' border-white/[0.08] bg-[#12192c] text-slate-200 hover:border-indigo-500/50 hover:bg-[#162038]'))}">
-                            <div class="flex items-center gap-2.5">
-                                <span class="h-2.5 w-2.5 shrink-0 rounded-full"
-                                      th:classappend="${node.status.name() == 'DONE' ? ' bg-emerald-400 ring-4 ring-emerald-500/20' : (node.locked ? ' bg-slate-600' : (node.status.name() == 'IN_PROGRESS' ? ' bg-indigo-400 ring-4 ring-indigo-500/20' : ' bg-slate-400'))}"></span>
-                                <span class="text-sm font-bold truncate leading-tight" th:text="${node.title}">Node Title</span>
+            <!-- Tier 3: Nâng cao -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="px-3.5 py-1 rounded-full bg-fuchsia-500/10 text-fuchsia-400 text-xs font-black border border-fuchsia-500/20 uppercase tracking-wider">
+                        Tầng 3 &middot; Chuyên sâu &amp; Mở rộng
+                    </span>
+                    <span class="h-px flex-1 bg-gradient-to-r from-fuchsia-500/30 to-transparent"></span>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div th:each="node : ${tier3Nodes}"
+                         class="cyber-card cyber-card-interactive rounded-2xl p-5 border relative overflow-hidden group transition-all"
+                         th:classappend="${selectedNode != null && selectedNode.id == node.id} ? 'border-fuchsia-400 bg-fuchsia-950/20 ring-2 ring-fuchsia-400/40 glow-fuchsia' : 'border-white/[0.08]'">
+                        
+                        <a th:href="@{/roadmap(templateId=${roadmap.template.id}, nodeId=${node.id})}" class="block">
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <h4 class="font-extrabold text-white text-sm group-hover:text-fuchsia-300 transition truncate" th:text="${node.skillName}">Skill Name</h4>
+                                
+                                <!-- Status Badge -->
+                                <span th:if="${node.status != null && node.status.name() == 'DONE'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                    ✓ Xong
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'IN_PROGRESS'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                    ⟳ Đang học
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'LOCKED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
+                                    🔒 Khóa
+                                </span>
+                                <span th:if="${node.status != null && node.status.name() == 'NOT_STARTED'}"
+                                      class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#070b16] text-slate-400 border border-white/[0.06]">
+                                    Chưa học
+                                </span>
                             </div>
+                            <p class="text-xs text-slate-400 line-clamp-1" th:text="${node.description != null ? node.description : node.title}">Description</p>
                         </a>
                     </div>
-                </section>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right: Sticky HUD Detail Panel -->
+        <div class="lg:col-span-5 sticky top-24">
+            <div id="nodeDetailsPanel" class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] shadow-2xl space-y-6">
+                
+                <!-- If selectedNode != null -->
+                <div th:if="${selectedNode != null}" class="space-y-6">
+                    <div class="border-b border-white/[0.08] pb-5">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-400/20"
+                              th:text="'Tầng ' + ${selectedNode.tier}">Tầng 1</span>
+                        <h3 class="text-xl font-black text-white mt-3" th:text="${selectedNode.skillName}">Java Core</h3>
+                        <p class="text-xs text-slate-400 mt-1" th:text="${selectedNode.description != null ? selectedNode.description : selectedNode.title}">Description</p>
+                        
+                        <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 rounded-2xl bg-[#070b16] border border-white/[0.04]">
+                                <span class="text-[10px] text-slate-500 block">Thời gian ước lượng</span>
+                                <span class="font-bold text-slate-200" th:text="${estimateText}">2-3 tuần</span>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-[#070b16] border border-white/[0.04]">
+                                <span class="text-[10px] text-slate-500 block">Tiên quyết</span>
+                                <span class="font-bold text-slate-200" th:text="${prerequisiteText}">Không có</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Status Form -->
+                    <form th:action="@{/roadmap/progress}" method="post" class="space-y-3">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
+                        
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Trạng thái học tập:</label>
+                        <div class="flex gap-2">
+                            <select name="status" class="flex-1 bg-[#070b16] border border-white/[0.08] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-white focus:border-cyan-400 focus:outline-none">
+                                <option value="NOT_STARTED" th:selected="${selectedNode.status != null && selectedNode.status.name() == 'NOT_STARTED'}">Chưa bắt đầu</option>
+                                <option value="IN_PROGRESS" th:selected="${selectedNode.status != null && selectedNode.status.name() == 'IN_PROGRESS'}">Đang học</option>
+                                <option value="DONE" th:selected="${selectedNode.status != null && selectedNode.status.name() == 'DONE'}">Đã hoàn thành</option>
+                            </select>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs transition cursor-pointer shadow-lg shadow-cyan-500/25">
+                                Lưu
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Learning Resources List -->
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tài nguyên học tập:</h4>
+                        
+                        <div th:if="${selectedNode.resources == null or selectedNode.resources.isEmpty()}" class="py-6 text-center text-xs text-slate-500 border border-dashed border-white/[0.08] rounded-2xl">
+                            Chưa có tài nguyên học tập cho nút này.
+                        </div>
+
+                        <div th:if="${selectedNode.resources != null and !selectedNode.resources.isEmpty()}" class="space-y-2.5">
+                            <a th:each="res : ${selectedNode.resources}"
+                               th:href="${res.url}" target="_blank"
+                               class="p-3.5 rounded-2xl bg-[#070b16] border border-white/[0.04] hover:border-cyan-400/30 transition flex items-start justify-between gap-3 block group">
+                                <div class="truncate">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-400/20" th:text="${res.type}">VIDEO</span>
+                                        <h5 class="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition truncate" th:text="${res.title}">Title</h5>
+                                    </div>
+                                </div>
+                                <span class="text-cyan-400 group-hover:translate-x-1 transition text-xs shrink-0">→</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- If no node selected -->
+                <div th:if="${selectedNode == null}" class="text-center py-12">
+                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 flex items-center justify-center mx-auto mb-4 animate-bounce">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                    </div>
+                    <h3 class="text-base font-extrabold text-white">Chọn một nút kỹ năng</h3>
+                    <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Nhấp vào bất kỳ node nào bên cây kỹ năng để xem học liệu chi tiết và cập nhật tiến độ.</p>
+                </div>
+
             </div>
         </div>
 
-        <!-- Node Detail Panel (Right 4-5 cols) -->
-        <aside class="lg:col-span-5 xl:col-span-4 rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 sticky top-24 shadow-xl">
-            <div th:if="${selectedNode != null}" class="space-y-6">
-                
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold"
-                              th:classappend="${selectedNode.status.name() == 'DONE' ? ' bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : (selectedNode.locked ? ' bg-slate-800 text-slate-400' : (selectedNode.status.name() == 'IN_PROGRESS' ? ' bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : ' bg-slate-800/80 text-slate-300'))}"
-                              th:text="${selectedNode.status.name() == 'DONE' ? 'Hoàn thành' : (selectedNode.locked ? 'Chưa mở khóa' : (selectedNode.status.name() == 'IN_PROGRESS' ? 'Đang học' : 'Chưa học'))}">
-                            Đang học
-                        </span>
-                        <span class="text-xs font-semibold text-slate-400"
-                              th:text="${selectedNode.tier != null and selectedNode.tier >= 3 ? 'Ưu tiên: CAO' : 'Ưu tiên: TB'}">
-                            Ưu tiên: CAO
-                        </span>
-                    </div>
-                    <h2 class="text-xl sm:text-2xl font-extrabold text-white" th:text="${selectedNode.title}">
-                        Docker
-                    </h2>
-                </div>
-
-                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed"
-                   th:text="${selectedNode.description != null and !selectedNode.description.isBlank() ? selectedNode.description : 'Hoàn thiện kỹ năng này để tiến gần hơn tới mục tiêu nghề nghiệp.'}">
-                    Mô tả node kỹ năng.
-                </p>
-
-                <!-- Requirements & Estimates -->
-                <div class="rounded-2xl bg-[#090d16] border border-white/[0.06] p-4 grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                        <span class="text-slate-500 block mb-0.5">Yêu cầu trước:</span>
-                        <span class="font-semibold text-slate-300" th:text="${prerequisiteText}">Không có</span>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 block mb-0.5">Ước tính:</span>
-                        <span class="font-semibold text-indigo-400" th:text="${estimateText}">~3 tuần</span>
-                    </div>
-                </div>
-
-                <!-- Learning Resources -->
-                <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tài nguyên học tập</h3>
-                    <div class="space-y-2" th:if="${selectedNode.resources != null and !selectedNode.resources.isEmpty()}">
-                        <a th:each="res : ${selectedNode.resources}"
-                           class="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-[#090d16] hover:bg-[#141d33] hover:border-indigo-500/30 p-3 text-xs transition"
-                           th:href="${res.url}" target="_blank" rel="noopener noreferrer">
-                            <span class="font-semibold text-indigo-300 truncate" th:text="${res.title}">Tài liệu học tập</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400 shrink-0" th:text="${res.type}">DOC</span>
-                        </a>
-                    </div>
-                    <p th:if="${selectedNode.resources == null or selectedNode.resources.isEmpty()}"
-                       class="text-xs text-slate-500 italic">Chưa có tài nguyên bổ sung cho kỹ năng này.</p>
-                </div>
-
-                <!-- Locked Warning -->
-                <div th:if="${selectedNode.locked}"
-                     class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-300 flex items-start gap-2">
-                    <svg class="w-4 h-4 shrink-0 text-amber-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <span>Cần hoàn thành các kỹ năng ở tầng trước để mở khóa node này.</span>
-                </div>
-
-                <!-- Action Forms -->
-                <div th:unless="${selectedNode.locked}" class="pt-2 space-y-2">
-                    <form th:if="${selectedNode.status.name() == 'NOT_STARTED'}" th:action="@{/roadmap/progress}" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
-                        <input type="hidden" name="templateId" th:value="${roadmap.template.id}">
-                        <input type="hidden" name="status" value="IN_PROGRESS">
-                        <button type="submit"
-                                class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-500 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-600/25 transition cursor-pointer">
-                            Đánh dấu đang học
-                        </button>
-                    </form>
-
-                    <form th:if="${selectedNode.status.name() == 'IN_PROGRESS'}" th:action="@{/roadmap/progress}" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
-                        <input type="hidden" name="templateId" th:value="${roadmap.template.id}">
-                        <input type="hidden" name="status" value="DONE">
-                        <button type="submit"
-                                class="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 py-3 text-xs font-bold text-white shadow-lg shadow-emerald-600/25 transition cursor-pointer">
-                            Đánh dấu hoàn thành ✓
-                        </button>
-                    </form>
-                    
-                    <form th:if="${selectedNode.status.name() == 'IN_PROGRESS'}" th:action="@{/roadmap/progress}" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
-                        <input type="hidden" name="templateId" th:value="${roadmap.template.id}">
-                        <input type="hidden" name="status" value="NOT_STARTED">
-                        <button type="submit"
-                                class="w-full rounded-xl border border-white/[0.08] hover:bg-white/[0.04] py-2.5 text-xs font-medium text-slate-400 transition cursor-pointer">
-                            Bỏ đánh dấu đang học
-                        </button>
-                    </form>
-
-                    <form th:if="${selectedNode.status.name() == 'DONE'}" th:action="@{/roadmap/progress}" method="post">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <input type="hidden" name="skillNodeId" th:value="${selectedNode.id}">
-                        <input type="hidden" name="templateId" th:value="${roadmap.template.id}">
-                        <input type="hidden" name="status" value="IN_PROGRESS">
-                        <button type="submit"
-                                class="w-full rounded-xl border border-white/[0.08] hover:bg-white/[0.04] py-2.5 text-xs font-medium text-slate-400 transition cursor-pointer">
-                            Học lại kỹ năng này
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div th:if="${selectedNode == null}" class="py-16 text-center text-slate-500 text-sm">
-                <svg class="w-8 h-8 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
-                Chọn một kỹ năng trong cây lộ trình để xem chi tiết và cập nhật tiến độ.
-            </div>
-        </aside>
     </div>
 
 </main>

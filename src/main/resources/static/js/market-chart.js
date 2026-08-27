@@ -1,58 +1,107 @@
 /**
- * CareerCompass - Market Pulse Chart Initialization
+ * CareerCompass - Cyber AI Market Pulse Chart Script
  */
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('marketChart');
+    if (!canvas) return;
 
-function initKeywordChart(labels, counts) {
-    const ctx = document.getElementById('keywordChart');
-    if (!ctx) return;
+    try {
+        let labels = window.marketPulseLabels || [];
+        let counts = window.marketPulseCounts || [];
 
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Số tin tuyển dụng nhắc tới',
-                data: counts,
-                backgroundColor: 'rgba(99, 102, 241, 0.75)',
-                borderColor: '#818cf8',
-                borderWidth: 1.5,
-                borderRadius: 8,
-                hoverBackgroundColor: 'rgba(129, 140, 248, 0.9)',
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                    borderWidth: 1,
-                    titleColor: '#ffffff',
-                    bodyColor: '#cbd5e1',
-                    padding: 10,
-                    cornerRadius: 8,
-                }
+        if (typeof labels === 'string') {
+            labels = JSON.parse(labels);
+        }
+        if (typeof counts === 'string') {
+            counts = JSON.parse(counts);
+        }
+
+        // Fallback default sample data if empty
+        if (!labels || labels.length === 0) {
+            labels = ['Java', 'Spring Boot', 'SQL', 'Docker', 'React', 'Git', 'REST API', 'AWS'];
+            counts = [120, 95, 80, 65, 55, 50, 45, 40];
+        }
+
+        const ctx = canvas.getContext('2d');
+        
+        // Create Cyber Cyan -> Violet Gradient Fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(6, 182, 212, 0.85)');
+        gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.75)');
+        gradient.addColorStop(1, 'rgba(217, 70, 239, 0.4)');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nhu cầu tuyển dụng',
+                    data: counts,
+                    backgroundColor: gradient,
+                    borderColor: 'rgba(6, 182, 212, 0.9)',
+                    borderWidth: 1.5,
+                    borderRadius: 10,
+                    borderSkipped: false,
+                    hoverBackgroundColor: 'rgba(6, 182, 212, 1)',
+                }]
             },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#94a3b8',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600', size: 11 }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false }
+                    tooltip: {
+                        backgroundColor: 'rgba(7, 11, 22, 0.9)',
+                        titleColor: '#38bdf8',
+                        bodyColor: '#f1f5f9',
+                        borderColor: 'rgba(6, 182, 212, 0.4)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 12,
+                        titleFont: {
+                            family: '"Plus Jakarta Sans", sans-serif',
+                            size: 13,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            family: '"Plus Jakarta Sans", sans-serif',
+                            size: 12
+                        }
+                    }
                 },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        color: '#94a3b8',
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
-                        stepSize: 1
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.03)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                family: '"Plus Jakarta Sans", sans-serif',
+                                size: 11,
+                                weight: '600'
+                            }
+                        }
                     },
-                    grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false }
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.04)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            stepSize: 1,
+                            font: {
+                                family: '"Plus Jakarta Sans", sans-serif',
+                                size: 11
+                            }
+                        }
+                    }
                 }
             }
-        }
-    });
-}
+        });
+    } catch (e) {
+        console.error('Failed to initialize Cyber AI Market Chart:', e);
+    }
+});

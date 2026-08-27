@@ -1,140 +1,146 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/base :: head('Dashboard · CareerCompass')}"></head>
-<body class="bg-[#090d16] font-sans text-slate-200 antialiased min-h-screen flex flex-col">
+<body class="bg-[#030712] font-sans text-slate-200 antialiased min-h-screen flex flex-col cyber-grid">
 
 <!-- Navigation Bar -->
 <div th:replace="~{layout/base :: appNav('dashboard')}"></div>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-8">
     
-    <!-- Welcome Hero Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900/40 via-purple-900/20 to-slate-900/60 border border-white/[0.08] p-6 sm:p-8 backdrop-blur-xl">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        
+    <!-- Hero Banner Cockpit -->
+    <div class="relative overflow-hidden rounded-3xl cyber-card p-6 sm:p-8 lg:p-10 border border-white/[0.1] shadow-2xl">
+        <div class="absolute top-0 right-0 w-96 h-96 aurora-orb-cyan blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-1/3 w-80 h-80 aurora-orb-violet blur-3xl pointer-events-none"></div>
+
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-300 mb-3">
-                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-                    <span>Hệ thống định hướng thông minh</span>
+            <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-black text-cyan-300">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                    <span>AI Career Cockpit v2.0</span>
                 </div>
-                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
-                    Bảng điều khiển học tập
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                    Xin chào, <span class="text-gradient-cyan-violet" th:text="${user != null ? user.fullName : 'Sinh viên'}">User</span>!
                 </h1>
-                <p class="mt-1.5 text-sm sm:text-base text-slate-300 max-w-xl">
-                    Theo dõi tiến độ cây kỹ năng, đánh giá khoảng trống năng lực và nhận tư vấn thời gian thực từ AI Mentor.
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Mục tiêu định hướng hiện tại: 
+                    <strong class="font-extrabold text-cyan-400" th:text="${careerGoal}">Chưa xác định</strong>.
+                    Theo dõi sát lộ trình và tham vấn cùng AI Mentor để nâng cấp kỹ năng.
                 </p>
             </div>
-
-            <div class="flex items-center gap-3 shrink-0">
-                <a th:href="@{/roadmap}"
-                   class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/25 transition">
-                    Tiếp tục học →
+            
+            <div class="flex flex-wrap items-center gap-3">
+                <a th:href="@{/mentor}" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-violet-500/30 hover:opacity-95 transition flex items-center gap-2">
+                    <svg class="w-4 h-4 text-cyan-300 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Trò chuyện với AI Mentor</span>
                 </a>
-                <a th:href="@{/mentor}"
-                   class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/[0.08] text-sm font-semibold transition">
-                    Chat AI Mentor
+                <a th:href="@{/roadmap}" class="px-5 py-2.5 rounded-2xl bg-[#070b16] hover:bg-[#0c1424] border border-white/[0.08] hover:border-cyan-400/40 text-slate-200 font-bold text-xs sm:text-sm transition">
+                    Xem cây Lộ trình →
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- 3 Key Metric Cards -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+    <!-- 3 Telemetry Metric Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- Metric 1: Roadmap Completion -->
-        <div class="rounded-2xl border border-white/[0.08] bg-[#0e1424] p-6 hover:border-indigo-500/30 transition-all duration-200 shadow-sm flex flex-col justify-between">
+        <!-- Card 1: Roadmap Progress -->
+        <div class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] hover:border-cyan-400/40 transition flex flex-col justify-between group">
             <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tiến độ Lộ trình</span>
-                    <span class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    </span>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[11px] font-extrabold text-cyan-400 uppercase tracking-wider">Tiến độ Lộ trình</span>
+                    <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
                 </div>
-                <p class="mt-3 text-3xl font-extrabold text-white"
-                   th:text="${dashboard.roadmapCompletionPercent} + '%'">0%</p>
-                <div class="w-full bg-slate-800 rounded-full h-2 mt-3 overflow-hidden">
-                    <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500"
-                         th:style="'width: ' + ${dashboard.roadmapCompletionPercent} + '%'"></div>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span class="text-3xl sm:text-4xl font-black text-white" th:text="${progressPercentage} + '%'">0%</span>
+                    <span class="text-xs text-slate-400 font-semibold" th:text="'(' + ${completedNodes} + '/' + ${totalNodes} + ' nodes)'">(0/0 nodes)</span>
+                </div>
+                <!-- Neon progress bar -->
+                <div class="w-full bg-[#070b16] rounded-full h-2.5 overflow-hidden border border-white/[0.05] p-0.5">
+                    <div class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+                         th:style="'width: ' + ${progressPercentage} + '%'"></div>
                 </div>
             </div>
-            <p class="mt-4 text-xs font-medium text-slate-400"
-               th:text="${dashboard.completedNodes} + '/' + ${dashboard.totalNodes} + ' node hoàn thành'">0/0 node hoàn thành</p>
+            <a th:href="@{/roadmap}" class="mt-5 text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1">
+                <span>Cập nhật tiến độ node</span>
+                <span>→</span>
+            </a>
         </div>
 
-        <!-- Metric 2: Skills Matched -->
-        <div class="rounded-2xl border border-white/[0.08] bg-[#0e1424] p-6 hover:border-emerald-500/30 transition-all duration-200 shadow-sm flex flex-col justify-between">
+        <!-- Card 2: Matched Skills -->
+        <div class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] hover:border-violet-400/40 transition flex flex-col justify-between group">
             <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Kỹ năng đã đạt</span>
-                    <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </span>
-                </div>
-                <p class="mt-3 text-3xl font-extrabold text-emerald-400"
-                   th:text="${dashboard.matchedSkillCount}">0</p>
-                <p class="mt-2 text-xs font-medium text-slate-400">Đã tích lũy trong hồ sơ cá nhân</p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-white/[0.05] flex items-center justify-between">
-                <span class="text-xs text-amber-300 font-semibold"
-                      th:text="${dashboard.missingSkillCount} + ' kỹ năng còn thiếu'">0 kỹ năng còn thiếu</span>
-                <a th:href="@{/skill-gap}" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium transition">Chi tiết →</a>
-            </div>
-        </div>
-
-        <!-- Metric 3: Market Pulse link -->
-        <a th:href="@{/market/pulse}"
-           class="group rounded-2xl border border-white/[0.08] bg-[#0e1424] p-6 hover:border-purple-500/40 hover:bg-[#131b30] transition-all duration-200 shadow-sm flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Thị trường IT (Market Pulse)</span>
-                    <span class="p-2 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition duration-200">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                    </span>
-                </div>
-                <p class="mt-3 text-lg font-bold text-white group-hover:text-purple-300 transition">Xu hướng tuyển dụng</p>
-                <p class="mt-1 text-xs text-slate-400">Khám phá các kỹ năng và công nghệ hot nhất được các nhà tuyển dụng săn đón.</p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-white/[0.05] flex items-center justify-between text-xs font-semibold text-purple-400">
-                <span>Xem thống kê chi tiết</span>
-                <span class="group-hover:translate-x-1 transition duration-200">→</span>
-            </div>
-        </a>
-    </section>
-
-    <!-- Recent Activities Timeline -->
-    <section class="rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 sm:p-8 shadow-sm">
-        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
-            <div>
-                <h2 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2.5">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Hoạt động gần đây</span>
-                </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Nhật ký tiến độ và các thao tác trên tài khoản của bạn</p>
-            </div>
-        </div>
-
-        <ul class="space-y-4">
-            <li th:each="activity : ${dashboard.recentActivities}"
-                class="flex items-start sm:items-center justify-between gap-4 p-3.5 rounded-xl hover:bg-white/[0.02] border border-transparent hover:border-white/[0.04] transition">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[11px] font-extrabold text-violet-400 uppercase tracking-wider">Kỹ năng nắm vững</span>
+                    <div class="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-400/20 text-violet-400 flex items-center justify-center group-hover:scale-110 transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <span class="text-sm font-medium text-slate-200" th:text="${activity.description}">Đăng ký tài khoản</span>
                 </div>
-                <span class="text-xs font-mono text-slate-500 whitespace-nowrap"
-                      th:text="${#temporals.format(activity.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
-            </li>
-            
-            <li th:if="${dashboard.recentActivities.isEmpty()}" class="py-8 text-center text-slate-500 text-sm">
-                <svg class="w-8 h-8 text-slate-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                Chưa có hoạt động nào được ghi nhận.
-            </li>
-        </ul>
-    </section>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span class="text-3xl sm:text-4xl font-black text-white" th:text="${matchedSkillsCount}">0</span>
+                    <span class="text-xs text-slate-400 font-semibold">kỹ năng đã xác thực</span>
+                </div>
+                <p class="text-xs text-slate-400">Đối sánh tự động với bộ tiêu chuẩn tuyển dụng IT của UTH.</p>
+            </div>
+            <a th:href="@{/skill-gap}" class="mt-5 text-xs text-violet-400 hover:text-violet-300 font-bold flex items-center gap-1">
+                <span>Phân tích khoảng cách kỹ năng</span>
+                <span>→</span>
+            </a>
+        </div>
+
+        <!-- Card 3: Market Pulse Insights -->
+        <div class="cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] hover:border-fuchsia-400/40 transition flex flex-col justify-between group">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[11px] font-extrabold text-fuchsia-400 uppercase tracking-wider">Nhịp đập thị trường</span>
+                    <div class="w-8 h-8 rounded-xl bg-fuchsia-500/10 border border-fuchsia-400/20 text-fuchsia-400 flex items-center justify-center group-hover:scale-110 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+                    </div>
+                </div>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <span class="text-3xl sm:text-4xl font-black text-white">Live AI</span>
+                    <span class="text-xs text-slate-400 font-semibold">Real-time IT trends</span>
+                </div>
+                <p class="text-xs text-slate-400">Khám phá các kỹ năng hot và việc làm được săn đón nhiều nhất.</p>
+            </div>
+            <a th:href="@{/market/pulse}" class="mt-5 text-xs text-fuchsia-400 hover:text-fuchsia-300 font-bold flex items-center gap-1">
+                <span>Xem xu hướng thị trường</span>
+                <span>→</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity Timeline Section -->
+    <div class="cyber-card rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-sm space-y-6">
+        <div class="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <h2 class="text-lg font-black text-white flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>Hoạt động gần đây</span>
+            </h2>
+            <span class="text-xs text-slate-400 font-mono">Live Timeline</span>
+        </div>
+
+        <div th:if="${activities == null or activities.isEmpty()}" class="py-10 text-center text-slate-500 text-xs sm:text-sm">
+            Chưa có hoạt động nào được ghi nhận. Hãy bắt đầu học tập và cập nhật lộ trình!
+        </div>
+
+        <div th:if="${activities != null and !activities.isEmpty()}" class="space-y-4">
+            <div th:each="act : ${activities}" class="flex items-start gap-4 p-3.5 rounded-2xl bg-[#070b16] border border-white/[0.04] hover:border-cyan-400/30 transition">
+                <div class="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <p class="text-xs sm:text-sm font-bold text-slate-200" th:text="${act.description}">Mô tả hoạt động</p>
+                        <span class="text-[11px] font-mono text-slate-500" th:text="${#temporals.format(act.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
+                    </div>
+                    <span class="inline-block mt-1 text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-400" th:text="${act.activityType}">TYPE</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </main>
 </body>

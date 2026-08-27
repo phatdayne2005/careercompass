@@ -1,217 +1,188 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/base :: head('Skill Gap · CareerCompass')}"></head>
-<body class="bg-[#090d16] font-sans text-slate-200 antialiased min-h-screen flex flex-col">
+<head th:replace="~{layout/base :: head('Phân tích Khoảng cách Kỹ năng · CareerCompass')}"></head>
+<body class="bg-[#030712] font-sans text-slate-200 antialiased min-h-screen flex flex-col cyber-grid">
 
 <!-- Navigation Bar -->
 <div th:replace="~{layout/base :: appNav('skill-gap')}"></div>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-8">
     
-    <!-- Top Header & Actions -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-white/[0.06]">
+    <!-- Top Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-white/[0.08]">
         <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-300 mb-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                <span>Phân tích khoảng cách năng lực</span>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-black text-cyan-300 mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                <span>Skill Telemetry &amp; Gap Matrix</span>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Skill Gap Analysis
+            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Phân tích Khoảng cách Kỹ năng
             </h1>
-            <p class="text-sm text-slate-400 mt-1">Đối chiếu năng lực cá nhân với bộ kỹ năng tiêu chuẩn của vị trí mục tiêu</p>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Đối sánh năng lực cá nhân với bộ tiêu chuẩn kỹ năng theo từng vị trí tuyển dụng</p>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <!-- Roadmap Selector -->
-            <form th:if="${templates != null and !templates.isEmpty()}" method="get" th:action="@{/skill-gap}" class="min-w-[240px]">
-                <label for="templateId" class="sr-only">Chọn roadmap</label>
-                <div class="relative">
-                    <select id="templateId" name="templateId" onchange="this.form.submit()"
-                            class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#0e1424] px-4 py-2.5 text-sm font-semibold text-slate-200 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 cursor-pointer">
-                        <option th:each="template : ${templates}"
-                                th:value="${template.id}"
-                                th:text="${template.name}"
-                                th:selected="${result.template != null and template.id == result.template.id}">
-                            Backend Developer Roadmap
-                        </option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
+        <!-- Target Template Selector -->
+        <form th:action="@{/skill-gap}" method="get" class="flex items-center gap-2 bg-[#0d1424] p-1.5 rounded-2xl border border-white/[0.08] shadow-lg">
+            <select name="templateId" id="templateId" onchange="this.form.submit()"
+                    class="bg-[#070b16] text-slate-200 border border-white/[0.08] rounded-xl px-4 py-2 text-xs sm:text-sm font-bold focus:border-cyan-400 focus:outline-none cursor-pointer">
+                <option th:each="tpl : ${templates}"
+                        th:value="${tpl.id}"
+                        th:text="${tpl.name}"
+                        th:selected="${analysis != null and analysis.templateId == tpl.id}">
+                    Backend Roadmap
+                </option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Feedback Alerts -->
+    <div th:if="${message}" class="auto-dismiss-alert rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs sm:text-sm text-emerald-300 flex items-center gap-2" th:text="${message}">
+        Thành công!
+    </div>
+    <div th:if="${error}" class="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs sm:text-sm text-rose-300 flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <span th:text="${error}">Lỗi.</span>
+    </div>
+
+    <!-- 3-Column Analysis Cockpit -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" th:if="${analysis != null}">
+        
+        <!-- Column 1: Current Skills List & Add (4 cols) -->
+        <div class="lg:col-span-4 cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] space-y-6">
+            <div class="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                <h3 class="font-black text-white text-base flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <span>Kỹ năng đã có</span>
+                </h3>
+                <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-400/20"
+                      th:text="${analysis.currentSkills.size()}">0</span>
+            </div>
+
+            <!-- Quick Add Skill Form -->
+            <form th:action="@{/skill-gap/skills}" method="post" class="flex gap-2">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <input type="hidden" name="templateId" th:value="${analysis.templateId}">
+                
+                <select name="skillId" id="skillId" required
+                        class="flex-1 bg-[#070b16] border border-white/[0.08] rounded-xl px-3 py-2 text-xs font-semibold text-slate-200 focus:border-cyan-400 focus:outline-none">
+                    <option value="">-- Thêm kỹ năng --</option>
+                    <option th:each="sk : ${allSkills}" th:value="${sk.id}" th:text="${sk.name}">Skill</option>
+                </select>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs transition shadow-md shadow-cyan-500/25 shrink-0 cursor-pointer">
+                    + Thêm
+                </button>
             </form>
 
-            <!-- Export PDF Action -->
+            <!-- Skill List -->
+            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                <div th:each="sk : ${analysis.currentSkills}"
+                     class="flex items-center justify-between p-3 rounded-2xl bg-[#070b16] border border-white/[0.04] hover:border-cyan-400/30 transition">
+                    <div>
+                        <p class="text-xs font-bold text-slate-200" th:text="${sk.name}">Java</p>
+                        <span class="text-[10px] text-slate-500" th:text="${sk.category}">Category</span>
+                    </div>
+                    <form th:action="@{'/skill-gap/skills/' + ${sk.id} + '/delete'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="templateId" th:value="${analysis.templateId}">
+                        <button type="submit" class="text-slate-500 hover:text-rose-400 p-1 transition cursor-pointer" title="Xóa">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Target Match Rate & Stats (4 cols) -->
+        <div class="lg:col-span-4 cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] space-y-6 flex flex-col justify-between">
+            <div class="border-b border-white/[0.08] pb-4">
+                <h3 class="font-black text-white text-base flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-violet-400"></span>
+                    <span>Độ tương thích (Match Rate)</span>
+                </h3>
+            </div>
+
+            <!-- Visual Circular / Bar Gauge -->
+            <div class="text-center py-6">
+                <div class="relative w-36 h-36 mx-auto flex items-center justify-center rounded-full bg-[#070b16] border-4 border-cyan-400/30 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                    <div class="text-center">
+                        <span class="text-3xl sm:text-4xl font-black text-white tracking-tight" th:text="${analysis.matchPercentage} + '%'">0%</span>
+                        <span class="block text-[10px] font-bold text-cyan-400 uppercase tracking-wider mt-0.5">Mức độ khớp</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 gap-3 text-left">
+                    <div class="p-3.5 rounded-2xl bg-[#070b16] border border-white/[0.04]">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase block">Đã đạt</span>
+                        <span class="text-lg font-black text-emerald-400" th:text="${analysis.matchedSkills.size()} + ' kỹ năng'">0</span>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-[#070b16] border border-white/[0.04]">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase block">Còn thiếu</span>
+                        <span class="text-lg font-black text-rose-400" th:text="${analysis.missingSkills.size()} + ' kỹ năng'">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Export Form -->
             <form th:action="@{/skill-gap/reports}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <input type="hidden" name="templateId" th:value="${result.template.id}">
-                <button type="submit"
-                        class="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition cursor-pointer">
+                <input type="hidden" name="templateId" th:value="${analysis.templateId}">
+                <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500 text-white text-xs font-black shadow-lg shadow-violet-500/25 hover:opacity-95 transition flex items-center justify-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Xuất báo cáo PDF</span>
+                    <span>Xuất báo cáo PDF phân tích</span>
                 </button>
             </form>
         </div>
-    </div>
 
-    <!-- Feedback alert -->
-    <div th:if="${reportCreated}" class="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-300 flex items-center gap-2">
-        <svg class="w-4 h-4 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        <span>Đã tạo và lưu báo cáo Skill Gap mới thành công.</span>
-    </div>
+        <!-- Column 3: Priority Gaps & History (4 cols) -->
+        <div class="lg:col-span-4 cyber-card rounded-3xl p-6 sm:p-7 border border-white/[0.08] space-y-6">
+            <div class="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                <h3 class="font-black text-white text-base flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                    <span>Kỹ năng cần ưu tiên học</span>
+                </h3>
+                <span class="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-400/20"
+                      th:text="${analysis.priorityMissingSkills.size()}">0</span>
+            </div>
 
-    <!-- 3-Column Cockpit Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- Column 1: Current Skills (4 cols) -->
-        <article class="lg:col-span-4 rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex flex-col justify-between min-h-[560px]">
-            <div>
-                <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.06]">
-                    <h2 class="text-base font-bold text-white flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                        <span>Kỹ năng hiện có</span>
-                    </h2>
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300"
-                          th:text="${currentSkills != null ? currentSkills.size() : 0} + ' kỹ năng'">0 kỹ năng</span>
+            <!-- Priority Gaps List -->
+            <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                <div th:if="${analysis.priorityMissingSkills.isEmpty()}" class="py-6 text-center text-xs text-emerald-400 italic font-semibold">
+                    ✓ Bạn đã hoàn thành tất cả kỹ năng cốt lõi cho vị trí này!
                 </div>
-
-                <!-- Add Skill Quick Form -->
-                <form th:action="@{/skill-gap/skills}" method="post" class="mt-4 mb-6">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <input type="hidden" name="templateId" th:value="${result.template.id}">
-                    <label for="skillId" class="sr-only">Thêm kỹ năng</label>
-                    <div class="flex items-center gap-2">
-                        <div class="relative flex-1">
-                            <select id="skillId" name="skillId" required
-                                    class="w-full appearance-none rounded-xl border border-white/[0.08] bg-[#090d16] px-3.5 py-2 text-xs font-medium text-slate-200 outline-none focus:border-indigo-500 transition">
-                                <option value="" disabled selected>+ Bổ sung kỹ năng...</option>
-                                <option th:each="s : ${allSkills}" th:value="${s.id}" th:text="${s.name}" class="bg-[#0e1424] text-slate-200">React</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                        </div>
-                        <button type="submit" class="shrink-0 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm cursor-pointer">
-                            Thêm
-                        </button>
+                <div th:each="ps : ${analysis.priorityMissingSkills}"
+                     class="p-3 rounded-2xl bg-[#070b16] border border-rose-500/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-rose-300" th:text="${ps.skillName}">Docker</span>
+                        <p class="text-[10px] text-slate-500" th:text="'Tầng ' + ${ps.tier} + ' &middot; ' + ${ps.category}">Tầng 1</p>
                     </div>
-                </form>
-
-                <!-- Current Skills List -->
-                <div class="space-y-2 overflow-y-auto max-h-[360px] pr-1">
-                    <div th:each="skill : ${currentSkills}"
-                         class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#090d16] border border-white/[0.04] text-xs font-medium text-slate-200">
-                        <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        <span th:text="${skill.name}" class="truncate">Java</span>
-                    </div>
-                    <p th:if="${currentSkills == null or currentSkills.isEmpty()}" class="text-xs text-slate-500 italic py-4 text-center">
-                        Chưa có kỹ năng nào được ghi nhận.
-                    </p>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">Ưu tiên cao</span>
                 </div>
             </div>
-        </article>
 
-        <!-- Column 2: Matching Analysis (4 cols) -->
-        <article class="lg:col-span-4 rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex flex-col justify-between min-h-[560px]">
-            <div>
-                <div class="mb-4 pb-3 border-b border-white/[0.06]">
-                    <h2 class="text-base font-bold text-white flex items-center gap-2 truncate">
-                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span>
-                        <span class="truncate">Đối sánh: <span class="text-indigo-400" th:text="${result.template.name}">Lộ trình</span></span>
-                    </h2>
+            <!-- PDF Reports History -->
+            <div class="border-t border-white/[0.08] pt-5">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Lịch sử báo cáo đã xuất:</h4>
+                
+                <div th:if="${reports == null or reports.isEmpty()}" class="text-xs text-slate-500 italic py-2">
+                    Chưa có báo cáo PDF nào được tạo.
                 </div>
 
-                <!-- 3 Metric Counters -->
-                <div class="grid grid-cols-3 gap-2.5 mb-6 text-center">
-                    <div class="rounded-2xl bg-[#090d16] border border-white/[0.04] p-3">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Yêu cầu</p>
-                        <p class="mt-1 text-xl font-extrabold text-white" th:text="${result.requiredSkillCount}">0</p>
-                    </div>
-                    <div class="rounded-2xl bg-[#090d16] border border-white/[0.04] p-3">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Đã đạt</p>
-                        <p class="mt-1 text-xl font-extrabold text-emerald-400" th:text="${result.matchedSkillCount}">0</p>
-                    </div>
-                    <div class="rounded-2xl bg-[#090d16] border border-white/[0.04] p-3">
-                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Còn thiếu</p>
-                        <p class="mt-1 text-xl font-extrabold text-amber-400" th:text="${result.missingSkillCount}">0</p>
-                    </div>
-                </div>
-
-                <!-- Progress Gauge -->
-                <div class="mb-6">
-                    <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                        <span>Độ phù hợp (Match Rate)</span>
-                        <span class="text-indigo-400 font-bold" th:text="${#numbers.formatDecimal(result.matchPercent, 0, 0)} + '%'">0%</span>
-                    </div>
-                    <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
-                        <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 transition-all duration-500"
-                             th:style="'width:' + ${result.matchPercent} + '%'"></div>
-                    </div>
-                </div>
-
-                <!-- Skill breakdown rows -->
-                <div class="space-y-2 overflow-y-auto max-h-[260px] pr-1">
-                    <div th:each="skill : ${result.matchedSkills}" class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs">
-                        <span class="font-medium text-emerald-300 truncate" th:text="${skill.name}">Skill Name</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300">100% ĐẠT</span>
-                    </div>
-                    <div th:each="skill : ${result.missingSkills}" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-white/[0.04] text-xs">
-                        <span class="font-medium text-slate-400 truncate" th:text="${skill.name}">Skill Name</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400">CẦN HỌC</span>
-                    </div>
+                <div th:if="${reports != null and !reports.isEmpty()}" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    <a th:each="rep : ${reports}"
+                       th:href="@{'/skill-gap/reports/' + ${rep.id} + '/download'}"
+                       class="flex items-center justify-between p-2.5 rounded-xl bg-[#070b16] border border-white/[0.04] hover:border-cyan-400/30 transition text-xs group">
+                        <div class="truncate">
+                            <span class="font-bold text-slate-200 group-hover:text-cyan-300" th:text="'Report #' + ${rep.id}">Report</span>
+                            <p class="text-[10px] font-mono text-slate-500" th:text="${#temporals.format(rep.generatedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</p>
+                        </div>
+                        <span class="text-cyan-400 text-xs font-bold">Tải về ↓</span>
+                    </a>
                 </div>
             </div>
-        </article>
-
-        <!-- Column 3: Priority & Recent Reports (4 cols) -->
-        <aside class="lg:col-span-4 rounded-3xl border border-white/[0.08] bg-[#0e1424] p-6 shadow-sm flex flex-col justify-between min-h-[560px]">
-            <div>
-                <div class="mb-4 pb-3 border-b border-white/[0.06]">
-                    <h2 class="text-base font-bold text-white flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                        <span>Ưu tiên cần bổ sung</span>
-                    </h2>
-                </div>
-
-                <div class="space-y-2.5 mb-6 overflow-y-auto max-h-[220px] pr-1">
-                    <div th:each="skill, iter : ${result.missingSkills}" class="flex items-center justify-between p-3 rounded-xl bg-[#090d16] border border-white/[0.04] text-xs">
-                        <div class="flex items-center gap-2.5">
-                            <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center font-bold text-[10px]"
-                                  th:text="${iter.index + 1}">1</span>
-                            <span class="font-semibold text-slate-200 truncate" th:text="${skill.name}">Skill Name</span>
-                        </div>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300"
-                              th:text="${iter.index == 0 ? 'GAP LỚN' : (iter.index < 3 ? 'ƯU TIÊN CAO' : 'BỔ SUNG')}">GAP</span>
-                    </div>
-                    <p th:if="${result.missingSkills == null or result.missingSkills.isEmpty()}" class="text-xs text-emerald-400 italic py-4 text-center">
-                        🎉 Bạn đã hoàn thành xuất sắc toàn bộ kỹ năng yêu cầu!
-                    </p>
-                </div>
-
-                <!-- Recent Saved Reports -->
-                <div class="pt-4 border-t border-white/[0.06]">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Lịch sử báo cáo đã lưu</h3>
-                    <div class="space-y-2 overflow-y-auto max-h-[160px] pr-1">
-                        <div th:each="report : ${reports}" class="flex items-center justify-between p-2.5 rounded-xl bg-[#090d16] border border-white/[0.04] text-xs">
-                            <div class="truncate mr-2">
-                                <p class="font-medium text-slate-300 truncate" th:text="${report.summary}">Đã đạt 2/5 kỹ năng</p>
-                                <p class="text-[10px] text-slate-500 font-mono" th:text="${#temporals.format(report.createdAt, 'dd/MM/yyyy HH:mm')}">01/01 12:00</p>
-                            </div>
-                            <a th:href="@{'/skill-gap/reports/' + ${report.id} + '/download'}"
-                               class="shrink-0 flex items-center gap-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1 text-[11px] font-bold text-white transition">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                <span>PDF</span>
-                            </a>
-                        </div>
-                        <p th:if="${reports == null or reports.isEmpty()}" class="text-xs text-slate-500 italic text-center py-2">
-                            Chưa có lịch sử báo cáo.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        </div>
 
     </div>
+
 </main>
 </body>
 </html>
