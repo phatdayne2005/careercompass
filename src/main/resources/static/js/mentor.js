@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.body.addEventListener('htmx:afterSwap', (event) => {
     if (event.detail.target.id === 'messageList') {
+        // Sync session ID if newly created
+        const activeSessionEl = document.getElementById('activeSessionId');
+        const formSessionEl = document.getElementById('formSessionId');
+        if (activeSessionEl && formSessionEl && activeSessionEl.value) {
+            formSessionEl.value = activeSessionEl.value;
+        }
         scrollMentorToBottom();
     }
 });

@@ -29,9 +29,8 @@ public class MentorController {
                            Authentication authentication, Model model) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
         List<MentorSession> sessions = mentorService.getSessionsForUser(user);
-        model.addAttribute("sessions", sessions);
 
-        // Chọn session theo param nếu hợp lệ, không thì lấy cuộc mới nhất
+        // Chọn session theo param nếu hợp lệ, không thì lấy cuộc mới nhất, nếu chưa có thì tự động tạo cuộc trò chuyện đầu tiên
         MentorSession current = null;
         if (sessionId != null) {
             current = sessions.stream().filter(s -> s.getId().equals(sessionId)).findFirst().orElse(null);
@@ -39,14 +38,14 @@ public class MentorController {
         if (current == null && !sessions.isEmpty()) {
             current = sessions.get(0);
         }
-
-        if (current != null) {
-            model.addAttribute("currentSessionId", current.getId());
-            model.addAttribute("messages", mentorService.getMessages(current));
-        } else {
-            model.addAttribute("currentSessionId", null);
-            model.addAttribute("messages", List.of());
+        if (current == null) {
+            current = mentorService.createSession(user);
+            sessions = mentorService.getSessionsForUser(user);
         }
+
+        model.addAttribute("sessions", sessions);
+        model.addAttribute("currentSessionId", current.getId());
+        model.addAttribute("messages", mentorService.getMessages(current));
         return "mentor/chat";
     }
 
@@ -58,16 +57,22 @@ public class MentorController {
     }
 
     @PostMapping("/send")
-    public String sendMessage(@RequestParam Long sessionId,
+    public String sendMessage(@RequestParam(required = false) Long sessionId,
                               @RequestParam String content,
                               Authentication authentication,
                               Model model) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
 
-        MentorSession session = mentorService.getSessionsForUser(user).stream()
-                .filter(s -> s.getId().equals(sessionId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Session không tồn tại hoặc không thuộc về bạn"));
+        MentorSession session = null;
+        if (sessionId != null) {
+            session = mentorService.getSessionsForUser(user).stream()
+                    .filter(s -> s.getId().equals(sessionId))
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (session == null) {
+            session = mentorService.createSession(user);
+        }
 
         mentorService.sendMessage(user, session, content);
 

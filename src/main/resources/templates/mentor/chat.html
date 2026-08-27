@@ -6,10 +6,10 @@
 <!-- Navigation Bar -->
 <div th:replace="~{layout/base :: appNav('mentor')}"></div>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full flex flex-col">
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full flex flex-col space-y-6">
     
     <!-- Top Header -->
-    <div class="flex items-center justify-between pb-5 border-b border-white/[0.08] mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-white/[0.08]">
         <div class="flex items-center gap-3">
             <div class="relative">
                 <span class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500 blur-sm opacity-80 animate-pulse"></span>
@@ -27,84 +27,135 @@
                 <p class="text-xs text-slate-400">Trợ lý định hướng nghề nghiệp, giải đáp lộ trình &amp; tư vấn kỹ năng 24/7</p>
             </div>
         </div>
+
+        <!-- New Chat Session Button -->
+        <form th:action="@{/mentor/new}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" 
+                    class="px-4 py-2 rounded-2xl bg-[#0d1424] hover:bg-cyan-500/15 border border-white/[0.08] hover:border-cyan-400/30 text-xs font-bold text-slate-300 hover:text-cyan-300 transition flex items-center gap-2 cursor-pointer shadow-md">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Đoạn chat mới</span>
+            </button>
+        </form>
     </div>
 
-    <!-- Main Chat Window Card -->
-    <div class="cyber-card rounded-3xl border border-white/[0.08] shadow-2xl flex-1 flex flex-col min-h-[550px] overflow-hidden">
+    <!-- Main Chat Workspace: Left Sessions Switcher & Right Chat Room -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-stretch">
         
-        <!-- Chat Messages Container -->
-        <div id="chatContent" th:fragment="chatContent" class="flex-1 p-5 sm:p-7 overflow-y-auto space-y-6 max-h-[500px]">
-            
-            <!-- Welcome Greeting if empty -->
-            <div th:if="${messages == null or messages.isEmpty()}" class="py-12 text-center max-w-md mx-auto space-y-3">
-                <div class="w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-cyber-pulse">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                </div>
-                <h3 class="text-base font-extrabold text-white">Bắt đầu trò chuyện với AI Mentor</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Bạn có thể hỏi bất kỳ câu hỏi nào về định hướng nghề nghiệp, lộ trình học, chuẩn bị phỏng vấn, hoặc tối ưu hồ sơ CV.
-                </p>
+        <!-- Left: Sessions History Bar -->
+        <div class="lg:col-span-4 cyber-card rounded-3xl p-5 border border-white/[0.08] flex flex-col space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                    <span>Lịch sử hội thoại</span>
+                </span>
+                <span class="text-[11px] text-cyan-400 font-bold" th:text="${sessions != null ? sessions.size() : 0} + ' cuộc trò chuyện'">0</span>
             </div>
 
-            <!-- Messages Stream -->
-            <div th:each="msg : ${messages}" class="flex gap-3 sm:gap-4"
-                 th:classappend="${msg.role.name() == 'USER'} ? ' justify-end' : ' justify-start'">
-                
-                <!-- AI Mentor Avatar -->
-                <div th:if="${msg.role.name() == 'ASSISTANT'}" class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-cyan-500/20">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="flex-1 space-y-2 overflow-y-auto max-h-[460px] pr-1">
+                <div th:if="${sessions == null or sessions.isEmpty()}" class="text-center py-8 text-xs text-slate-500">
+                    Chưa có lịch sử trò chuyện.
                 </div>
-
-                <!-- Message Bubble -->
-                <div class="max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 sm:p-5 text-xs sm:text-sm leading-relaxed"
-                     th:classappend="${msg.role.name() == 'USER'} 
-                        ? ' bg-gradient-to-r from-cyan-600 via-indigo-600 to-violet-600 text-white font-medium rounded-tr-sm shadow-lg shadow-cyan-600/25 border border-cyan-400/30' 
-                        : ' bg-[#070b16] text-slate-200 rounded-tl-sm border border-white/[0.08] shadow-md'">
-                    
-                    <p th:if="${msg.role.name() == 'USER'}" th:text="${msg.content}" class="whitespace-pre-wrap"></p>
-                    <div th:if="${msg.role.name() == 'ASSISTANT'}" class="md-content" th:utext="${markdown.toHtml(msg.content)}"></div>
-                    
-                    <span class="block mt-2 text-[10px] font-mono opacity-60 text-right" th:text="${#temporals.format(msg.createdAt, 'HH:mm')}">12:00</span>
-                </div>
-
-                <!-- User Avatar -->
-                <div th:if="${msg.role.name() == 'USER'}" class="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-400/30 text-violet-400 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
-                    U
-                </div>
+                <a th:each="s : ${sessions}"
+                   th:href="@{/mentor(session=${s.id})}"
+                   class="p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 block group text-xs font-semibold"
+                   th:classappend="${currentSessionId != null && currentSessionId == s.id} 
+                      ? 'bg-cyan-500/15 border-cyan-400/40 text-cyan-300 shadow-md shadow-cyan-500/20' 
+                      : 'bg-[#070b16] border-white/[0.04] text-slate-400 hover:text-white hover:border-white/[0.08]'">
+                    <div class="truncate flex items-center gap-2.5">
+                        <svg class="w-4 h-4 shrink-0 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <span class="truncate" th:text="${s.title != null and !s.title.isBlank() ? s.title : 'Cuộc trò chuyện'}">Tiêu đề chat</span>
+                    </div>
+                    <span class="text-[10px] opacity-60 shrink-0 font-mono" th:text="${#temporals.format(s.createdAt, 'dd/MM')}">01/01</span>
+                </a>
             </div>
-
-            <!-- HTMX Indicator Loading Bubble -->
-            <div id="aiTypingIndicator" class="htmx-indicator flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </div>
-                <div class="bg-[#070b16] border border-cyan-400/30 rounded-2xl px-4 py-3 text-xs text-cyan-300 font-semibold flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                    <span>AI Gemini đang phân tích và soạn câu trả lời...</span>
-                </div>
-            </div>
-
         </div>
 
-        <!-- Chat Input Footer -->
-        <div class="p-4 sm:p-5 bg-[#070b16]/90 border-t border-white/[0.08]">
-            <form hx-post="/mentor/chat"
-                  hx-target="#chatContent"
-                  hx-swap="outerHTML"
-                  hx-indicator="#aiTypingIndicator"
-                  class="flex items-center gap-2 sm:gap-3"
-                  onsubmit="setTimeout(() => { document.getElementById('chatInput').value = ''; }, 10);">
+        <!-- Right: Main Chat Window Card -->
+        <div class="lg:col-span-8 cyber-card rounded-3xl border border-white/[0.08] shadow-2xl flex flex-col min-h-[550px] overflow-hidden">
+            
+            <!-- Chat Messages Container (Fragment used by HTMX) -->
+            <div id="messageList" th:fragment="messageList" class="flex-1 p-5 sm:p-7 overflow-y-auto space-y-6 max-h-[460px]">
                 
-                <input type="text" id="chatInput" name="message" required
-                       placeholder="Đặt câu hỏi cho AI Mentor (ví dụ: Làm thế nào để trở thành Backend Developer?)..."
-                       class="flex-1 bg-[#030712] border border-white/[0.08] rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 transition">
-                
-                <button type="submit"
-                        class="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-violet-600 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-cyan-500/25 hover:opacity-95 transition flex items-center gap-1.5 cursor-pointer shrink-0">
-                    <span>Gửi</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                </button>
-            </form>
+                <!-- Hidden currentSessionId update -->
+                <input type="hidden" id="activeSessionId" th:value="${currentSessionId}">
+
+                <!-- Welcome Greeting if empty -->
+                <div th:if="${messages == null or messages.isEmpty()}" class="py-12 text-center max-w-md mx-auto space-y-3">
+                    <div class="w-16 h-16 rounded-3xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-cyber-pulse">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                    </div>
+                    <h3 class="text-base font-extrabold text-white">Bắt đầu trò chuyện với AI Mentor</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Bạn có thể hỏi bất kỳ câu hỏi nào về định hướng nghề nghiệp, lộ trình học, chuẩn bị phỏng vấn, hoặc tối ưu hồ sơ CV.
+                    </p>
+                </div>
+
+                <!-- Messages Stream -->
+                <div th:each="msg : ${messages}" class="flex gap-3 sm:gap-4"
+                     th:classappend="${msg.sender != null and msg.sender.name() == 'USER'} ? ' justify-end' : ' justify-start'">
+                    
+                    <!-- AI Mentor Avatar -->
+                    <div th:if="${msg.sender == null or msg.sender.name() == 'AI'}" class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5 shadow-md shadow-cyan-500/20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+
+                    <!-- Message Bubble -->
+                    <div class="max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 sm:p-5 text-xs sm:text-sm leading-relaxed"
+                         th:classappend="${msg.sender != null and msg.sender.name() == 'USER'} 
+                            ? ' bg-gradient-to-r from-cyan-600 via-indigo-600 to-violet-600 text-white font-medium rounded-tr-sm shadow-lg shadow-cyan-600/25 border border-cyan-400/30' 
+                            : ' bg-[#070b16] text-slate-200 rounded-tl-sm border border-white/[0.08] shadow-md'">
+                        
+                        <p th:if="${msg.sender != null and msg.sender.name() == 'USER'}" th:text="${msg.content}" class="whitespace-pre-wrap"></p>
+                        <div th:if="${msg.sender == null or msg.sender.name() == 'AI'}" class="md-content" th:utext="${markdown.toHtml(msg.content)}"></div>
+                        
+                        <span class="block mt-2 text-[10px] font-mono opacity-60 text-right" 
+                              th:text="${msg.createdAt != null ? #temporals.format(msg.createdAt, 'HH:mm') : ''}">12:00</span>
+                    </div>
+
+                    <!-- User Avatar -->
+                    <div th:if="${msg.sender != null and msg.sender.name() == 'USER'}" class="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-400/30 text-violet-400 flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs">
+                        U
+                    </div>
+                </div>
+
+                <!-- HTMX Indicator Loading Bubble -->
+                <div id="aiTypingIndicator" class="htmx-indicator flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+                    <div class="bg-[#070b16] border border-cyan-400/30 rounded-2xl px-4 py-3 text-xs text-cyan-300 font-semibold flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span>AI Gemini đang phân tích và soạn câu trả lời...</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Chat Input Footer -->
+            <div class="p-4 sm:p-5 bg-[#070b16]/90 border-t border-white/[0.08]">
+                <form id="chatForm"
+                      hx-post="/mentor/send"
+                      hx-target="#messageList"
+                      hx-swap="outerHTML"
+                      hx-indicator="#aiTypingIndicator"
+                      class="flex items-center gap-2 sm:gap-3">
+                    
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" id="formSessionId" name="sessionId" th:value="${currentSessionId}">
+                    
+                    <input type="text" id="chatInput" name="content" required autocomplete="off"
+                           placeholder="Đặt câu hỏi cho AI Mentor (ví dụ: Làm thế nào để trở thành Backend Developer?)..."
+                           class="flex-1 bg-[#030712] border border-white/[0.08] rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 transition">
+                    
+                    <button type="submit" 
+                            class="bg-gradient-to-r from-cyan-500 to-violet-600 hover:opacity-95 text-slate-950 font-black px-5 py-3 rounded-2xl text-xs sm:text-sm transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/25 cursor-pointer shrink-0">
+                        <span>Gửi</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </form>
+            </div>
+
         </div>
 
     </div>
