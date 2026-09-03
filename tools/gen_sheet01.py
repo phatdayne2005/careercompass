@@ -105,13 +105,16 @@ COVER = [
 
 # ---- Bảng tổng kết thi hành: lấy số test THẬT từ báo cáo surefire ----
 # Cột: gói · tên lớp · kỹ thuật · bảng thiết kế tương ứng · số test dự kiến.
+# Chỉ liệt kê các lớp thi hành một bảng CÓ MẪU TRONG SLIDE. RegisterFormDTOBvaTest
+# vẫn nằm trong source nhưng không có mặt ở đây: nó chia mỗi trường thành một test
+# case riêng, mà slide chưa bao giờ trình bày test case ở dạng đó — slide 29–31 chỉ
+# là bước PHÂN TÍCH từng trường, còn mọi test case trong slide (23 và 33) đều là một
+# bộ đầu vào đầy đủ. Các giá trị biên B1–B18 nó kiểm đã được Bảng 2, 3, 5 phủ hết.
 SUITES = [
     ("blackbox", "RegisterStandardBvaTest", "Standard + Robustness BVA",
-     "Bảng 2, Bảng 3", 19),
+     "Bảng 2, Bảng 3" + NL + "Bảng 4 · B1–B18", 19),
     ("blackbox", "RegisterTagCoverageTest", "Gộp tag thành test case",
      "Bảng 5 · TC1–TC16", 16),
-    ("bva", "RegisterFormDTOBvaTest", "BVA theo từng trường",
-     "Bảng 4 · B1–B18", 27),
     ("blackbox", "RegisterEquivalencePartitionTest", "Phân hoạch lớp tương đương",
      "Bảng 4 · V1–V4, X1–X10", 13),
     ("bva", "OnboardingFileSizeBvaTest", "BVA dung lượng tệp",
@@ -284,10 +287,13 @@ r = note(r, "Slide 32 gộp phân lớp tương đương và giá trị biên v�
             "2-64 và ký tự hợp lệ. Email ở đây cũng vậy: điều kiện ĐỘ DÀI có thứ tự nên áp được "
             "giá trị biên, còn điều kiện ĐỊNH DẠNG là miền rời rạc nên chỉ phân lớp được — đó là ý "
             "nghĩa của dấu \"-\" ở cột Tag dòng thứ tư.")
+r = note(r, "CODE KIỂM CHỨNG BẢNG NÀY: cột Valid/Invalid Partitions do RegisterEquivalencePartitionTest "
+            "kiểm; cột Valid Boundaries B1–B18 do RegisterStandardBvaTest kiểm (xem Bảng 2, Bảng 3); "
+            "B19–B24 của tệp bảng điểm do OnboardingFileSizeBvaTest kiểm.")
 r = note(r, "PHÁT HIỆN — lớp X3: mật khẩu 8 dấu cách có độ dài 8, THOẢ MÃN @Size(min=6, max=30) "
             "nhưng vẫn bị @NotBlank từ chối. Lớp này không nằm ở ranh giới độ dài nào nên giá trị "
             "biên không chạm tới — chỉ phân hoạch lớp tương đương mới phát hiện được. "
-            "Code: RegisterEquivalencePartitionTest.")
+            "Code: RegisterEquivalencePartitionTest · x3_toanKhoangTrang_biTuChoi.")
 r += 1
 
 # ============ BẢNG 5 ============
