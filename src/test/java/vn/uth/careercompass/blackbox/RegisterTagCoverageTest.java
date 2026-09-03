@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * theo công thức {@code 4n+1}; lớp này đổi cả ba trường cùng lúc nhằm phủ nhiều tag nhất
  * trong một lần submit.
  */
-@DisplayName("Gộp tag thành test case — Bảng 5, mẫu slide 33")
+@DisplayName("Gop tag thanh test case - Bang 5, mau slide 33")
 // Giữ đúng thứ tự TC1-TC5 rồi TC6-TC16 như Bảng 5 của báo cáo.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RegisterTagCoverageTest {
@@ -86,17 +86,17 @@ class RegisterTagCoverageTest {
         );
     }
 
-    @ParameterizedTest(name = "TC{0} · fullName={1}, email={2}, password={3} · phủ {4}")
+    @ParameterizedTest(name = "TC{0} | fullName={1}, email={2}, password={3} | phu {4}")
     @MethodSource("caseHopLe")
     @Order(1)
-    @DisplayName("TC1–TC5 · đăng ký thành công · gộp nhiều tag trong một lần submit")
+    @DisplayName("TC1-TC5 | dang ky thanh cong | gop nhieu tag trong mot lan submit")
     void tagCoverage_caseHopLe_dangKyThanhCong(int tc, int fullNameLen, int emailLen,
                                                int passwordLen, String tagsPhuLanDau) {
         RegisterFormDTO dto = buildForm(
                 "x".repeat(fullNameLen), emailOfLength(emailLen), "p".repeat(passwordLen));
 
         assertThat(validator.validate(dto))
-                .as("TC%d phủ %s", tc, tagsPhuLanDau)
+                .as("TC%d phu %s", tc, tagsPhuLanDau)
                 .isEmpty();
     }
 
@@ -128,10 +128,10 @@ class RegisterTagCoverageTest {
         );
     }
 
-    @ParameterizedTest(name = "TC{0} · sai ở {4} · phủ {5}")
+    @ParameterizedTest(name = "TC{0} | sai o {4} | phu {5}")
     @MethodSource("caseKhongHopLe")
     @Order(2)
-    @DisplayName("TC6–TC16 · form bị từ chối · đúng một vi phạm, không che lỗi")
+    @DisplayName("TC6-TC16 | form bi tu choi | dung mot vi pham, khong che loi")
     void tagCoverage_caseKhongHopLe_biTuChoi(int tc, String fullName, String email,
                                              String password, String truongBiLamSai,
                                              String tagsPhuLanDau) {
@@ -140,12 +140,12 @@ class RegisterTagCoverageTest {
         Set<ConstraintViolation<RegisterFormDTO>> viPham = validator.validate(dto);
 
         assertThat(viPham)
-                .as("TC%d phủ %s — form phải bị từ chối", tc, tagsPhuLanDau)
+                .as("TC%d phu %s - form phai bi tu choi", tc, tagsPhuLanDau)
                 .isNotEmpty();
         // Đúng MỘT vi phạm, trên ĐÚNG trường đang bị làm sai: chứng minh hai trường còn lại
         // vẫn hợp lệ nên không che mất lỗi cần bắt.
         assertThat(viPham)
-                .as("TC%d — chỉ được sai đúng một trường, tránh che lỗi", tc)
+                .as("TC%d - chi duoc sai dung mot truong, tranh che loi", tc)
                 .hasSize(1);
         assertThat(viPham.iterator().next().getPropertyPath())
                 .hasToString(truongBiLamSai);

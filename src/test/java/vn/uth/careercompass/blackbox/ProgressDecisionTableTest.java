@@ -56,7 +56,7 @@ import static org.mockito.Mockito.when;
  * </pre>
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Bảng quyết định — luật chặn cập nhật tiến độ học")
+@DisplayName("Bang quyet dinh - luat chan cap nhat tien do hoc")
 class ProgressDecisionTableTest {
 
     @Mock
@@ -93,7 +93,7 @@ class ProgressDecisionTableTest {
     // ================================================================
 
     @Test
-    @DisplayName("R1 · NOT_STARTED + node bị khoá → cho phép (bỏ đánh dấu luôn được)")
+    @DisplayName("R1 | NOT_STARTED + node bi khoa -> cho phep (bo danh dau luon duoc)")
     void rule1_notStarted_nodeLocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -108,7 +108,7 @@ class ProgressDecisionTableTest {
     }
 
     @Test
-    @DisplayName("R2 · NOT_STARTED + node mở khoá → cho phép")
+    @DisplayName("R2 | NOT_STARTED + node mo khoa -> cho phep")
     void rule2_notStarted_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -123,7 +123,7 @@ class ProgressDecisionTableTest {
     }
 
     @Test
-    @DisplayName("R4 · IN_PROGRESS + node mở khoá → cho phép, không ghi completedAt")
+    @DisplayName("R4 | IN_PROGRESS + node mo khoa -> cho phep, khong ghi completedAt")
     void rule4_inProgress_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -139,7 +139,7 @@ class ProgressDecisionTableTest {
     }
 
     @Test
-    @DisplayName("R6 · DONE + node mở khoá → cho phép, ghi completedAt và nhật ký")
+    @DisplayName("R6 | DONE + node mo khoa -> cho phep, ghi completedAt va nhat ky")
     void rule6_done_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -159,7 +159,7 @@ class ProgressDecisionTableTest {
     // ================================================================
 
     @Test
-    @DisplayName("R3 · IN_PROGRESS + node bị khoá → TỪ CHỐI 403")
+    @DisplayName("R3 | IN_PROGRESS + node bi khoa -> TU CHOI 403")
     void rule3_inProgress_nodeLocked_tuChoi() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -177,7 +177,7 @@ class ProgressDecisionTableTest {
     }
 
     @Test
-    @DisplayName("R5 · DONE + node bị khoá → TỪ CHỐI 403")
+    @DisplayName("R5 | DONE + node bi khoa -> TU CHOI 403")
     void rule5_done_nodeLocked_tuChoi() {
         SkillNode node = sampleNode();
         User user = new User();

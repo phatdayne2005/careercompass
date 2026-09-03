@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 /** BVA 5 điểm cho giới hạn dung lượng file 10 MB. */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Giá trị biên — dung lượng tệp bảng điểm, giới hạn 10 MB")
+@DisplayName("Gia tri bien - dung luong tep bang diem, gioi han 10 MB")
 class OnboardingFileSizeBvaTest {
 
     private static final long MB = 1024L * 1024L;
@@ -59,8 +59,8 @@ class OnboardingFileSizeBvaTest {
         );
     }
 
-    @ParameterizedTest(name = "{0} = {1} byte · phải được chấp nhận")
-    @DisplayName("B19–B23 · năm giá trị biên trong miền hợp lệ")
+    @ParameterizedTest(name = "{0} = {1} byte | phai duoc chap nhan")
+    @DisplayName("B19-B23 | nam gia tri bien trong mien hop le")
     @MethodSource("fileSizeNormalBva")
     void fileSize_normalBva_isAccepted(String boundary, long size) throws Exception {
         when(file.getOriginalFilename()).thenReturn("transcript.pdf");
@@ -76,7 +76,7 @@ class OnboardingFileSizeBvaTest {
     }
 
     @Test
-    @DisplayName("B24 · max+1 = 10 MB + 1 byte · phải bị từ chối")
+    @DisplayName("B24 | max+1 = 10 MB + 1 byte | phai bi tu choi")
     void fileSize_maxPlusOne_isRejected() throws Exception {
         when(file.getOriginalFilename()).thenReturn("transcript.pdf");
         when(file.getSize()).thenReturn(MAX_SIZE + 1);

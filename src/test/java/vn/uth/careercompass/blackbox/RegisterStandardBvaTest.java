@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>Số test case: Standard BVA = 4n + 1 = 4×3 + 1 = <b>13</b>.
  * Robustness BVA = 6n + 1 = 6×3 + 1 = <b>19</b>.
  */
-@DisplayName("Giá trị biên — trình bày theo mẫu slide 23 (bộ đầy đủ n biến)")
+@DisplayName("Gia tri bien - trinh bay theo mau slide 23 (bo day du n bien)")
 // Giữ đúng thứ tự Standard rồi mới Robustness, để log chạy test đọc theo
 // đúng trình tự Bảng 2 -> Bảng 3 của báo cáo.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -87,7 +87,7 @@ class RegisterStandardBvaTest {
                 // --- Biến đang xét: password (5 giá trị, gồm cả ô tất-cả-nominal) ---
                 Arguments.of(1, FULLNAME_NOM, EMAIL_NOM, 6, "password = min"),
                 Arguments.of(2, FULLNAME_NOM, EMAIL_NOM, 7, "password = min+"),
-                Arguments.of(3, FULLNAME_NOM, EMAIL_NOM, 18, "TẤT CẢ nominal"),
+                Arguments.of(3, FULLNAME_NOM, EMAIL_NOM, 18, "TAT CA nominal"),
                 Arguments.of(4, FULLNAME_NOM, EMAIL_NOM, 29, "password = max-"),
                 Arguments.of(5, FULLNAME_NOM, EMAIL_NOM, 30, "password = max"),
                 // --- Biến đang xét: email (4 giá trị, bỏ nominal vì case 3 đã có) ---
@@ -103,16 +103,16 @@ class RegisterStandardBvaTest {
         );
     }
 
-    @ParameterizedTest(name = "TC{0} · {4} · (fullName={1}, email={2}, password={3})")
+    @ParameterizedTest(name = "TC{0} | {4} | (fullName={1}, email={2}, password={3})")
     @MethodSource("standardBvaCases")
     @Order(1)
-    @DisplayName("Standard BVA · 4n+1 = 13 case · mọi bộ đều phải HỢP LỆ")
+    @DisplayName("Standard BVA | 4n+1 = 13 case | moi bo deu phai HOP LE")
     void standardBva_moiBoDeuHopLe(int tc, int fullNameLen, int emailLen,
                                    int passwordLen, String bienDangXet) {
         RegisterFormDTO dto = buildForm(fullNameLen, emailLen, passwordLen);
 
         assertThat(validator.validate(dto))
-                .as("TC%d — %s", tc, bienDangXet)
+                .as("TC%d - %s", tc, bienDangXet)
                 .isEmpty();
     }
 
@@ -128,24 +128,24 @@ class RegisterStandardBvaTest {
                 // Biến đang xét: email
                 // Case 16 KỲ VỌNG HỢP LỆ: @Size của email không khai min, nên email 5 ký tự
                 // (a@b.c) vẫn được chấp nhận. Đây là PHÁT HIỆN, không phải lỗi test.
-                Arguments.of(16, FULLNAME_NOM, 5, PASSWORD_NOM, "email = min- (biên dưới KHÔNG ràng buộc)", true),
+                Arguments.of(16, FULLNAME_NOM, 5, PASSWORD_NOM, "email = min- (bien duoi KHONG rang buoc)", true),
                 Arguments.of(17, FULLNAME_NOM, 151, PASSWORD_NOM, "email = max+", false),
                 // Biến đang xét: fullName
-                Arguments.of(18, 0, EMAIL_NOM, PASSWORD_NOM, "fullName = min- (chuỗi rỗng)", false),
+                Arguments.of(18, 0, EMAIL_NOM, PASSWORD_NOM, "fullName = min- (chuoi rong)", false),
                 Arguments.of(19, 101, EMAIL_NOM, PASSWORD_NOM, "fullName = max+", false)
         );
     }
 
-    @ParameterizedTest(name = "TC{0} · {4} · kỳ vọng hợp lệ = {5}")
+    @ParameterizedTest(name = "TC{0} | {4} | ky vong hop le = {5}")
     @MethodSource("robustnessBvaCases")
     @Order(2)
-    @DisplayName("Robustness BVA · 6n+1 = 19 case · thêm min- và max+")
+    @DisplayName("Robustness BVA | 6n+1 = 19 case | them min- va max+")
     void robustnessBva_giaTriNgoaiBien(int tc, int fullNameLen, int emailLen,
                                        int passwordLen, String bienDangXet, boolean hopLe) {
         RegisterFormDTO dto = buildForm(fullNameLen, emailLen, passwordLen);
 
         assertThat(validator.validate(dto).isEmpty())
-                .as("TC%d — %s", tc, bienDangXet)
+                .as("TC%d - %s", tc, bienDangXet)
                 .isEqualTo(hopLe);
     }
 

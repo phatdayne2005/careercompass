@@ -61,7 +61,7 @@ import static org.mockito.Mockito.when;
  * sẽ bỏ sót. Chúng kiểm chứng chốt chặn có thật sự hoạt động.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Chuyển đổi trạng thái — tiến độ học node kỹ năng")
+@DisplayName("Chuyen doi trang thai - tien do hoc node ky nang")
 class ProgressStateTransitionTest {
 
     @Mock
@@ -107,7 +107,7 @@ class ProgressStateTransitionTest {
     // ================================================================
 
     @Test
-    @DisplayName("ST-01 · NOT_STARTED → IN_PROGRESS (node mở khoá)")
+    @DisplayName("ST-01 | NOT_STARTED -> IN_PROGRESS (node mo khoa)")
     void st01_notStarted_toInProgress() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -123,7 +123,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-02 · IN_PROGRESS → DONE, phải ghi completedAt và nhật ký")
+    @DisplayName("ST-02 | IN_PROGRESS -> DONE, phai ghi completedAt va nhat ky")
     void st02_inProgress_toDone() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -141,7 +141,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-03 · DONE → NOT_STARTED, phải XOÁ completedAt")
+    @DisplayName("ST-03 | DONE -> NOT_STARTED, phai XOA completedAt")
     void st03_done_toNotStarted() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -156,7 +156,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-04 · DONE → IN_PROGRESS, phải XOÁ completedAt")
+    @DisplayName("ST-04 | DONE -> IN_PROGRESS, phai XOA completedAt")
     void st04_done_toInProgress() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -171,7 +171,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-05 · NOT_STARTED → DONE (node mở khoá), nhảy thẳng không qua IN_PROGRESS")
+    @DisplayName("ST-05 | NOT_STARTED -> DONE (node mo khoa), nhay thang khong qua IN_PROGRESS")
     void st05_notStarted_toDone() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -187,7 +187,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-06 · IN_PROGRESS → NOT_STARTED, bỏ đánh dấu giữa chừng")
+    @DisplayName("ST-06 | IN_PROGRESS -> NOT_STARTED, bo danh dau giua chung")
     void st06_inProgress_toNotStarted() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -207,7 +207,7 @@ class ProgressStateTransitionTest {
     // ================================================================
 
     @Test
-    @DisplayName("ST-07 · NOT_STARTED → DONE khi node bị khoá: phải bị chặn")
+    @DisplayName("ST-07 | NOT_STARTED -> DONE khi node bi khoa: phai bi chan")
     void st07_notStarted_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -223,7 +223,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-08 · IN_PROGRESS → DONE khi node bị khoá: phải bị chặn")
+    @DisplayName("ST-08 | IN_PROGRESS -> DONE khi node bi khoa: phai bi chan")
     void st08_inProgress_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -240,7 +240,7 @@ class ProgressStateTransitionTest {
     }
 
     @Test
-    @DisplayName("ST-09 · DONE → IN_PROGRESS khi node bị khoá: phải bị chặn")
+    @DisplayName("ST-09 | DONE -> IN_PROGRESS khi node bi khoa: phai bi chan")
     void st09_done_toInProgress_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();

@@ -26,7 +26,7 @@ import org.junit.platform.launcher.TestIdentifier;
 public class TestCaseLogger implements TestExecutionListener {
 
     private static final boolean BAT = System.getProperty("showCases") != null;
-    private static final String VACH = "─".repeat(78);
+    private static final String VACH = "-".repeat(78);
 
     /** Số thứ tự test case trong lớp hiện tại. */
     private int stt;
@@ -58,7 +58,7 @@ public class TestCaseLogger implements TestExecutionListener {
         String trangThai = switch (ketQua.getStatus()) {
             case SUCCESSFUL -> "PASS";
             case FAILED -> "FAIL";
-            case ABORTED -> "HUỶ ";
+            case ABORTED -> "HUY ";
         };
         System.out.printf("    %2d. [%s]  %s%n", ++stt, trangThai, id.getDisplayName());
     }
@@ -68,6 +68,6 @@ public class TestCaseLogger implements TestExecutionListener {
         if (!BAT || !id.isTest()) {
             return;
         }
-        System.out.printf("    %2d. [BỎ ]  %s  (%s)%n", ++stt, id.getDisplayName(), lyDo);
+        System.out.printf("    %2d. [BO  ]  %s  (%s)%n", ++stt, id.getDisplayName(), lyDo);
     }
 }

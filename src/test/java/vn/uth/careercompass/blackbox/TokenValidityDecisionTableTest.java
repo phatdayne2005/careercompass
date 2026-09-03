@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * cho {@code validateToken}. Rule R3 (còn hạn nhưng đã dùng) chỉ được chạm gián tiếp
  * qua {@code resetPassword}, còn R4 (vừa hết hạn vừa đã dùng) chưa test bao giờ.
  */
-@DisplayName("Bảng quyết định — hiệu lực của token đặt lại mật khẩu")
+@DisplayName("Bang quyet dinh - hieu luc cua token dat lai mat khau")
 class TokenValidityDecisionTableTest {
 
     /** Dựng token theo đúng một ô của bảng quyết định. */
@@ -67,42 +67,42 @@ class TokenValidityDecisionTableTest {
     }
 
     @Test
-    @DisplayName("R1 · còn hạn + chưa dùng → token HỢP LỆ")
+    @DisplayName("R1 | con han + chua dung -> token HOP LE")
     void rule1_conHan_chuaDung_hopLe() {
         PasswordResetToken t = token(false, false);
 
-        assertThat(t.isExpired()).as("C1 — đã hết hạn").isFalse();
-        assertThat(t.isUsed()).as("C2 — đã được dùng").isFalse();
-        assertThat(t.isValid()).as("A1 — token hợp lệ").isTrue();
+        assertThat(t.isExpired()).as("C1 - da het han").isFalse();
+        assertThat(t.isUsed()).as("C2 - da duoc dung").isFalse();
+        assertThat(t.isValid()).as("A1 - token hop le").isTrue();
     }
 
     @Test
-    @DisplayName("R2 · hết hạn + chưa dùng → token KHÔNG hợp lệ")
+    @DisplayName("R2 | het han + chua dung -> token KHONG hop le")
     void rule2_hetHan_chuaDung_khongHopLe() {
         PasswordResetToken t = token(true, false);
 
         assertThat(t.isExpired()).isTrue();
         assertThat(t.isUsed()).isFalse();
-        assertThat(t.isValid()).as("A2 — token không hợp lệ").isFalse();
+        assertThat(t.isValid()).as("A2 - token khong hop le").isFalse();
     }
 
     @Test
-    @DisplayName("R3 · còn hạn + đã dùng → token KHÔNG hợp lệ")
+    @DisplayName("R3 | con han + da dung -> token KHONG hop le")
     void rule3_conHan_daDung_khongHopLe() {
         PasswordResetToken t = token(false, true);
 
         assertThat(t.isExpired()).isFalse();
         assertThat(t.isUsed()).isTrue();
-        assertThat(t.isValid()).as("A2 — dùng một lần rồi thì hỏng, dù còn hạn").isFalse();
+        assertThat(t.isValid()).as("A2 - dung mot lan roi thi hong, du con han").isFalse();
     }
 
     @Test
-    @DisplayName("R4 · hết hạn + đã dùng → token KHÔNG hợp lệ")
+    @DisplayName("R4 | het han + da dung -> token KHONG hop le")
     void rule4_hetHan_daDung_khongHopLe() {
         PasswordResetToken t = token(true, true);
 
         assertThat(t.isExpired()).isTrue();
         assertThat(t.isUsed()).isTrue();
-        assertThat(t.isValid()).as("A2 — cả hai điều kiện hỏng cùng lúc").isFalse();
+        assertThat(t.isValid()).as("A2 - ca hai dieu kien hong cung luc").isFalse();
     }
 }

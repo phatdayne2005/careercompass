@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * THOẢ MÃN {@code @Size(min = 6, max = 30)}, nhưng vẫn bị {@code @NotBlank} từ chối.
  * Đây là lớp mà bộ test giá trị biên không chạm tới, vì nó không nằm ở ranh giới độ dài nào cả.
  */
-@DisplayName("Phân hoạch lớp tương đương — form đăng ký (password, fullName, email)")
+@DisplayName("Phan hoach lop tuong duong - form dang ky (password, fullName, email)")
 // Giữ thứ tự V1 V2 V3 rồi X1..X10 như cột Tag của Bảng 4, để log chạy test
 // đọc theo đúng trình tự báo cáo.
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -86,34 +86,34 @@ class RegisterEquivalencePartitionTest {
     }
 
     @Test
-    @DisplayName("V1 · Lớp hợp lệ: 6–30 ký tự có nội dung → được chấp nhận")
+    @DisplayName("V1 | Lop hop le: 6-30 ky tu co noi dung -> duoc chap nhan")
     @Order(1)
     void v1_lopHopLe_duocChapNhan() {
         assertThat(validator.validateProperty(formWithPassword("matkhau123"), "password"))
-                .as("Đại diện lớp hợp lệ V1")
+                .as("Dai dien lop hop le V1")
                 .isEmpty();
     }
 
     @Test
-    @DisplayName("X1 · Lớp dưới 6 ký tự → bị từ chối")
+    @DisplayName("X1 | Lop duoi 6 ky tu -> bi tu choi")
     @Order(4)
     void x1_duoiSauKyTu_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword("abc"), "password"))
-                .as("Đại diện lớp không hợp lệ X1")
+                .as("Dai dien lop khong hop le X1")
                 .isNotEmpty();
     }
 
     @Test
-    @DisplayName("X2 · Lớp trên 30 ký tự → bị từ chối")
+    @DisplayName("X2 | Lop tren 30 ky tu -> bi tu choi")
     @Order(5)
     void x2_tren30KyTu_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword("p".repeat(31)), "password"))
-                .as("Đại diện lớp không hợp lệ X2")
+                .as("Dai dien lop khong hop le X2")
                 .isNotEmpty();
     }
 
     @Test
-    @DisplayName("X3 · Lớp toàn khoảng trắng → bị từ chối dù độ dài hợp lệ")
+    @DisplayName("X3 | Lop toan khoang trang -> bi tu choi du do dai hop le")
     @Order(6)
     void x3_toanKhoangTrang_biTuChoi() {
         // 8 dấu cách: độ dài 8 nằm trong [6, 30] nên @Size cho qua,
@@ -121,20 +121,20 @@ class RegisterEquivalencePartitionTest {
         String eightSpaces = " ".repeat(8);
 
         assertThat(eightSpaces.length())
-                .as("Độ dài phải nằm trong khoảng hợp lệ để chứng minh @Size không phải thứ chặn")
+                .as("Do dai phai nam trong khoang hop le de chung minh @Size khong phai thu chan")
                 .isBetween(6, 30);
 
         assertThat(validator.validateProperty(formWithPassword(eightSpaces), "password"))
-                .as("Đại diện lớp không hợp lệ X3 — lớp mà BVA không chạm tới")
+                .as("Dai dien lop khong hop le X3 - lop ma BVA khong cham toi")
                 .isNotEmpty();
     }
 
     @Test
-    @DisplayName("X4 · Lớp không truyền giá trị (null) → bị từ chối")
+    @DisplayName("X4 | Lop khong truyen gia tri (null) -> bi tu choi")
     @Order(7)
     void x4_null_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword(null), "password"))
-                .as("Đại diện lớp không hợp lệ X4")
+                .as("Dai dien lop khong hop le X4")
                 .isNotEmpty();
     }
 
@@ -143,28 +143,28 @@ class RegisterEquivalencePartitionTest {
     // ================================================================
 
     @Test
-    @DisplayName("V2 · fullName lớp hợp lệ: 1–100 ký tự có nội dung")
+    @DisplayName("V2 | fullName lop hop le: 1-100 ky tu co noi dung")
     @Order(2)
     void v2_fullName_lopHopLe() {
         assertThat(validator.validateProperty(formWithFullName("Nguyen Van A"), "fullName")).isEmpty();
     }
 
     @Test
-    @DisplayName("X5 · fullName trên 100 ký tự → bị từ chối (@Size)")
+    @DisplayName("X5 | fullName tren 100 ky tu -> bi tu choi (@Size)")
     @Order(8)
     void x5_fullName_tren100KyTu() {
         assertThat(validator.validateProperty(formWithFullName("x".repeat(101)), "fullName")).isNotEmpty();
     }
 
     @Test
-    @DisplayName("X6 · fullName toàn khoảng trắng → bị từ chối (@NotBlank)")
+    @DisplayName("X6 | fullName toan khoang trang -> bi tu choi (@NotBlank)")
     @Order(9)
     void x6_fullName_toanKhoangTrang() {
         assertThat(validator.validateProperty(formWithFullName("     "), "fullName")).isNotEmpty();
     }
 
     @Test
-    @DisplayName("X7 · fullName null → bị từ chối (@NotBlank)")
+    @DisplayName("X7 | fullName null -> bi tu choi (@NotBlank)")
     @Order(10)
     void x7_fullName_null() {
         assertThat(validator.validateProperty(formWithFullName(null), "fullName")).isNotEmpty();
@@ -175,21 +175,21 @@ class RegisterEquivalencePartitionTest {
     // ================================================================
 
     @Test
-    @DisplayName("V3 · email lớp hợp lệ: đúng định dạng, không quá 150 ký tự")
+    @DisplayName("V3 | email lop hop le: dung dinh dang, khong qua 150 ky tu")
     @Order(3)
     void v3_email_lopHopLe() {
         assertThat(validator.validateProperty(formWithEmail("sinhvien@uth.edu.vn"), "email")).isEmpty();
     }
 
     @Test
-    @DisplayName("X8 · email sai định dạng → bị từ chối (@Email)")
+    @DisplayName("X8 | email sai dinh dang -> bi tu choi (@Email)")
     @Order(11)
     void x8_email_saiDinhDang() {
         assertThat(validator.validateProperty(formWithEmail("khong-phai-email"), "email")).isNotEmpty();
     }
 
     @Test
-    @DisplayName("X9 · email trên 150 ký tự → bị từ chối (@Size)")
+    @DisplayName("X9 | email tren 150 ky tu -> bi tu choi (@Size)")
     @Order(12)
     void x9_email_tren150KyTu() {
         // Local-part 64 + '@' + hai nhãn miền + '.com' = 153 ký tự, vẫn đúng định dạng email.
@@ -200,7 +200,7 @@ class RegisterEquivalencePartitionTest {
     }
 
     @Test
-    @DisplayName("X10 · email null → bị từ chối (@NotBlank)")
+    @DisplayName("X10 | email null -> bi tu choi (@NotBlank)")
     @Order(13)
     void x10_email_null() {
         assertThat(validator.validateProperty(formWithEmail(null), "email")).isNotEmpty();
