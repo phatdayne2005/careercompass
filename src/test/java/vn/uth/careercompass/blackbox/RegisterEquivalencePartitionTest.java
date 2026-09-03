@@ -6,6 +6,9 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test;
 import vn.uth.careercompass.kernel.web.dto.request.RegisterFormDTO;
 
@@ -35,7 +38,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * THOẢ MÃN {@code @Size(min = 6, max = 30)}, nhưng vẫn bị {@code @NotBlank} từ chối.
  * Đây là lớp mà bộ test giá trị biên không chạm tới, vì nó không nằm ở ranh giới độ dài nào cả.
  */
-@DisplayName("Phân hoạch lớp tương đương — trường mật khẩu")
+@DisplayName("Phân hoạch lớp tương đương — form đăng ký (password, fullName, email)")
+// Giữ thứ tự V1 V2 V3 rồi X1..X10 như cột Tag của Bảng 4, để log chạy test
+// đọc theo đúng trình tự báo cáo.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RegisterEquivalencePartitionTest {
 
     private static ValidatorFactory validatorFactory;
@@ -81,6 +87,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("V1 · Lớp hợp lệ: 6–30 ký tự có nội dung → được chấp nhận")
+    @Order(1)
     void v1_lopHopLe_duocChapNhan() {
         assertThat(validator.validateProperty(formWithPassword("matkhau123"), "password"))
                 .as("Đại diện lớp hợp lệ V1")
@@ -89,6 +96,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("X1 · Lớp dưới 6 ký tự → bị từ chối")
+    @Order(4)
     void x1_duoiSauKyTu_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword("abc"), "password"))
                 .as("Đại diện lớp không hợp lệ X1")
@@ -97,6 +105,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("X2 · Lớp trên 30 ký tự → bị từ chối")
+    @Order(5)
     void x2_tren30KyTu_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword("p".repeat(31)), "password"))
                 .as("Đại diện lớp không hợp lệ X2")
@@ -105,6 +114,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("X3 · Lớp toàn khoảng trắng → bị từ chối dù độ dài hợp lệ")
+    @Order(6)
     void x3_toanKhoangTrang_biTuChoi() {
         // 8 dấu cách: độ dài 8 nằm trong [6, 30] nên @Size cho qua,
         // nhưng @NotBlank vẫn chặn vì không có ký tự nào khác khoảng trắng.
@@ -121,6 +131,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("X4 · Lớp không truyền giá trị (null) → bị từ chối")
+    @Order(7)
     void x4_null_biTuChoi() {
         assertThat(validator.validateProperty(formWithPassword(null), "password"))
                 .as("Đại diện lớp không hợp lệ X4")
@@ -133,24 +144,28 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("V2 · fullName lớp hợp lệ: 1–100 ký tự có nội dung")
+    @Order(2)
     void v2_fullName_lopHopLe() {
         assertThat(validator.validateProperty(formWithFullName("Nguyen Van A"), "fullName")).isEmpty();
     }
 
     @Test
     @DisplayName("X5 · fullName trên 100 ký tự → bị từ chối (@Size)")
+    @Order(8)
     void x5_fullName_tren100KyTu() {
         assertThat(validator.validateProperty(formWithFullName("x".repeat(101)), "fullName")).isNotEmpty();
     }
 
     @Test
     @DisplayName("X6 · fullName toàn khoảng trắng → bị từ chối (@NotBlank)")
+    @Order(9)
     void x6_fullName_toanKhoangTrang() {
         assertThat(validator.validateProperty(formWithFullName("     "), "fullName")).isNotEmpty();
     }
 
     @Test
     @DisplayName("X7 · fullName null → bị từ chối (@NotBlank)")
+    @Order(10)
     void x7_fullName_null() {
         assertThat(validator.validateProperty(formWithFullName(null), "fullName")).isNotEmpty();
     }
@@ -161,18 +176,21 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("V3 · email lớp hợp lệ: đúng định dạng, không quá 150 ký tự")
+    @Order(3)
     void v3_email_lopHopLe() {
         assertThat(validator.validateProperty(formWithEmail("sinhvien@uth.edu.vn"), "email")).isEmpty();
     }
 
     @Test
     @DisplayName("X8 · email sai định dạng → bị từ chối (@Email)")
+    @Order(11)
     void x8_email_saiDinhDang() {
         assertThat(validator.validateProperty(formWithEmail("khong-phai-email"), "email")).isNotEmpty();
     }
 
     @Test
     @DisplayName("X9 · email trên 150 ký tự → bị từ chối (@Size)")
+    @Order(12)
     void x9_email_tren150KyTu() {
         // Local-part 64 + '@' + hai nhãn miền + '.com' = 153 ký tự, vẫn đúng định dạng email.
         String longEmail = "a".repeat(64) + "@" + "b".repeat(63) + "." + "c".repeat(20) + ".com";
@@ -183,6 +201,7 @@ class RegisterEquivalencePartitionTest {
 
     @Test
     @DisplayName("X10 · email null → bị từ chối (@NotBlank)")
+    @Order(13)
     void x10_email_null() {
         assertThat(validator.validateProperty(formWithEmail(null), "email")).isNotEmpty();
     }

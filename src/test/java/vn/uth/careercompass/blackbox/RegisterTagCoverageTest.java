@@ -7,6 +7,9 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,6 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * trong một lần submit.
  */
 @DisplayName("Gộp tag thành test case — Bảng 5, mẫu slide 33")
+// Giữ đúng thứ tự TC1-TC5 rồi TC6-TC16 như Bảng 5 của báo cáo.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RegisterTagCoverageTest {
 
     private static ValidatorFactory factory;
@@ -83,6 +88,7 @@ class RegisterTagCoverageTest {
 
     @ParameterizedTest(name = "TC{0} · fullName={1}, email={2}, password={3} · phủ {4}")
     @MethodSource("caseHopLe")
+    @Order(1)
     @DisplayName("TC1–TC5 · đăng ký thành công · gộp nhiều tag trong một lần submit")
     void tagCoverage_caseHopLe_dangKyThanhCong(int tc, int fullNameLen, int emailLen,
                                                int passwordLen, String tagsPhuLanDau) {
@@ -124,6 +130,7 @@ class RegisterTagCoverageTest {
 
     @ParameterizedTest(name = "TC{0} · sai ở {4} · phủ {5}")
     @MethodSource("caseKhongHopLe")
+    @Order(2)
     @DisplayName("TC6–TC16 · form bị từ chối · đúng một vi phạm, không che lỗi")
     void tagCoverage_caseKhongHopLe_biTuChoi(int tc, String fullName, String email,
                                              String password, String truongBiLamSai,

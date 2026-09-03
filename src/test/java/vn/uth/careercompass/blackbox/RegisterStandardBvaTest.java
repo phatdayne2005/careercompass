@@ -6,6 +6,9 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -47,6 +50,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Robustness BVA = 6n + 1 = 6×3 + 1 = <b>19</b>.
  */
 @DisplayName("Giá trị biên — trình bày theo mẫu slide 23 (bộ đầy đủ n biến)")
+// Giữ đúng thứ tự Standard rồi mới Robustness, để log chạy test đọc theo
+// đúng trình tự Bảng 2 -> Bảng 3 của báo cáo.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RegisterStandardBvaTest {
 
     private static ValidatorFactory factory;
@@ -99,6 +105,7 @@ class RegisterStandardBvaTest {
 
     @ParameterizedTest(name = "TC{0} · {4} · (fullName={1}, email={2}, password={3})")
     @MethodSource("standardBvaCases")
+    @Order(1)
     @DisplayName("Standard BVA · 4n+1 = 13 case · mọi bộ đều phải HỢP LỆ")
     void standardBva_moiBoDeuHopLe(int tc, int fullNameLen, int emailLen,
                                    int passwordLen, String bienDangXet) {
@@ -131,6 +138,7 @@ class RegisterStandardBvaTest {
 
     @ParameterizedTest(name = "TC{0} · {4} · kỳ vọng hợp lệ = {5}")
     @MethodSource("robustnessBvaCases")
+    @Order(2)
     @DisplayName("Robustness BVA · 6n+1 = 19 case · thêm min- và max+")
     void robustnessBva_giaTriNgoaiBien(int tc, int fullNameLen, int emailLen,
                                        int passwordLen, String bienDangXet, boolean hopLe) {

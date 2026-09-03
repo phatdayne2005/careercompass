@@ -1,6 +1,7 @@
 package vn.uth.careercompass.bva;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 /** BVA 5 điểm cho giới hạn dung lượng file 10 MB. */
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Giá trị biên — dung lượng tệp bảng điểm, giới hạn 10 MB")
 class OnboardingFileSizeBvaTest {
 
     private static final long MB = 1024L * 1024L;
@@ -57,7 +59,8 @@ class OnboardingFileSizeBvaTest {
         );
     }
 
-    @ParameterizedTest(name = "file size {0} = {1} bytes")
+    @ParameterizedTest(name = "{0} = {1} byte · phải được chấp nhận")
+    @DisplayName("B19–B23 · năm giá trị biên trong miền hợp lệ")
     @MethodSource("fileSizeNormalBva")
     void fileSize_normalBva_isAccepted(String boundary, long size) throws Exception {
         when(file.getOriginalFilename()).thenReturn("transcript.pdf");
@@ -73,6 +76,7 @@ class OnboardingFileSizeBvaTest {
     }
 
     @Test
+    @DisplayName("B24 · max+1 = 10 MB + 1 byte · phải bị từ chối")
     void fileSize_maxPlusOne_isRejected() throws Exception {
         when(file.getOriginalFilename()).thenReturn("transcript.pdf");
         when(file.getSize()).thenReturn(MAX_SIZE + 1);

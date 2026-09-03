@@ -36,6 +36,11 @@
 	<properties>
 		<java.version>21</java.version>
 
+		<!-- Giá trị mặc định cho argLine. JaCoCo prepare-agent sẽ ghi đè bằng cờ
+		     Java agent của nó. Khai sẵn ở đây để khi bỏ qua JaCoCo (-Djacoco.skip)
+		     thì @{argLine} trong cấu hình Surefire vẫn phân giải được. -->
+		<argLine></argLine>
+
 		<!-- ===== Phân tích chất lượng mã nguồn: SonarQube Cloud ===== -->
 		<!-- Định danh dự án trên sonarcloud.io. projectKey do SonarCloud tự sinh
 		     theo dạng <organization>_<repo>, không được tự đặt lại. -->
@@ -124,6 +129,14 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Surefire tự nạp junit-platform-launcher lúc chạy nhưng KHÔNG đưa vào
+		     classpath biên dịch. Khai tường minh để TestCaseLogger (in tên từng
+		     test case ra console) biên dịch được. Phiên bản do junit-bom quản lý. -->
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- Spring Boot 4.x tách các test slice MVC thành starter riêng. -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -188,6 +201,32 @@
 			     Lưu ý: Spring Boot 4.1 không còn quản lý sẵn jacoco.version như bản
 			     3.x nên phải tự khai phiên bản ở khối <properties>.
 			     =================================================================== -->
+			<!-- ===================================================================
+			     Surefire: ghi TÊN HIỂN THỊ của test vào báo cáo XML.
+			     Mặc định XML chỉ ghi "method(int, int, String)[1]" nên không đọc được
+			     từng test case là gì. Bật usePhrasedTestCaseMethodName để nó ghi đúng
+			     nhãn @ParameterizedTest(name = "..."), ví dụ:
+			         TC1 · password = min · (fullName=50, email=75, password=6)
+			     Nhờ vậy chiếu báo cáo test cho người khác xem mà không cần mở code.
+			     =================================================================== -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Buộc JVM chạy test in ra UTF-8, nếu không tiếng Việt trong tên
+					     test case sẽ thành dấu hỏi trên console Windows.
+					     @{argLine} giữ lại cờ Java agent mà JaCoCo chèn vào. -->
+					<argLine>@{argLine} -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8</argLine>
+					<statelessTestsetReporter
+						implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
+						<usePhrasedFileName>false</usePhrasedFileName>
+						<usePhrasedTestSuiteClassName>true</usePhrasedTestSuiteClassName>
+						<usePhrasedTestCaseClassName>true</usePhrasedTestCaseClassName>
+						<usePhrasedTestCaseMethodName>true</usePhrasedTestCaseMethodName>
+					</statelessTestsetReporter>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
