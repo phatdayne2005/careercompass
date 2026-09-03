@@ -171,20 +171,29 @@ class RegisterEquivalencePartitionTest {
     }
 
     // ================================================================
-    // TRƯỜNG email — @NotBlank @Email @Size(max = 150)
+    // TRƯỜNG email — @NotBlank @Email @Size(min = 6, max = 150)
     // ================================================================
 
     @Test
-    @DisplayName("V3 | email lop hop le: dung dinh dang, khong qua 150 ky tu")
+    @DisplayName("V3 | email lop hop le: dung dinh dang, 6-150 ky tu")
     @Order(3)
     void v3_email_lopHopLe() {
         assertThat(validator.validateProperty(formWithEmail("sinhvien@uth.edu.vn"), "email")).isEmpty();
     }
 
     @Test
-    @DisplayName("X8 | email sai dinh dang -> bi tu choi (@Email)")
+    @DisplayName("X8 | email duoi 6 ky tu -> bi tu choi (@Size)")
     @Order(11)
-    void x8_email_saiDinhDang() {
+    void x8_email_duoiSauKyTu() {
+        // "a@b.c" dài 5 ký tự, ĐÚNG định dạng email nên @Email cho qua.
+        // Chỉ @Size(min = 6) chặn được — đây là lớp mà kiểm định dạng bỏ lọt.
+        assertThat(validator.validateProperty(formWithEmail("a@b.c"), "email")).isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("X10 | email sai dinh dang -> bi tu choi (@Email)")
+    @Order(13)
+    void x10_email_saiDinhDang() {
         assertThat(validator.validateProperty(formWithEmail("khong-phai-email"), "email")).isNotEmpty();
     }
 
@@ -200,9 +209,9 @@ class RegisterEquivalencePartitionTest {
     }
 
     @Test
-    @DisplayName("X10 | email null -> bi tu choi (@NotBlank)")
-    @Order(13)
-    void x10_email_null() {
+    @DisplayName("X11 | email null -> bi tu choi (@NotBlank)")
+    @Order(14)
+    void x11_email_null() {
         assertThat(validator.validateProperty(formWithEmail(null), "email")).isNotEmpty();
     }
 }

@@ -27,8 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code B}. Slide 33 gộp các tag đó lại thành số test case tối thiểu: mỗi case là MỘT lần
  * điền form đầy đủ, cột <i>New Tags Covered</i> ghi những tag case đó phủ lần đầu.
  *
- * <p>Lớp này thi hành TC1–TC16 của <b>Bảng 5</b> trong báo cáo — phần thuộc form đăng ký.
- * TC17–TC22 (dung lượng tệp bảng điểm) nằm ở {@code OnboardingFileSizeBvaTest} vì đó là
+ * <p>Lớp này thi hành TC1–TC17 của <b>Bảng 5</b> trong báo cáo — phần thuộc form đăng ký.
+ * TC18–TC23 (dung lượng tệp bảng điểm) nằm ở {@code OnboardingFileSizeBvaTest} vì đó là
  * chức năng onboarding, không cùng một màn hình nhập liệu.
  *
  * <p><b>Nguyên tắc gộp</b>:
@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *       nào che kết quả của trường nào. TC1 phủ một lúc 7 tag.</li>
  *   <li>Case KHÔNG hợp lệ chỉ được đặt MỘT vi phạm mỗi lần. Nếu vừa để password quá ngắn vừa
  *       để email sai định dạng thì form vẫn báo lỗi, nhưng không biết nó bắt được vi phạm
- *       nào — hiện tượng che lỗi (masking). Vì vậy 11 tag {@code X} phải trải ra 11 case.</li>
+ *       nào — hiện tượng che lỗi (masking). Vì vậy 12 tag {@code X} phải trải ra 12 case.</li>
  * </ul>
  *
  * <p>Để chứng minh không có che lỗi, mỗi case không hợp lệ ở đây khẳng định
@@ -78,11 +78,11 @@ class RegisterTagCoverageTest {
     /** Cột: số hiệu case · độ dài fullName · độ dài email · độ dài password · tag phủ lần đầu. */
     static Stream<Arguments> caseHopLe() {
         return Stream.of(
-                Arguments.of(1, 1, 75, 6, "V1, V2, V3, V4, B1, B8, B15"),
-                Arguments.of(2, 2, 149, 7, "B2, B9, B16"),
-                Arguments.of(3, 50, 150, 18, "B3, B10, B17"),
-                Arguments.of(4, 99, 75, 29, "B4, B11"),
-                Arguments.of(5, 100, 75, 30, "B5, B12")
+                Arguments.of(1, 1, 6, 6, "V1, V2, V3, V4, B1, B8, B15"),
+                Arguments.of(2, 2, 7, 7, "B2, B9, B16"),
+                Arguments.of(3, 50, 75, 18, "B3, B10, B17"),
+                Arguments.of(4, 99, 149, 29, "B4, B11, B18"),
+                Arguments.of(5, 100, 150, 30, "B5, B12, B19")
         );
     }
 
@@ -122,16 +122,19 @@ class RegisterTagCoverageTest {
                 Arguments.of(12, null, emailNom, passwordNom, "fullName", "X7"),
                 Arguments.of(13, "", emailNom, passwordNom, "fullName", "B13"),
                 // --- email ---
-                Arguments.of(14, fullNameNom, "khong-phai-email", passwordNom, "email", "X8"),
-                Arguments.of(15, fullNameNom, emailOfLength(151), passwordNom, "email", "X9, B18"),
-                Arguments.of(16, fullNameNom, null, passwordNom, "email", "X10")
+                // TC14 dùng "a@b.c": ĐÚNG định dạng nên @Email cho qua, chỉ @Size(min = 6)
+                // chặn. Nhờ vậy vẫn đúng một vi phạm, không lẫn với lớp sai định dạng X10.
+                Arguments.of(14, fullNameNom, emailOfLength(5), passwordNom, "email", "X8, B20"),
+                Arguments.of(15, fullNameNom, emailOfLength(151), passwordNom, "email", "X9, B21"),
+                Arguments.of(16, fullNameNom, "khong-phai-email", passwordNom, "email", "X10"),
+                Arguments.of(17, fullNameNom, null, passwordNom, "email", "X11")
         );
     }
 
     @ParameterizedTest(name = "TC{0} | sai o {4} | phu {5}")
     @MethodSource("caseKhongHopLe")
     @Order(2)
-    @DisplayName("TC6-TC16 | form bi tu choi | dung mot vi pham, khong che loi")
+    @DisplayName("TC6-TC17 | form bi tu choi | dung mot vi pham, khong che loi")
     void tagCoverage_caseKhongHopLe_biTuChoi(int tc, String fullName, String email,
                                              String password, String truongBiLamSai,
                                              String tagsPhuLanDau) {
@@ -169,6 +172,9 @@ class RegisterTagCoverageTest {
      * vẫn coi là email hợp lệ kể cả khi chuỗi rất dài.
      */
     private static String emailOfLength(int length) {
+        if (length == 5) {
+            return "a@b.c";                       // 5 ký tự, vẫn đúng định dạng email
+        }
         int localLen = Math.min(64, length - 5);  // trừ '@' và ".co" và tối thiểu 1 ký tự miền
         int domainLen = length - localLen - 1;    // phần sau dấu '@'
         int prefixLen = domainLen - 3;            // trừ ".co"

@@ -42,9 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code fullName @NotBlank @Size(max=100)} · {@code email @NotBlank @Email @Size(max=150)}
  * · {@code password @NotBlank @Size(min=6, max=30)}.
  *
- * <p>LƯU Ý về biên dưới của email: {@code @Size} chỉ khai {@code max}, không khai {@code min}.
- * Giá trị min = 6 là <b>biên vận hành</b> — độ dài của email quy ước ngắn nhất "a@b.co".
- * Xem test {@code robustnessBva} case 16 để thấy hệ quả.
+ * <p>Biên dưới của email là 6, độ dài của email hợp lệ ngắn nhất có thật "a@b.co".
+ * Ràng buộc này ban đầu KHÔNG được khai: {@code @Size} chỉ có {@code max}, nên "a@b" ba ký tự
+ * vẫn lọt qua. Chính TC16 của lớp này phát hiện ra, và {@code RegisterFormDTO} đã được sửa
+ * thành {@code @Size(min = 6, max = 150)}.
  *
  * <p>Số test case: Standard BVA = 4n + 1 = 4×3 + 1 = <b>13</b>.
  * Robustness BVA = 6n + 1 = 6×3 + 1 = <b>19</b>.
@@ -126,9 +127,7 @@ class RegisterStandardBvaTest {
                 Arguments.of(14, FULLNAME_NOM, EMAIL_NOM, 5, "password = min-", false),
                 Arguments.of(15, FULLNAME_NOM, EMAIL_NOM, 31, "password = max+", false),
                 // Biến đang xét: email
-                // Case 16 KỲ VỌNG HỢP LỆ: @Size của email không khai min, nên email 5 ký tự
-                // (a@b.c) vẫn được chấp nhận. Đây là PHÁT HIỆN, không phải lỗi test.
-                Arguments.of(16, FULLNAME_NOM, 5, PASSWORD_NOM, "email = min- (bien duoi KHONG rang buoc)", true),
+                Arguments.of(16, FULLNAME_NOM, 5, PASSWORD_NOM, "email = min-", false),
                 Arguments.of(17, FULLNAME_NOM, 151, PASSWORD_NOM, "email = max+", false),
                 // Biến đang xét: fullName
                 Arguments.of(18, 0, EMAIL_NOM, PASSWORD_NOM, "fullName = min- (chuoi rong)", false),
