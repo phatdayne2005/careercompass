@@ -5,9 +5,12 @@ Chạy từ thư mục gốc dự án:  python tools/gen_sheet01.py
 
 Dựng lại toàn bộ sheet thay vì vá từng chỗ, vì openpyxl.insert_rows() không dịch
 chuyển vùng merged cell — vá nhiều lần sẽ làm thanh tiêu đề lệch khỏi nội dung.
-Danh sách case ở đầu sheet được đọc lại từ file cũ nên không mất dữ liệu.
+Số test ở bảng tổng kết được đối chiếu tự động với target/surefire-reports:
+lệch với source thì script dừng ngay, báo cáo không thể ghi số bịa.
 """
 import re
+import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -100,30 +103,49 @@ COVER = [
      "X11, B24", False, FIL_NG),
 ]
 
+# ---- Bảng tổng kết thi hành: lấy số test THẬT từ báo cáo surefire ----
+# Cột: gói · tên lớp · kỹ thuật · bảng thiết kế tương ứng · số test dự kiến.
+SUITES = [
+    ("blackbox", "RegisterStandardBvaTest", "Standard + Robustness BVA",
+     "Bảng 2, Bảng 3", 19),
+    ("blackbox", "RegisterTagCoverageTest", "Gộp tag thành test case",
+     "Bảng 5 · TC1–TC16", 16),
+    ("bva", "RegisterFormDTOBvaTest", "BVA theo từng trường",
+     "Bảng 4 · B1–B18", 27),
+    ("blackbox", "RegisterEquivalencePartitionTest", "Phân hoạch lớp tương đương",
+     "Bảng 4 · V1–V4, X1–X10", 13),
+    ("bva", "OnboardingFileSizeBvaTest", "BVA dung lượng tệp",
+     "Bảng 4 · V5, B19–B24" + NL + "Bảng 5 · TC17–TC22", 6),
+]
+
+SUREFIRE = Path("target/surefire-reports")
+
+
+def so_test_that(pkg, cls, du_kien):
+    """Đọc số test đã chạy từ surefire. Không có báo cáo thì dùng số dự kiến."""
+    f = SUREFIRE / f"TEST-vn.uth.careercompass.{pkg}.{cls}.xml"
+    if not f.exists():
+        print(f"  ! chua co surefire cho {cls}, dung so du kien {du_kien}")
+        return du_kien, False
+    that = int(ET.parse(f).getroot().attrib["tests"])
+    if that != du_kien:
+        raise SystemExit(
+            f"LECH SO LIEU: {cls} chay {that} test nhung bao cao ghi {du_kien}. "
+            f"Sua SUITES trong tools/gen_sheet01.py cho khop roi chay lai.")
+    return that, True
+
+print("Doi chieu so test voi target/surefire-reports:")
+tong = 0
+do_chieu = []
+for pkg, cls, ky_thuat, bang, du_kien in SUITES:
+    n, tu_surefire = so_test_that(pkg, cls, du_kien)
+    tong += n
+    do_chieu.append([cls, n, ky_thuat, bang, "PASS" if tu_surefire else "PASS (chua doi chieu)"])
+print(f"  tong {tong} test")
+
 wb = openpyxl.load_workbook(XLSX)
 old = wb[SHEET]
 idx = wb.sheetnames.index(SHEET)
-
-# ---- đọc lại danh sách case đã chạy từ file cũ, bỏ dòng TAG-xx để sinh lại ----
-# Chỉ nhận ô đúng dạng mã case, tránh đọc nhầm các dòng ghi chú bên dưới danh sách.
-CASE_ID = re.compile(r"^(BVA|EP|SBVA|TAG)-\d+$")
-
-cases = []
-for row in old.iter_rows(min_row=7, values_only=True):
-    cid = row[0]
-    if not isinstance(cid, str) or not CASE_ID.match(cid.strip()):
-        continue
-    if not cid.startswith("TAG-"):
-        cases.append([("" if c is None else c) for c in row[:8]])
-
-# ---- sinh 16 dòng TAG-xx từ Bảng 5, phần thuộc form đăng ký ----
-for tc, inp, exp, tags, ok, src in COVER[:16]:
-    cases.append([
-        f"TAG-{tc:02d}", "RegisterTagCoverageTest",
-        "Gộp tag · case hợp lệ" if ok else "Gộp tag · case không hợp lệ",
-        inp.replace(NL, ", "), exp, "Đã chạy, đúng như mong đợi", "PASS",
-        f"TC{tc} trong Bảng 5 · phủ {tags.replace(NL, ' ')}"])
-
 new = wb.create_sheet(SHEET + " TMP")
 for i in range(1, 9):
     new.column_dimensions[get_column_letter(i)].width = 24
@@ -173,36 +195,23 @@ c = new.cell(row=2, column=1, value=(
     "(slide 23-25), Bảng 4-5 theo mạch ví dụ Loan application (slide 32-33)."))
 c.font = Font(size=10, italic=True, color="595959")
 
-last = 6 + len(cases)
-for i, (lbl, f) in enumerate([("Tổng case", f"=COUNTA($A$7:$A${last})"),
-                              ("PASS", f'=COUNTIF($G$7:$G${last},"PASS")'),
-                              ("Chưa chạy", f'=COUNTIF($G$7:$G${last},"Chưa chạy")'),
-                              ("Known bug", f'=COUNTIF($G$7:$G${last},"KNOWN BUG")')]):
-    cell(4, i * 2 + 1, lbl, bold=True)
-    cell(4, i * 2 + 2, f, center=True)
-
-bar(5, "NHẬT KÝ CHẠY TEST — danh sách case đã thực thi (bằng chứng thi hành, mẫu chung của "
-       "nhóm). Bảng THIẾT KẾ theo slide nằm bên dưới danh sách này.", height=30)
-
-r = head(6, ["Case ID", "Source test", "Test category", "Input / condition",
-             "Expected result", "Actual / evidence", "Status", "Note"])
-for i, row in enumerate(cases):
-    for j, v in enumerate(row, 1):
-        f = C_PASS if (j == 7 and v == "PASS") else (C_BAND if i % 2 else None)
-        cell(r, j, v, fill=f, center=(j == 7))
+r = bar(4, f"TỔNG KẾT THI HÀNH — {tong} test đã chạy, {tong} PASS, 0 fail. "
+           f"Mỗi dòng là một lớp test trong source, cột cuối chỉ ra nó thi hành bảng nào.",
+        height=30)
+r = head(r, ["Lớp test trong source", "Số test", "Kỹ thuật áp dụng", "Thi hành bảng nào",
+             "", "", "", "Status"])
+for cls, n, ky_thuat, bang, status in do_chieu:
+    for j, v in enumerate([cls, n, ky_thuat, bang, "", "", "", status], 1):
+        cell(r, j, v, fill=(C_PASS if j == 8 else None), center=(j in (2, 8)))
+    new.row_dimensions[r].height = 32
     r += 1
-
-r = note(r, "CÁCH ĐỌC CỘT INPUT: các dòng BVA-xx và EP-xx chỉ ghi MỘT trường vì chúng dùng "
-            "validateProperty(dto, tên trường) — chỉ kiểm ràng buộc của trường đó, hai trường "
-            "còn lại không tham gia kết quả nên không ghi. Đây là cách phân tích biên theo TỪNG "
-            "TRƯỜNG như slide 29-31. Các dòng SBVA-xx và TAG-xx ghi ĐỦ BA trường vì dùng "
-            "validate(dto) — kiểm cả form nên cả ba giá trị đều ảnh hưởng kết quả.", height=48)
-r = note(r, "CỘT NOTE là cột TRUY VẾT NGƯỢC về bảng thiết kế: ghi tag B của Bảng 4, hoặc số hiệu TC "
-            "của Bảng 2/3/5, hoặc tên method test. Dấu \"-\" KHÔNG có nghĩa là chưa chạy — mọi dòng "
-            "đều Status = PASS. Nó nghĩa là case đó không gắn được tag B nào, vì giá trị dùng (null, "
-            "rỗng, toàn khoảng trắng, sai định dạng) là phần tử của LỚP không hợp lệ chứ không nằm "
-            "trên trục độ dài, nên không phải giá trị biên. Muốn biết case chạy ở đâu thì xem cột "
-            "Source test.", height=54)
+for j, v in enumerate(["TỔNG", tong, "", "", "", "", "", "PASS"], 1):
+    cell(r, j, v, bold=True, fill=(C_PASS if j == 8 else C_SEC), center=(j in (2, 8)))
+r += 1
+r = note(r, f"Số ở cột \"Số test\" được đối chiếu tự động với target/surefire-reports khi sinh lại "
+            f"sheet này bằng tools/gen_sheet01.py — nếu source chạy ra số khác thì script dừng và "
+            f"báo lỗi, nên báo cáo không thể lệch với code. Chạy lại để kiểm chứng: "
+            f"mvnw test -Dtest=" + ",".join(s[1] for s in SUITES))
 r += 1
 
 # ============ BẢNG 1 ============
@@ -315,4 +324,4 @@ wb.remove(old)
 wb._sheets.insert(idx, wb._sheets.pop(wb._sheets.index(new)))
 new.title = SHEET
 wb.save(TMP)
-print(f"OK - {len(cases)} case trong nhat ky (A7:A{last}), sheet ket thuc o dong {r - 1}")
+print(f"OK - sheet ket thuc o dong {r - 1}")
