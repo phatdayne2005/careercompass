@@ -42,11 +42,11 @@ public class ScraperService {
      * vai trò phần cứng/quản lý/phi kỹ thuật — &quot;engineer&quot; đơn thuần không đủ vì có cả cơ khí/hàng không).
      */
 <span class="fc" id="L44">    private static final List&lt;String&gt; SOFTWARE_SIGNALS = List.of(</span>
-<span class="fc" id="L45">            &quot;software&quot;, &quot;developer&quot;, &quot;full stack&quot;, &quot;fullstack&quot;, &quot;full-stack&quot;, &quot;backend&quot;, &quot;back end&quot;, &quot;back-end&quot;,</span>
-<span class="fc" id="L46">            &quot;frontend&quot;, &quot;front end&quot;, &quot;front-end&quot;, &quot;devops&quot;, &quot;data engineer&quot;, &quot;data scientist&quot;, &quot;data analyst&quot;,</span>
-<span class="fc" id="L47">            &quot;machine learning&quot;, &quot;ml engineer&quot;, &quot;ai engineer&quot;, &quot;cloud engineer&quot;, &quot;platform engineer&quot;,</span>
-<span class="fc" id="L48">            &quot;web develop&quot;, &quot;mobile develop&quot;, &quot;android&quot;, &quot;ios &quot;, &quot;programmer&quot;, &quot;sre&quot;, &quot;site reliability&quot;,</span>
-<span class="fc" id="L49">            &quot;qa engineer&quot;, &quot;security engineer&quot;, &quot;database engineer&quot;, &quot;infrastructure engineer&quot;);</span>
+            &quot;software&quot;, &quot;developer&quot;, &quot;full stack&quot;, &quot;fullstack&quot;, &quot;full-stack&quot;, &quot;backend&quot;, &quot;back end&quot;, &quot;back-end&quot;,
+            &quot;frontend&quot;, &quot;front end&quot;, &quot;front-end&quot;, &quot;devops&quot;, &quot;data engineer&quot;, &quot;data scientist&quot;, &quot;data analyst&quot;,
+            &quot;machine learning&quot;, &quot;ml engineer&quot;, &quot;ai engineer&quot;, &quot;cloud engineer&quot;, &quot;platform engineer&quot;,
+            &quot;web develop&quot;, &quot;mobile develop&quot;, &quot;android&quot;, &quot;ios &quot;, &quot;programmer&quot;, &quot;sre&quot;, &quot;site reliability&quot;,
+            &quot;qa engineer&quot;, &quot;security engineer&quot;, &quot;database engineer&quot;, &quot;infrastructure engineer&quot;);
 
     private final JobTrendRepository jobTrendRepository;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -106,12 +106,12 @@ public class ScraperService {
 <span class="fc" id="L106">                            .company(cap(company, 150))</span>
 <span class="fc" id="L107">                            .rawDescription(cap(raw, MAX_DESC))</span>
 <span class="fc" id="L108">                            .build());</span>
-                }
+<span class="fc" id="L109">                }</span>
             }
 <span class="fc" id="L111">        } catch (Exception e) {</span>
 <span class="fc" id="L112">            log.warn(&quot;[ScraperService] Lỗi khi cào The Muse: {}&quot;, e.getMessage());</span>
 <span class="fc" id="L113">            return 0;</span>
-        }
+<span class="fc" id="L114">        }</span>
 
 <span class="fc bfc" id="L116" title="All 2 branches covered.">        if (fresh.isEmpty()) {</span>
 <span class="fc" id="L117">            return 0;   // không xoá dữ liệu cũ nếu cào không ra gì</span>

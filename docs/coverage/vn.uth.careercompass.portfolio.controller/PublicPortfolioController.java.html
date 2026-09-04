@@ -28,15 +28,15 @@ public class PublicPortfolioController {
 
     @GetMapping(&quot;/{slug}&quot;)
     public String publicPortfolio(@PathVariable(&quot;slug&quot;) String slug, Model model) {
-<span class="nc" id="L31">        GitHubProfile profile = portfolioService.getProfileBySlug(slug)</span>
-<span class="nc" id="L32">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy portfolio công khai&quot;));</span>
+<span class="fc" id="L31">        GitHubProfile profile = portfolioService.getProfileBySlug(slug)</span>
+<span class="pc" id="L32">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Không tìm thấy portfolio công khai&quot;));</span>
 
-<span class="nc" id="L34">        User owner = userRepository.findById(profile.getUserId()).orElse(null);</span>
-<span class="nc" id="L35">        model.addAttribute(&quot;profile&quot;, profile);</span>
-<span class="nc" id="L36">        model.addAttribute(&quot;owner&quot;, owner);</span>
-<span class="nc" id="L37">        model.addAttribute(&quot;ownerInfo&quot;, portfolioService.getOwnerInfo(profile.getUserId()));</span>
-<span class="nc" id="L38">        model.addAttribute(&quot;repositories&quot;, portfolioService.getPublicRepos(profile.getId()));</span>
-<span class="nc" id="L39">        return &quot;portfolio/public&quot;;</span>
+<span class="fc" id="L34">        User owner = userRepository.findById(profile.getUserId()).orElse(null);</span>
+<span class="fc" id="L35">        model.addAttribute(&quot;profile&quot;, profile);</span>
+<span class="fc" id="L36">        model.addAttribute(&quot;owner&quot;, owner);</span>
+<span class="fc" id="L37">        model.addAttribute(&quot;ownerInfo&quot;, portfolioService.getOwnerInfo(profile.getUserId()));</span>
+<span class="fc" id="L38">        model.addAttribute(&quot;repositories&quot;, portfolioService.getPublicRepos(profile.getId()));</span>
+<span class="fc" id="L39">        return &quot;portfolio/public&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

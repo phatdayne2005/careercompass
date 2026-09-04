@@ -32,18 +32,18 @@ public class PortfolioController {
 
     @GetMapping(&quot;/manage&quot;)
     public String managePortfolio(Authentication authentication, Model model) {
-<span class="nc" id="L35">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L36">        GitHubProfile profile = portfolioService.getProfileByUser(user).orElse(null);</span>
+<span class="fc" id="L35">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L36">        GitHubProfile profile = portfolioService.getProfileByUser(user).orElse(null);</span>
 
         // Prefill ô username: ưu tiên profile đã sync, nếu chưa thì lấy từ hồ sơ user (onboarding)
-<span class="nc" id="L39">        model.addAttribute(&quot;githubUsername&quot;,</span>
-<span class="nc bnc" id="L40" title="All 2 branches missed.">                profile != null ? profile.getGithubUsername() : user.getGithubUsername());</span>
-<span class="nc" id="L41">        model.addAttribute(&quot;profile&quot;, profile);</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (profile != null) {</span>
-<span class="nc" id="L43">            model.addAttribute(&quot;repositories&quot;, portfolioService.getRepos(profile.getId()));</span>
-<span class="nc" id="L44">            model.addAttribute(&quot;shareUrl&quot;, baseUrl + &quot;/p/&quot; + profile.getSlug());</span>
+<span class="fc" id="L39">        model.addAttribute(&quot;githubUsername&quot;,</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">                profile != null ? profile.getGithubUsername() : user.getGithubUsername());</span>
+<span class="fc" id="L41">        model.addAttribute(&quot;profile&quot;, profile);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        if (profile != null) {</span>
+<span class="fc" id="L43">            model.addAttribute(&quot;repositories&quot;, portfolioService.getRepos(profile.getId()));</span>
+<span class="fc" id="L44">            model.addAttribute(&quot;shareUrl&quot;, baseUrl + &quot;/p/&quot; + profile.getSlug());</span>
         }
-<span class="nc" id="L46">        return &quot;portfolio/manage&quot;;</span>
+<span class="fc" id="L46">        return &quot;portfolio/manage&quot;;</span>
     }
 
     @PostMapping(&quot;/repos/{repoId}/toggle&quot;)
@@ -66,7 +66,7 @@ public class PortfolioController {
 <span class="nc" id="L66">        } catch (org.springframework.dao.DataIntegrityViolationException e) {</span>
             // Không để crash 500 khi vướng ràng buộc dữ liệu (vd DB cũ còn unique tàn dư trên github_username)
 <span class="nc" id="L68">            ra.addFlashAttribute(&quot;error&quot;, &quot;Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác.&quot;);</span>
-        }
+<span class="nc" id="L69">        }</span>
 <span class="nc" id="L70">        return &quot;redirect:/portfolio/manage&quot;;</span>
     }
 }

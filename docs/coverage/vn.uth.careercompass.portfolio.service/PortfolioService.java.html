@@ -139,7 +139,7 @@ public class PortfolioService {
 <span class="fc" id="L139">                    .githubProfile(profile)</span>
 <span class="fc" id="L140">                    .aiSummary(aiSummary)</span>
 <span class="fc" id="L141">                    .build()));</span>
-        }
+<span class="fc" id="L142">        }</span>
 <span class="fc" id="L143">        return saved;</span>
     }
 
@@ -160,14 +160,14 @@ public class PortfolioService {
 <span class="fc bfc" id="L160" title="All 2 branches covered.">        for (String branch : new String[]{&quot;main&quot;, &quot;master&quot;}) {</span>
             try {
 <span class="fc" id="L162">                String content = restTemplate.getForObject(</span>
-<span class="fc" id="L163">                        &quot;https://raw.githubusercontent.com/&quot; + username + &quot;/&quot; + repoName + &quot;/&quot; + branch + &quot;/README.md&quot;,</span>
-<span class="fc" id="L164">                        String.class);</span>
+                        &quot;https://raw.githubusercontent.com/&quot; + username + &quot;/&quot; + repoName + &quot;/&quot; + branch + &quot;/README.md&quot;,
+                        String.class);
 <span class="pc bpc" id="L165" title="2 of 4 branches missed.">                if (content != null &amp;&amp; !content.isBlank()) {</span>
 <span class="fc" id="L166">                    return content;</span>
                 }
 <span class="fc" id="L168">            } catch (RestClientException ignored) {</span>
                 // thử branch tiếp theo
-            }
+<span class="nc" id="L170">            }</span>
         }
 <span class="fc" id="L172">        return &quot;&quot;;</span>
     }
@@ -182,7 +182,7 @@ public class PortfolioService {
 <span class="pc bpc" id="L182" title="1 of 2 branches missed.">        String truncated = context.length() &gt; 3000 ? context.substring(0, 3000) : context;</span>
         try {
 <span class="fc" id="L184">            return llmClient.ask(&quot;Tóm tắt ngắn gọn 2-3 câu bằng tiếng Việt về mục tiêu và công nghệ chính của &quot;</span>
-<span class="fc" id="L185">                    + &quot;dự án GitHub \&quot;&quot; + repoName + &quot;\&quot; dựa trên README/mô tả sau:\n\n&quot; + truncated);</span>
+                    + &quot;dự án GitHub \&quot;&quot; + repoName + &quot;\&quot; dựa trên README/mô tả sau:\n\n&quot; + truncated);
 <span class="fc" id="L186">        } catch (Exception e) {</span>
             // LLM lỗi (thiếu key/API down) → fallback, không chặn sync
 <span class="pc bpc" id="L188" title="1 of 2 branches missed.">            String excerpt = truncated.length() &gt; 200 ? truncated.substring(0, 200) + &quot;...&quot; : truncated;</span>

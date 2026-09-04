@@ -43,7 +43,7 @@ public class CounselorTemplateController {
 <span class="nc bnc" id="L43" title="All 4 branches missed.">            if (t != null &amp;&amp; !t.trim().isEmpty()) {</span>
 <span class="nc" id="L44">                cleanTypes.add(t.toUpperCase().trim());</span>
             }
-        }
+<span class="nc" id="L46">        }</span>
 <span class="nc" id="L47">        return new java.util.ArrayList&lt;&gt;(cleanTypes);</span>
     }
  
@@ -63,7 +63,7 @@ public class CounselorTemplateController {
 <span class="nc" id="L63">            counselorTemplateService.createTemplate(name, description, careerRoleName);</span>
 <span class="nc" id="L64">        } catch (IllegalArgumentException e) {</span>
 <span class="nc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
-        }
+<span class="nc" id="L66">        }</span>
 <span class="nc" id="L67">        return &quot;redirect:/counselor/templates&quot;;</span>
     }
 
@@ -77,7 +77,7 @@ public class CounselorTemplateController {
 <span class="nc" id="L77">            counselorTemplateService.updateTemplate(id, name, description, careerRoleName);</span>
 <span class="nc" id="L78">        } catch (IllegalArgumentException e) {</span>
 <span class="nc" id="L79">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
-        }
+<span class="nc" id="L80">        }</span>
 <span class="nc" id="L81">        return &quot;redirect:/counselor/templates&quot;;</span>
     }
 
@@ -87,7 +87,7 @@ public class CounselorTemplateController {
 <span class="nc" id="L87">            counselorTemplateService.deleteTemplate(id);</span>
 <span class="nc" id="L88">        } catch (IllegalArgumentException e) {</span>
 <span class="nc" id="L89">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
-        }
+<span class="nc" id="L90">        }</span>
 <span class="nc" id="L91">        return &quot;redirect:/counselor/templates&quot;;</span>
     }
  

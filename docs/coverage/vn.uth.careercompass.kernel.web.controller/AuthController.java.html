@@ -43,7 +43,7 @@ public class AuthController {
 <span class="fc" id="L43">        } catch (EmailAlreadyExistsException e) {</span>
 <span class="fc" id="L44">            result.rejectValue(&quot;email&quot;, &quot;error.email&quot;, e.getMessage());</span>
 <span class="fc" id="L45">            return &quot;register&quot;;</span>
-        }
+<span class="fc" id="L46">        }</span>
 <span class="fc" id="L47">        return &quot;redirect:/login?registered&quot;;</span>
 
     }
@@ -102,7 +102,7 @@ public class AuthController {
 <span class="fc" id="L102">            model.addAttribute(&quot;tokenValid&quot;, false);</span>
 <span class="fc" id="L103">            model.addAttribute(&quot;error&quot;, &quot;Link đặt lại đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu link mới.&quot;);</span>
 <span class="fc" id="L104">            return &quot;reset-password&quot;;</span>
-        }
+<span class="fc" id="L105">        }</span>
 <span class="fc" id="L106">        return &quot;redirect:/login?resetSuccess&quot;;</span>
     }
 }

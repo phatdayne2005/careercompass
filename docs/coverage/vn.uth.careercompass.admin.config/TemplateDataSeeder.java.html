@@ -66,13 +66,13 @@ public class TemplateDataSeeder implements CommandLineRunner {
                 try {
 <span class="fc" id="L67">                    CuratedRoadmap roadmap = objectMapper.readValue(file.getInputStream(), CuratedRoadmap.class);</span>
 <span class="fc" id="L68">                    seedRoadmap(roadmap);</span>
-<span class="pc" id="L69">                } catch (Exception e) {</span>
+<span class="nc" id="L69">                } catch (Exception e) {</span>
 <span class="nc" id="L70">                    System.err.println(&quot;[TemplateDataSeeder] Bỏ qua file &quot; + file.getFilename() + &quot;: &quot; + e.getMessage());</span>
-                }
+<span class="fc" id="L71">                }</span>
             }
-<span class="pc" id="L73">        } catch (Exception e) {</span>
+<span class="nc" id="L73">        } catch (Exception e) {</span>
 <span class="nc" id="L74">            System.err.println(&quot;[TemplateDataSeeder] Lỗi quét data/roadmaps/*.json: &quot; + e.getMessage());</span>
-        }
+<span class="fc" id="L75">        }</span>
 <span class="fc" id="L76">    }</span>
 
     private void seedRoadmap(CuratedRoadmap cr) {
@@ -112,7 +112,7 @@ public class TemplateDataSeeder implements CommandLineRunner {
 <span class="nc" id="L112">                    .requiredLevel(1)</span>
 <span class="nc" id="L113">                    .build());</span>
 <span class="nc" id="L114">            bySkill.put(n.getSkill(), node);</span>
-        }
+<span class="nc" id="L115">        }</span>
 
         // Pass 2: gắn cha (theo tên skill trong CÙNG roadmap) + thêm link học.
 <span class="nc bnc" id="L118" title="All 2 branches missed.">        for (CuratedRoadmap.Node n : cr.getNodes()) {</span>
@@ -133,9 +133,9 @@ public class TemplateDataSeeder implements CommandLineRunner {
 <span class="nc bnc" id="L133" title="All 2 branches missed.">                            .resourceType(link.getType() == null ? &quot;ARTICLE&quot; : link.getType())</span>
 <span class="nc" id="L134">                            .description(&quot;Tài liệu học cho kỹ năng &quot; + n.getSkill() + &quot;.&quot;)</span>
 <span class="nc" id="L135">                            .build());</span>
-                }
+<span class="nc" id="L136">                }</span>
             }
-        }
+<span class="nc" id="L138">        }</span>
 <span class="nc" id="L139">    }</span>
 
     private Skill findOrCreateSkill(String name, String category) {

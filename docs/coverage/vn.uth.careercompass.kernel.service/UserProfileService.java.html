@@ -28,7 +28,7 @@ public class UserProfileService {
             // Tìm thực thể CareerRole theo id, Không thấy thì ném lỗi
 <span class="fc" id="L29">            CareerRole careerRole = careerRoleRepository.findById(targetRoleId)</span>
 <span class="fc" id="L30">                    .orElseThrow(() -&gt; new IllegalArgumentException(</span>
-<span class="fc" id="L31">                            &quot;Không tìm thấy vai trò nghề nghiệp có ID: &quot; + targetRoleId));</span>
+                            &quot;Không tìm thấy vai trò nghề nghiệp có ID: &quot; + targetRoleId));
             // gán thực thể CareerRole cho user
 <span class="fc" id="L33">            user.setCareerRole(careerRole);</span>
             // Lưu user xuống DB
@@ -37,7 +37,7 @@ public class UserProfileService {
             // Xử lý lỗi
 <span class="fc" id="L38">            System.err.println(&quot;Lỗi khi thiết lập định hướng nghề nghiệp: &quot; + e.getMessage());</span>
 <span class="fc" id="L39">            throw new RuntimeException(&quot;Cập nhật định hướng nghề nghiệp thất bại&quot;, e);</span>
-        }
+<span class="fc" id="L40">        }</span>
 <span class="fc" id="L41">    }</span>
 
     public void setGithub(User user, String githubUsername) {
@@ -64,7 +64,7 @@ public class UserProfileService {
 <span class="fc bfc" id="L64" title="All 2 branches covered.">        for (Skill skill : skills) {</span>
 <span class="fc" id="L65">            UserSkill userSkill = UserSkill.builder().user(user).skill(skill).build();</span>
 <span class="fc" id="L66">            userSkillRepository.save(userSkill);</span>
-        }
+<span class="fc" id="L67">        }</span>
 <span class="fc" id="L68">    }</span>
 
     /** Đánh dấu user đã hoàn thành 3 bước Onboarding. */

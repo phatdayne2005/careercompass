@@ -39,7 +39,7 @@ public class ProgressService {
         // Gating: không cho đánh dấu đang học/hoàn thành khi node còn bị khóa (tầng trước chưa xong).
 <span class="fc bfc" id="L40" title="All 4 branches covered.">        if (!ProgressStatus.NOT_STARTED.equals(status) &amp;&amp; roadmapService.isNodeLocked(user, skillNode)) {</span>
 <span class="fc" id="L41">            throw new ResponseStatusException(HttpStatus.FORBIDDEN,</span>
-<span class="fc" id="L42">                    &quot;Cần hoàn thành các node ở tầng trước để mở khóa node này&quot;);</span>
+                    &quot;Cần hoàn thành các node ở tầng trước để mở khóa node này&quot;);
         }
 
 <span class="fc" id="L45">        UserNodeProgress progress = userNodeProgressRepository.findByUserAndSkillNode(user, skillNode)</span>

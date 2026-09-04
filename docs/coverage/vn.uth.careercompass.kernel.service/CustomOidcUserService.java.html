@@ -36,10 +36,10 @@ public class CustomOidcUserService extends OidcUserService {
 <span class="nc" id="L36">        var authorities = List.of(new SimpleGrantedAuthority(&quot;ROLE_&quot; + user.getRole().getName().name()));</span>
 
 <span class="nc" id="L38">        return new DefaultOidcUser(</span>
-<span class="nc" id="L39">                authorities,</span>
+                authorities,
 <span class="nc" id="L40">                oidcUser.getIdToken(),</span>
 <span class="nc" id="L41">                oidcUser.getUserInfo(),</span>
-<span class="nc" id="L42">                &quot;email&quot;</span>
+                &quot;email&quot;
         );
     }
 

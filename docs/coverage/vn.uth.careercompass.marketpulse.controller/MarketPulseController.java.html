@@ -14,9 +14,9 @@ public class MarketPulseController {
 
     @GetMapping(&quot;/market/pulse&quot;)
     public String pulsePage(Model model) {
-<span class="nc" id="L17">        model.addAttribute(&quot;activeNav&quot;, &quot;market&quot;);</span>
-<span class="nc" id="L18">        model.addAttribute(&quot;pulse&quot;, marketPulseService.getMarketPulse());</span>
-<span class="nc" id="L19">        return &quot;market/pulse&quot;;</span>
+<span class="fc" id="L17">        model.addAttribute(&quot;activeNav&quot;, &quot;market&quot;);</span>
+<span class="fc" id="L18">        model.addAttribute(&quot;pulse&quot;, marketPulseService.getMarketPulse());</span>
+<span class="fc" id="L19">        return &quot;market/pulse&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

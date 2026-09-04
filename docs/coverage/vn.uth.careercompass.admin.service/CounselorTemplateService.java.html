@@ -80,7 +80,7 @@ public class CounselorTemplateService {
 <span class="fc bfc" id="L80" title="All 2 branches covered.">        } else if (skillId != null) {</span>
 <span class="fc" id="L81">            skill = skillRepository.findById(skillId)</span>
 <span class="fc" id="L82">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Không tìm thấy kỹ năng có ID: &quot; + skillId));</span>
-<span class="fc" id="L83">        } else {</span>
+        } else {
 <span class="fc" id="L84">            throw new IllegalArgumentException(&quot;Vui lòng chọn kỹ năng sẵn có hoặc nhập tên kỹ năng mới!&quot;);</span>
         }
 

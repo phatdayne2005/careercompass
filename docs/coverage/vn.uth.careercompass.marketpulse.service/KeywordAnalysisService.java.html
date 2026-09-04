@@ -20,9 +20,9 @@ public class KeywordAnalysisService {
 
     /** Danh sách công nghệ theo dõi — mở rộng dần, có thể chuyển ra DB/config sau. */
 <span class="fc" id="L22">    private static final List&lt;String&gt; TRACKED_KEYWORDS = List.of(</span>
-<span class="fc" id="L23">            &quot;Java&quot;, &quot;Spring Boot&quot;, &quot;React&quot;, &quot;Python&quot;, &quot;Docker&quot;, &quot;Kubernetes&quot;,</span>
-<span class="fc" id="L24">            &quot;AWS&quot;, &quot;SQL&quot;, &quot;Node.js&quot;, &quot;TypeScript&quot;, &quot;CI/CD&quot;, &quot;Microservices&quot;</span>
-<span class="fc" id="L25">    );</span>
+            &quot;Java&quot;, &quot;Spring Boot&quot;, &quot;React&quot;, &quot;Python&quot;, &quot;Docker&quot;, &quot;Kubernetes&quot;,
+            &quot;AWS&quot;, &quot;SQL&quot;, &quot;Node.js&quot;, &quot;TypeScript&quot;, &quot;CI/CD&quot;, &quot;Microservices&quot;
+    );
 
     /** Đếm số JD nhắc tới từng keyword trong N ngày gần nhất, lấy top `limit`. */
     public List&lt;KeywordStatDTO&gt; topKeywords(int days, int limit) {
@@ -37,9 +37,9 @@ public class KeywordAnalysisService {
 <span class="fc bfc" id="L37" title="All 4 branches covered.">                if (trend.getRawDescription() != null &amp;&amp; pattern.matcher(trend.getRawDescription()).find()) {</span>
 <span class="fc" id="L38">                    count++;</span>
                 }
-            }
+<span class="fc" id="L40">            }</span>
 <span class="fc bfc" id="L41" title="All 2 branches covered.">            if (count &gt; 0) counter.put(keyword, count);</span>
-        }
+<span class="fc" id="L42">        }</span>
 
 <span class="fc" id="L44">        return counter.entrySet().stream()</span>
 <span class="fc" id="L45">                .sorted(Map.Entry.&lt;String, Integer&gt;comparingByValue().reversed())</span>

@@ -21,9 +21,9 @@ public class MentorService {
     private final ChatMessageRepository messageRepo;
     private final LlmClient llmClient;
 
-<span class="fc" id="L24">    public MentorService(MentorSessionRepository sessionRepo,</span>
+    public MentorService(MentorSessionRepository sessionRepo,
                           ChatMessageRepository messageRepo,
-                          LlmClient llmClient) {
+<span class="fc" id="L26">                          LlmClient llmClient) {</span>
 <span class="fc" id="L27">        this.sessionRepo = sessionRepo;</span>
 <span class="fc" id="L28">        this.messageRepo = messageRepo;</span>
 <span class="fc" id="L29">        this.llmClient = llmClient;</span>
@@ -68,7 +68,7 @@ public class MentorService {
 <span class="fc" id="L68">            log.error(&quot;[MentorService] Gọi LLM thất bại: {}&quot;, e.toString(), e);</span>
 <span class="fc" id="L69">            aiReply = &quot;Xin lỗi, hiện chưa kết nối được AI Mentor (kiểm tra cấu hình GEMINI_API_KEY). &quot;</span>
                     + &quot;Bạn vui lòng thử lại sau.&quot;;
-        }
+<span class="fc" id="L71">        }</span>
 
         // 3. Lưu phản hồi AI
 <span class="fc" id="L74">        ChatMessage aiMsg = new ChatMessage();</span>
@@ -97,10 +97,10 @@ public class MentorService {
 
         Câu hỏi: %s
 <span class="fc" id="L99">        &quot;&quot;&quot;.formatted(</span>
-<span class="fc" id="L100">            targetRoleInfo,</span>
+            targetRoleInfo,
 <span class="fc bfc" id="L101" title="All 2 branches covered.">            user.getGithubUsername() != null ? user.getGithubUsername() : &quot;chưa liên kết&quot;,</span>
-<span class="fc" id="L102">            transcriptInfo,</span>
-<span class="fc" id="L103">            userText</span>
+            transcriptInfo,
+            userText
     );
 }
 }

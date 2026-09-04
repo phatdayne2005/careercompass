@@ -114,7 +114,7 @@ public class OnboardingController {
 <span class="nc" id="L114">            } catch (Exception e) {</span>
 <span class="nc" id="L115">                redirectAttributes.addFlashAttribute(&quot;error&quot;, &quot;Lỗi khi tải lên bảng điểm: &quot; + e.getMessage());</span>
 <span class="nc" id="L116">                return &quot;redirect:/onboarding/step2&quot;;</span>
-            }
+<span class="nc" id="L117">            }</span>
         }
 
         // Xử lý GitHub username
@@ -160,8 +160,8 @@ public class OnboardingController {
 
     /** Thứ tự nhóm hiển thị ở step3; nhóm ngoài danh sách này xếp cuối. */
 <span class="fc" id="L162">    private static final List&lt;String&gt; CATEGORY_ORDER = List.of(</span>
-<span class="fc" id="L163">            &quot;Ngôn ngữ&quot;, &quot;Frontend&quot;, &quot;Backend&quot;, &quot;Database&quot;, &quot;Mobile&quot;,</span>
-<span class="fc" id="L164">            &quot;Data &amp; AI&quot;, &quot;DevOps &amp; Cloud&quot;, &quot;Network&quot;, &quot;Tools&quot;, &quot;Nền tảng&quot;);</span>
+            &quot;Ngôn ngữ&quot;, &quot;Frontend&quot;, &quot;Backend&quot;, &quot;Database&quot;, &quot;Mobile&quot;,
+            &quot;Data &amp; AI&quot;, &quot;DevOps &amp; Cloud&quot;, &quot;Network&quot;, &quot;Tools&quot;, &quot;Nền tảng&quot;);
 
     private Map&lt;String, List&lt;Skill&gt;&gt; groupSkillsByCategory() {
 <span class="nc" id="L167">        Map&lt;String, List&lt;Skill&gt;&gt; byCategory = skillRepository.findAll().stream()</span>
@@ -174,7 +174,7 @@ public class OnboardingController {
 <span class="nc" id="L174">                list.sort(Comparator.comparing(Skill::getName));</span>
 <span class="nc" id="L175">                ordered.put(category, list);</span>
             }
-        }
+<span class="nc" id="L177">        }</span>
         // Nhóm lạ (nếu có) xếp sau cùng, không bỏ sót skill nào
 <span class="nc" id="L179">        byCategory.forEach((category, list) -&gt; {</span>
 <span class="nc" id="L180">            list.sort(Comparator.comparing(Skill::getName));</span>

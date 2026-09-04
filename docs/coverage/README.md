@@ -1,6 +1,6 @@
 # Báo cáo độ bao phủ mã nguồn — JaCoCo
 
-Ảnh chụp báo cáo bao phủ tại thời điểm hoàn thành **Phần A — kỹ thuật kiểm thử hộp đen**.
+Ảnh chụp báo cáo bao phủ sau khi hoàn thành **Phần A — kỹ thuật kiểm thử hộp đen**.
 
 ## Cách xem
 
@@ -12,48 +12,78 @@ GitHub không tự hiển thị được vì đây là trang HTML tĩnh nhiều 
 
 | Chỉ số | Trước Phần A | Sau Phần A | Tăng |
 |---|---|---|---|
-| Dòng lệnh (Line) | 60,1% | **72,6%** | +12,5 |
-| Nhánh (Branch) | 48,2% | **65,1%** | +16,9 |
-| Độ phức tạp được phủ | 53,4% | 65,2% | +11,8 |
-| Phương thức | 65,1% | 75,6% | +10,5 |
-| Lớp | 75,4% | 84,6% | +9,2 |
+| Dòng lệnh (Line) | 60,1% | **75,1%** | +15,0 |
+| Nhánh (Branch) | 48,2% | **66,5%** | +18,3 |
+| Độ phức tạp được phủ | 53,4% | **66,4%** | +13,0 |
+| Phương thức | 65,1% | **77,8%** | +12,7 |
+| Lớp | 75,4% | **89,2%** | +13,8 |
 
-Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 unit test và chưa có test hộp đen.
-Cột "Sau" đo sau khi bổ sung 32 test của Phần A.
+Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 test và chưa có test hộp đen nào.
+
+Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có
+**362 test**, trong đó:
+
+| Số test | Gói | Kỹ thuật |
+|---:|---|---|
+| 19 | `blackbox.RegisterStandardBvaTest` | Standard + Robustness BVA |
+| 17 | `blackbox.RegisterTagCoverageTest` | Gộp tag thành test case |
+| 14 | `blackbox.RegisterEquivalencePartitionTest` | Phân hoạch lớp tương đương |
+| 6 | `bva.OnboardingFileSizeBvaTest` | BVA dung lượng tệp |
+| 6 | `blackbox.ProgressDecisionTableTest` | Bảng quyết định |
+| 4 | `blackbox.TokenValidityDecisionTableTest` | Bảng quyết định |
+| 9 | `blackbox.ProgressStateTransitionTest` | Chuyển đổi trạng thái |
+| **75** | | **thuộc phạm vi báo cáo Phần A** |
 
 ## Ý nghĩa
 
-Ba mươi hai test của Phần A được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp
-tương đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra
-từ **đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
+Bảy mươi lăm test này được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp tương
+đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra từ
+**đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
 
-Vậy mà bao phủ nhánh tăng gần 17 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
+Vậy mà bao phủ nhánh tăng hơn 18 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
 giá trị thực chất, không chỉ là bài tập vẽ bảng.
 
-Nhưng vẫn còn **34,9% nhánh chưa chạm** — đúng như slide 51 của chương IV:
+Nhưng vẫn còn **33,5% nhánh chưa chạm** — đúng như slide 51 của chương IV:
 *độ bao phủ 100% không có nghĩa là 100% được test*, và chiều ngược lại cũng đúng:
 phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn mã nguồn.
 
 ## Ví dụ cụ thể
 
-Mở `vn.uth.careercompass.roadmap.service/ProgressService.java.html`, xem hàm
-`updateProgress()`:
+Mở `vn.uth.careercompass.onboarding.service/OnboardingService.java.html`, xem hàm
+`saveTranscript()`:
 
-- Bảng quyết định của Phần A phủ **6/6 rule** — đạt tiêu chí đủ của kỹ thuật
-- Nhưng bao phủ nhánh của hàm này chỉ **83,3%**
+- BVA dung lượng tệp của Phần A phủ **6/6 giá trị biên** — `0`, `1 byte`, `5 MB`,
+  `10MB−1`, `10 MB`, `10MB+1`. Đạt tiêu chí đủ của kỹ thuật, tag `B22`–`B27` xanh hết
+- Nhưng bao phủ nhánh của lớp này chỉ **75,0%** (9/12)
 
-Ba nhánh còn thiếu đều là **kiểm tra đầu vào**, không thuộc luật nghiệp vụ nên bảng
-quyết định không mô hình hoá:
+Ba nhánh còn thiếu nằm gọn ở **một dòng duy nhất**, dòng 38:
 
 ```java
-if (skillNodeId == null)   → 400 Bad Request
-if (status == null)        → 400 Bad Request
-.orElseThrow(...)          → 404 Not Found
+if (!ext.equals(".pdf") && !ext.equals(".png")
+        && !ext.equals(".jpg") && !ext.equals(".jpeg")) {
+    throw new IllegalArgumentException("Chỉ chấp nhận file PDF, PNG hoặc JPG.");
+}
 ```
 
-Muốn phủ nốt phải dùng kỹ thuật **hộp trắng** (mục IV.4), tính số test tối thiểu bằng
-độ phức tạp Cyclomatic. Hàm `updateProgress()` có **V(G) = 7**, bộ test hiện tại đi được
-5 đường — thiếu đúng 2, khớp với hai nhánh `null` chưa chạm.
+Dòng này có 8 nhánh, mới đi được 5. Lý do rất rõ: mọi test đều đặt tên tệp là
+`transcript.pdf`, nên ba nhánh `.png`, `.jpg`, `.jpeg` chưa bao giờ được thử.
+
+Đây là minh hoạ sạch cho giới hạn của kỹ thuật giá trị biên: **đuôi tệp là một BIẾN
+ĐẦU VÀO KHÁC**, không nằm trên trục dung lượng. BVA dung lượng dù làm hoàn hảo đến đâu
+cũng không thể chạm tới nó — muốn phủ nốt phải phân hoạch lớp tương đương trên đuôi
+tệp, hoặc dùng kỹ thuật **hộp trắng** (mục IV.4) để lần theo từng nhánh của biểu thức
+điều kiện.
+
+Ngược lại, những lớp mà kỹ thuật hộp đen mô hình hoá được trọn vẹn thì đã phủ kín:
+
+| Lớp | Nhánh | Kỹ thuật đã áp |
+|---|---|---|
+| `ProgressService` | **100%** (12/12) | Bảng quyết định 6 luật + chuyển đổi trạng thái 9 cạnh |
+| `PasswordResetToken` | **100%** (4/4) | Bảng quyết định 4 luật |
+| `PasswordResetService` | **100%** (6/6) | — |
+
+`ProgressService` từng dừng ở 83,3% ở lần đo trước, do ba nhánh kiểm tra đầu vào nằm
+ngoài bảng quyết định. Bộ test hiện tại đã phủ nốt.
 
 ## Bảng màu của JaCoCo
 
@@ -73,4 +103,7 @@ docker compose up -d          # cần MySQL cho CareerCompassApplicationTests
 ./mvnw clean test             # JaCoCo tự sinh báo cáo sau khi test xong
 ```
 
-Kết quả nằm ở `target/site/jacoco/index.html`.
+Kết quả nằm ở `target/site/jacoco/index.html`. Thư mục này là bản sao của nó.
+
+Dùng `clean` để tránh cảnh báo `Execution data ... does not match` — cảnh báo đó xuất
+hiện khi `target/jacoco.exec` còn dữ liệu của bytecode cũ.

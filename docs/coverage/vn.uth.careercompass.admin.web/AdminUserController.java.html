@@ -23,7 +23,7 @@ public class AdminUserController {
 <span class="nc bnc" id="L23" title="All 4 branches missed.">        if (keyword != null &amp;&amp; !keyword.trim().isEmpty()) {</span>
 <span class="nc" id="L24">            users = adminUserService.searchUsers(keyword.trim());</span>
 <span class="nc" id="L25">            model.addAttribute(&quot;keyword&quot;, keyword.trim());</span>
-<span class="nc" id="L26">        } else {</span>
+        } else {
 <span class="nc" id="L27">            users = adminUserService.getAllUsers();</span>
         }
 <span class="nc" id="L29">        model.addAttribute(&quot;users&quot;, users);</span>
