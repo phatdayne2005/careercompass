@@ -1,6 +1,9 @@
 package vn.uth.careercompass.blackbox;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -62,6 +65,8 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Chuyen doi trang thai - tien do hoc node ky nang")
+// Giữ thứ tự ST-01..ST-09 đúng như các dòng của bảng chuyển trạng thái.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProgressStateTransitionTest {
 
     @Mock
@@ -108,6 +113,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-01 | NOT_STARTED -> IN_PROGRESS (node mo khoa)")
+    @Order(1)
     void st01_notStarted_toInProgress() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -124,6 +130,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-02 | IN_PROGRESS -> DONE, phai ghi completedAt va nhat ky")
+    @Order(2)
     void st02_inProgress_toDone() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -142,6 +149,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-03 | DONE -> NOT_STARTED, phai XOA completedAt")
+    @Order(3)
     void st03_done_toNotStarted() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -157,6 +165,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-04 | DONE -> IN_PROGRESS, phai XOA completedAt")
+    @Order(4)
     void st04_done_toInProgress() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -172,6 +181,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-05 | NOT_STARTED -> DONE (node mo khoa), nhay thang khong qua IN_PROGRESS")
+    @Order(5)
     void st05_notStarted_toDone() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -188,6 +198,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-06 | IN_PROGRESS -> NOT_STARTED, bo danh dau giua chung")
+    @Order(6)
     void st06_inProgress_toNotStarted() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -208,6 +219,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-07 | NOT_STARTED -> DONE khi node bi khoa: phai bi chan")
+    @Order(7)
     void st07_notStarted_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -224,6 +236,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-08 | IN_PROGRESS -> DONE khi node bi khoa: phai bi chan")
+    @Order(8)
     void st08_inProgress_toDone_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -241,6 +254,7 @@ class ProgressStateTransitionTest {
 
     @Test
     @DisplayName("ST-09 | DONE -> IN_PROGRESS khi node bi khoa: phai bi chan")
+    @Order(9)
     void st09_done_toInProgress_nodeLocked_biChan() {
         SkillNode node = sampleNode();
         User user = new User();

@@ -1,6 +1,9 @@
 package vn.uth.careercompass.blackbox;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -57,6 +60,8 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Bang quyet dinh - luat chan cap nhat tien do hoc")
+// Giữ thứ tự R1..R6 đúng như các cột của bảng quyết định trong báo cáo.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProgressDecisionTableTest {
 
     @Mock
@@ -94,6 +99,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R1 | NOT_STARTED + node bi khoa -> cho phep (bo danh dau luon duoc)")
+    @Order(1)
     void rule1_notStarted_nodeLocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -109,6 +115,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R2 | NOT_STARTED + node mo khoa -> cho phep")
+    @Order(2)
     void rule2_notStarted_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -124,6 +131,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R4 | IN_PROGRESS + node mo khoa -> cho phep, khong ghi completedAt")
+    @Order(4)
     void rule4_inProgress_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -140,6 +148,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R6 | DONE + node mo khoa -> cho phep, ghi completedAt va nhat ky")
+    @Order(6)
     void rule6_done_nodeUnlocked_choPhep() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -160,6 +169,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R3 | IN_PROGRESS + node bi khoa -> TU CHOI 403")
+    @Order(3)
     void rule3_inProgress_nodeLocked_tuChoi() {
         SkillNode node = sampleNode();
         User user = new User();
@@ -178,6 +188,7 @@ class ProgressDecisionTableTest {
 
     @Test
     @DisplayName("R5 | DONE + node bi khoa -> TU CHOI 403")
+    @Order(5)
     void rule5_done_nodeLocked_tuChoi() {
         SkillNode node = sampleNode();
         User user = new User();

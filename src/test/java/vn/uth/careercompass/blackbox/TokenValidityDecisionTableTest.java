@@ -1,6 +1,9 @@
 package vn.uth.careercompass.blackbox;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test;
 import vn.uth.careercompass.kernel.entity.PasswordResetToken;
 
@@ -53,6 +56,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * qua {@code resetPassword}, còn R4 (vừa hết hạn vừa đã dùng) chưa test bao giờ.
  */
 @DisplayName("Bang quyet dinh - hieu luc cua token dat lai mat khau")
+// Giữ thứ tự R1..R4 đúng như các cột của bảng quyết định trong báo cáo.
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TokenValidityDecisionTableTest {
 
     /** Dựng token theo đúng một ô của bảng quyết định. */
@@ -68,6 +73,7 @@ class TokenValidityDecisionTableTest {
 
     @Test
     @DisplayName("R1 | con han + chua dung -> token HOP LE")
+    @Order(1)
     void rule1_conHan_chuaDung_hopLe() {
         PasswordResetToken t = token(false, false);
 
@@ -78,6 +84,7 @@ class TokenValidityDecisionTableTest {
 
     @Test
     @DisplayName("R2 | het han + chua dung -> token KHONG hop le")
+    @Order(2)
     void rule2_hetHan_chuaDung_khongHopLe() {
         PasswordResetToken t = token(true, false);
 
@@ -88,6 +95,7 @@ class TokenValidityDecisionTableTest {
 
     @Test
     @DisplayName("R3 | con han + da dung -> token KHONG hop le")
+    @Order(3)
     void rule3_conHan_daDung_khongHopLe() {
         PasswordResetToken t = token(false, true);
 
@@ -98,6 +106,7 @@ class TokenValidityDecisionTableTest {
 
     @Test
     @DisplayName("R4 | het han + da dung -> token KHONG hop le")
+    @Order(4)
     void rule4_hetHan_daDung_khongHopLe() {
         PasswordResetToken t = token(true, true);
 
