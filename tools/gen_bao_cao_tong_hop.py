@@ -306,7 +306,8 @@ for k, tang, n, cc, kq, sh, dat in [
     ("Gộp tag thành test case (slide 33)", "Đơn vị", 17, "JUnit 5", "17 / 17", "01", True),
     ("Giá trị biên — dung lượng tệp", "Đơn vị", 6, "JUnit 5", "6 / 6", "01", True),
     ("Bảng quyết định", "Đơn vị", 10, "JUnit 5", "10 / 10", "03, 03b", True),
-    ("Chuyển đổi trạng thái", "Đơn vị", 9, "JUnit 5", "9 / 9", "04", True),
+    ("Chuyển đổi trạng thái — tiến độ node", "Đơn vị", 9, "JUnit 5", "9 / 9", "04", True),
+    ("Chuyển đổi trạng thái — vòng đời token", "Đơn vị", 7, "JUnit 5", "7 / 7", "04b", True),
     ("Hộp trắng — đường cơ sở, CFG", "Đơn vị", "xem B5", "JUnit 5 + JaCoCo", "đạt",
      "B1 → B5", True),
     ("Kiểm thử API", "Tích hợp", "92 case", "Postman / Newman",
@@ -344,7 +345,7 @@ r += 1
 r = thanh(ws, r, "BẢNG 3 — TỔNG SỐ PHÉP KIỂM ĐÃ CHẠY")
 r = tieu_de(ws, r, ["Tầng", "Đơn vị đếm", "Số lượng", "Không đạt", "", "Ghi chú", "", ""])
 for tang, dv, n, fail, ghi in [
-    ("Đơn vị (JUnit)", "test method", 371, 0,
+    ("Đơn vị (JUnit)", "test method", 378, 0,
      "Toàn bộ dự án, gồm cả hộp đen và hộp trắng"),
     ("Tích hợp (Postman)", "phép kiểm", pm_stats["assertions"]["total"], 0,
      "Chạy trên cơ sở dữ liệu vừa gieo lại"),
@@ -502,7 +503,7 @@ for ten in trang.sheetnames:
 
 # Thứ tự trình bày: tổng quan trước, rồi hộp đen, hộp trắng, API, giao diện.
 thu_tu = (["00. Tong quan"]
-          + [t for t in wb.sheetnames if t[:2] in ("01", "03", "04")]
+          + [t for t in wb.sheetnames if t[:2] in ("01", "03", "04")]  # gồm cả 03b và 04b
           + [t for t in wb.sheetnames if t.startswith("B") and t != "00. Tong quan"]
           + ["05. API - Postman", "06. E2E - CodeceptJS", "07. Khiem khuyet"])
 wb._sheets = [wb[t] for t in thu_tu]
