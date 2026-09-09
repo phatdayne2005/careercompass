@@ -1,0 +1,422 @@
+<mxfile host="Electron" modified="2026-09-09T09:00:00.000Z" agent="draw.io" version="24.6.4" type="device">
+  <diagram id="cfg_careercompass" name="CFG - CareerCompass White-box">
+    <mxGraphModel dx="1800" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============================================================ -->
+        <!-- TIÊU ĐỀ CHUNG -->
+        <!-- ============================================================ -->
+        <mxCell id="title_main" value="Đồ Thị Luồng Điều Khiển (CFG) — Kiểm Thử Hộp Trắng&#xa;RoadmapService.java · CareerCompass · UTH SWP02" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontStyle=1;fontColor=#1F4E79;" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="1200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- LEGEND -->
+        <!-- ============================================================ -->
+        <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#BFBFBF;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="80" width="230" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="CHÚ GIẢI KÝ HIỆU" style="text;html=1;align=center;fontStyle=1;fontSize=11;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1380" y="85" width="230" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_start" value="START / END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1F4E79;fontColor=#ffffff;strokeColor=#1F4E79;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1395" y="120" width="90" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_action" value="Hành động / Câu lệnh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1395" y="170" width="90" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_cond" value="Điều kiện (Predicate)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="218" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="leg_return" value="Trả về kết quả" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1395" y="280" width="90" height="34" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- PHẦN 1: calculatePercent(int completed, int total)            -->
+        <!-- V(G) = 2  |  N=4  |  E=4  |  P=1  |  R=2                   -->
+        <!-- ============================================================ -->
+
+        <!-- Header box -->
+        <mxCell id="h1" value="① calculatePercent(int completed, int total)&#xa;V(G) = 2  |  N = 4  |  E = 4  |  P = 1  |  Basis Paths = 2" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=#1F4E79;fillColor=#DDEBF7;rounded=1;fontSize=12;fontStyle=1;fontColor=#1F4E79;" vertex="1" parent="1">
+          <mxGeometry x="80" y="80" width="560" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- N1: START -->
+        <mxCell id="cp_n1" value="N1&#xa;START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1F4E79;fontColor=#ffffff;strokeColor=#1F4E79;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="165" width="100" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N2: Action — nhan tham so -->
+        <mxCell id="cp_n2" value="N2&#xa;Nhận (completed, total)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="245" y="240" width="150" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N3: Predicate -->
+        <mxCell id="cp_n3" value="N3&#xa;total == 0 ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="318" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- N4: return 0.0 (TRUE branch) -->
+        <mxCell id="cp_n4" value="N4&#xa;return 0.0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="100" y="418" width="110" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N5: Calculate (FALSE branch) -->
+        <mxCell id="cp_n5" value="N5&#xa;Math.round(completed&#xa;x 10000.0 / total) / 100.0" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="418" width="160" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N6: return result (FALSE path) -->
+        <mxCell id="cp_n6" value="N6&#xa;return result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="420" y="500" width="120" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N7: END (merged) -->
+        <mxCell id="cp_n7" value="N7&#xa;END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1F4E79;fontColor=#ffffff;strokeColor=#1F4E79;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="580" width="120" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- Edges for calculatePercent -->
+        <mxCell id="cp_e1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="cp_n1" target="cp_n2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cp_e2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="cp_n2" target="cp_n3" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cp_e3" value="TRUE" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontStyle=1;fontColor=#E84545;fontSize=10;" edge="1" source="cp_n3" target="cp_n4" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="155" y="348" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cp_e4" value="FALSE" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#27AE60;strokeWidth=2;fontStyle=1;fontColor=#27AE60;fontSize=10;" edge="1" source="cp_n3" target="cp_n5" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="348" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cp_e5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="cp_n4" target="cp_n7" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="155" y="602" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cp_e6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="cp_n5" target="cp_n6" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cp_e7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="cp_n6" target="cp_n7" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Basis Path Labels for calculatePercent -->
+        <mxCell id="cp_bp" value="DUONG CO SO (Basis Paths)&#xa;--------------------------------&#xa;P1 (total=0): N1-&gt;N2-&gt;N3-&gt;N4-&gt;N7&#xa;P2 (total!=0): N1-&gt;N2-&gt;N3-&gt;N5-&gt;N6-&gt;N7&#xa;&#xa;Test toi thieu: 2 cases&#xa;  * (0, 0) -&gt; 0.0  PASS&#xa;  * (5, 10) -&gt; 50.0  PASS" style="text;html=1;align=left;verticalAlign=top;resizable=0;strokeColor=#C6EFCE;fillColor=#E2EFDA;rounded=1;fontSize=11;fontColor=#375623;" vertex="1" parent="1">
+          <mxGeometry x="80" y="660" width="560" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- PHAN 2: isNodeLocked(User user, SkillNode node)              -->
+        <!-- V(G) = 7  |  N=14  |  E=19  |  P=6  |  Basis Paths = 7     -->
+        <!-- ============================================================ -->
+
+        <!-- Header box -->
+        <mxCell id="h2" value="② isNodeLocked(User user, SkillNode node)&#xa;V(G) = 7  |  N = 14  |  E = 19  |  P = 6  |  Basis Paths = 7" style="text;html=1;align=left;verticalAlign=middle;resizable=0;strokeColor=#7B3F00;fillColor=#FCE4D6;rounded=1;fontSize=12;fontStyle=1;fontColor=#7B3F00;" vertex="1" parent="1">
+          <mxGeometry x="720" y="80" width="580" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- N1: START -->
+        <mxCell id="il_n1" value="N1&#xa;START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1F4E79;fontColor=#ffffff;strokeColor=#1F4E79;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="970" y="165" width="100" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N2: Predicate: tier==null? -->
+        <mxCell id="il_n2" value="N2&#xa;node.getTier() == null ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="940" y="235" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- N2a: tier = 1 (null branch TRUE) -->
+        <mxCell id="il_n2a" value="N2a&#xa;tier = 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="820" y="250" width="80" height="36" as="geometry" />
+        </mxCell>
+        <!-- N2b: tier = node.getTier() (null branch FALSE) -->
+        <mxCell id="il_n2b" value="N2b&#xa;tier = node.getTier()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1145" y="250" width="110" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- N3: Predicate tier <= 1 ? -->
+        <mxCell id="il_n3" value="N3&#xa;tier &lt;= 1 ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="950" y="325" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- N4: return false (early exit) -->
+        <mxCell id="il_n4" value="N4&#xa;return false" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="800" y="430" width="110" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- N5: Get templateId -->
+        <mxCell id="il_n5" value="N5&#xa;templateId = node&#xa;  .getTemplate().getId()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="340" width="130" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N6: Query doneNodeIds -->
+        <mxCell id="il_n6" value="N6&#xa;doneNodeIds = queryDB&#xa;.filter(DONE).collect()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="420" width="150" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N7: Query all nodes by templateId -->
+        <mxCell id="il_n7" value="N7&#xa;allNodes = skillNodeRepo&#xa;.findByTemplateId()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="498" width="150" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N8: filter stream — predicate: nodeTier < tier? -->
+        <mxCell id="il_n8" value="N8&#xa;nodeTier &lt; tier ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1095" y="580" width="140" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- N8 FALSE path: skip node -->
+        <mxCell id="il_n8f" value="N8f&#xa;Bỏ qua node&#xa;(tier &gt;= current tier)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEEEE;strokeColor=#CC4444;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="585" width="110" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- N9: anyMatch predicate -->
+        <mxCell id="il_n9" value="N9&#xa;!doneNodeIds&#xa;.contains(n.getId()) ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1095" y="675" width="140" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- N10: return true -->
+        <mxCell id="il_n10" value="N10&#xa;return true&#xa;(Node bi khoa)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="790" width="120" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N11: more nodes? predicate -->
+        <mxCell id="il_n11" value="N11&#xa;Con node&#xa;chua xet ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="680" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- N12: return false (all nodes passed) -->
+        <mxCell id="il_n12" value="N12&#xa;return false&#xa;(Khong bi khoa)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="790" width="120" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- N13: END -->
+        <mxCell id="il_n13" value="N13&#xa;END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1F4E79;fontColor=#ffffff;strokeColor=#1F4E79;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="875" width="100" height="44" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES isNodeLocked -->
+        <mxCell id="il_e1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n1" target="il_n2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e2a" value="TRUE (null)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontColor=#E84545;fontStyle=1;fontSize=9;" edge="1" source="il_n2" target="il_n2a" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="940" y="265" />
+              <mxPoint x="860" y="265" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e2b" value="FALSE" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#27AE60;strokeWidth=2;fontColor=#27AE60;fontStyle=1;fontSize=9;" edge="1" source="il_n2" target="il_n2b" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="265" />
+              <mxPoint x="1200" y="265" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e2a3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n2a" target="il_n3" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="355" />
+              <mxPoint x="950" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e2b3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n2b" target="il_n3" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1200" y="355" />
+              <mxPoint x="1090" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e3t" value="TRUE (tier &lt;= 1)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontColor=#E84545;fontStyle=1;fontSize=9;" edge="1" source="il_n3" target="il_n4" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="355" />
+              <mxPoint x="855" y="355" />
+              <mxPoint x="855" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e3f" value="FALSE (tier &gt; 1)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#27AE60;strokeWidth=2;fontColor=#27AE60;fontStyle=1;fontSize=9;" edge="1" source="il_n3" target="il_n5" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1090" y="355" />
+              <mxPoint x="1165" y="355" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e4" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n4" target="il_n13" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="855" y="897" />
+              <mxPoint x="1100" y="897" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e5" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n5" target="il_n6" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e6" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n6" target="il_n7" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e7" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n7" target="il_n8" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e8f" value="FALSE" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#27AE60;strokeWidth=2;fontColor=#27AE60;fontStyle=1;fontSize=9;" edge="1" source="il_n8" target="il_n8f" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1235" y="607" />
+              <mxPoint x="1280" y="607" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e8t" value="TRUE (nodeTier &lt; tier)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontColor=#E84545;fontStyle=1;fontSize=9;" edge="1" source="il_n8" target="il_n9" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e9t" value="TRUE (!contains)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontColor=#E84545;fontStyle=1;fontSize=9;" edge="1" source="il_n9" target="il_n10" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1095" y="707" />
+              <mxPoint x="1000" y="707" />
+              <mxPoint x="1000" y="812" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e9f" value="FALSE (contains)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#27AE60;strokeWidth=2;fontColor=#27AE60;fontStyle=1;fontSize=9;" edge="1" source="il_n9" target="il_n11" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1235" y="707" />
+              <mxPoint x="1330" y="707" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e11t" value="TRUE (next node - loop)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#9B59B6;strokeWidth=2;fontColor=#9B59B6;fontStyle=1;fontSize=9;dashed=1;" edge="1" source="il_n11" target="il_n8" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1390" y="710" />
+              <mxPoint x="1390" y="555" />
+              <mxPoint x="1235" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e8fn11" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n8f" target="il_n11" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e11f" value="FALSE (no more)" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#E84545;strokeWidth=2;fontColor=#E84545;fontStyle=1;fontSize=9;" edge="1" source="il_n11" target="il_n12" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="il_e10" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n10" target="il_n13" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="897" />
+              <mxPoint x="1100" y="897" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="il_e12" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#1F4E79;strokeWidth=2;" edge="1" source="il_n12" target="il_n13" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1330" y="897" />
+              <mxPoint x="1200" y="897" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Basis Path Labels for isNodeLocked -->
+        <mxCell id="il_bp" value="DUONG CO SO (Basis Paths) — V(G) = 7 duong doc lap&#xa;------------------------------------------------------------------------&#xa;P1: N1-&gt;N2[null=TRUE]-&gt;N2a-&gt;N3[tier&lt;=1=TRUE]-&gt;N4-&gt;N13   [tier=null -&gt; false]&#xa;P2: N1-&gt;N2[FALSE]-&gt;N2b-&gt;N3[tier=1=TRUE]-&gt;N4-&gt;N13         [tier=1 -&gt; false]&#xa;P3: ...N3[FALSE]-&gt;N5-&gt;N6-&gt;N7-&gt;N8[T]-&gt;N9[FALSE]-&gt;N11[F]-&gt;N12-&gt;N13  [tier2, tier1 DONE -&gt; false]&#xa;P4: ...N5-&gt;N6-&gt;N7-&gt;N8[T]-&gt;N9[TRUE]-&gt;N10-&gt;N13             [tier2, tier1 chua DONE -&gt; true]&#xa;P5: ...N8[F]-&gt;N8f-&gt;N11[T=loop]-&gt;N8[T]-&gt;N9[T]-&gt;N10-&gt;N13  [tier3, tier1 chua xong -&gt; true]&#xa;P6: ...N11[T=loop]-&gt;N8[T]-&gt;N9[T]-&gt;N10-&gt;N13               [tier3, tier2 chua DONE -&gt; true]&#xa;P7: ...[tat ca lower tiers DONE]-&gt;N11[F]-&gt;N12-&gt;N13         [tier3, all DONE -&gt; false]" style="text;html=1;align=left;verticalAlign=top;resizable=0;strokeColor=#FFBB44;fillColor=#FFF2CC;rounded=1;fontSize=11;fontColor=#7B4D00;" vertex="1" parent="1">
+          <mxGeometry x="720" y="940" width="940" height="165" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- PHAN 3: BANG THONG KE CFG METRICS                           -->
+        <!-- ============================================================ -->
+        <mxCell id="metrics_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DDEBF7;strokeColor=#2E75B6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="820" width="590" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics_title" value="BANG CHI SO CFG — So sanh 2 ham" style="text;html=1;align=center;fontStyle=1;fontSize=13;fillColor=none;strokeColor=none;fontColor=#1F4E79;" vertex="1" parent="1">
+          <mxGeometry x="80" y="828" width="590" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m1" value="Chi so" style="text;html=1;align=center;fontStyle=1;fillColor=#1F4E79;strokeColor=#1F4E79;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="860" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" value="calculatePercent()" style="text;html=1;align=center;fontStyle=1;fillColor=#1F4E79;strokeColor=#1F4E79;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="860" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="m3" value="isNodeLocked()" style="text;html=1;align=center;fontStyle=1;fillColor=#1F4E79;strokeColor=#1F4E79;fontColor=#ffffff;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="860" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c1" value="So nut (N)" style="text;html=1;align=left;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="890" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c2" value="4" style="text;html=1;align=center;fontStyle=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="890" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c3" value="14" style="text;html=1;align=center;fontStyle=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="890" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c1" value="So canh (E)" style="text;html=1;align=left;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="920" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c2" value="4" style="text;html=1;align=center;fontStyle=1;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="920" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c3" value="19" style="text;html=1;align=center;fontStyle=1;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="920" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c1" value="Nut dieu kien (P)" style="text;html=1;align=left;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="950" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c2" value="1" style="text;html=1;align=center;fontStyle=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="950" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c3" value="6" style="text;html=1;align=center;fontStyle=1;fillColor=#DDEEFF;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="950" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c1" value="So mien (R)" style="text;html=1;align=left;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="980" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c2" value="2" style="text;html=1;align=center;fontStyle=1;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="980" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c3" value="7" style="text;html=1;align=center;fontStyle=1;fillColor=#ffffff;strokeColor=#5B93C3;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="980" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c1" value="V(G) = E - N + 2" style="text;html=1;align=left;fontStyle=1;fillColor=#FFE699;strokeColor=#D6B656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="90" y="1010" width="170" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c2" value="2" style="text;html=1;align=center;fontStyle=1;fillColor=#FFE699;strokeColor=#D6B656;fontSize=20;fontColor=#C00000;" vertex="1" parent="1">
+          <mxGeometry x="260" y="1010" width="190" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c3" value="7" style="text;html=1;align=center;fontStyle=1;fillColor=#FFE699;strokeColor=#D6B656;fontSize=20;fontColor=#C00000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1010" width="210" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c1" value="Test toi thieu" style="text;html=1;align=left;fontStyle=1;fillColor=#C6EFCE;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="90" y="1046" width="170" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c2" value="2 test" style="text;html=1;align=center;fontStyle=1;fillColor=#C6EFCE;strokeColor=#82B366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="260" y="1046" width="190" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c3" value="7 test" style="text;html=1;align=center;fontStyle=1;fillColor=#C6EFCE;strokeColor=#82B366;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="450" y="1046" width="210" height="36" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
