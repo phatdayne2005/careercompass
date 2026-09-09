@@ -34,7 +34,12 @@ public class OnboardingService {
         if (originalFilename == null) {
             throw new IllegalArgumentException("Tên file không hợp lệ.");
         }
-        String ext = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        // DEF-011: thiếu đúng phép kiểm viTriCham < 0 thì tệp không có phần mở rộng
+        // (ví dụ "bangdiem") làm substring(-1) ném StringIndexOutOfBoundsException,
+        // người dùng nhận lỗi 500 thay vì thông báo 400 thân thiện. Coi "không có đuôi"
+        // là một đuôi không hợp lệ để rơi đúng vào nhánh báo lỗi định dạng bên dưới.
+        int viTriCham = originalFilename.lastIndexOf(".");
+        String ext = viTriCham < 0 ? "" : originalFilename.substring(viTriCham).toLowerCase();
         if (!ext.equals(".pdf") && !ext.equals(".png") && !ext.equals(".jpg") && !ext.equals(".jpeg")) {
             throw new IllegalArgumentException("Chỉ chấp nhận file PDF, PNG hoặc JPG.");
         }

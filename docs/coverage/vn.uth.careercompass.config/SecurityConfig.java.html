@@ -19,31 +19,36 @@ import vn.uth.careercompass.kernel.service.CustomOidcUserService;
     SecurityFilterChain filterChain(HttpSecurity http, CustomOidcUserService customOidcUserService) throws Exception {
 <span class="fc" id="L20">        http</span>
 <span class="fc" id="L21">                .authorizeHttpRequests(auth -&gt; auth</span>
-<span class="fc" id="L22">                    .requestMatchers(&quot;/&quot;, &quot;/login&quot;, &quot;/register&quot;, &quot;/forgot&quot;, &quot;/reset-password&quot;, &quot;/oauth2/**&quot;, &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/p/**&quot;).permitAll()</span>
-<span class="fc" id="L23">                    .requestMatchers(&quot;/admin&quot;, &quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
-<span class="fc" id="L24">                    .requestMatchers(&quot;/counselor&quot;, &quot;/counselor/**&quot;).hasRole(&quot;COUNSELOR&quot;)</span>
-<span class="fc" id="L25">                    .anyRequest().authenticated()</span>
+                    // &quot;/error&quot; phải công khai, nếu không mọi trang lỗi của khách chưa đăng nhập
+                    // đều bị nuốt thành redirect sang /login. Cụ thể: /p/{slug} tuy đã permitAll
+                    // nhưng khi slug không tồn tại, controller ném 404 -&gt; Spring forward sang
+                    // /error -&gt; rơi vào anyRequest().authenticated() -&gt; 302 /login. Người dùng
+                    // không bao giờ thấy được trang 404 (FR5.3, NFR-S01).
+<span class="fc" id="L27">                    .requestMatchers(&quot;/&quot;, &quot;/login&quot;, &quot;/register&quot;, &quot;/forgot&quot;, &quot;/reset-password&quot;, &quot;/oauth2/**&quot;, &quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/p/**&quot;, &quot;/error&quot;).permitAll()</span>
+<span class="fc" id="L28">                    .requestMatchers(&quot;/admin&quot;, &quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="fc" id="L29">                    .requestMatchers(&quot;/counselor&quot;, &quot;/counselor/**&quot;).hasRole(&quot;COUNSELOR&quot;)</span>
+<span class="fc" id="L30">                    .anyRequest().authenticated()</span>
                 )
 
-<span class="fc" id="L28">                .formLogin(form -&gt; form</span>
-<span class="fc" id="L29">                    .loginPage(&quot;/login&quot;)</span>
-<span class="fc" id="L30">                    .defaultSuccessUrl(&quot;/&quot;, true)</span>
-<span class="fc" id="L31">                    .permitAll()</span>
+<span class="fc" id="L33">                .formLogin(form -&gt; form</span>
+<span class="fc" id="L34">                    .loginPage(&quot;/login&quot;)</span>
+<span class="fc" id="L35">                    .defaultSuccessUrl(&quot;/&quot;, true)</span>
+<span class="fc" id="L36">                    .permitAll()</span>
                 )
 
-<span class="fc" id="L34">                .oauth2Login(oauth -&gt; oauth</span>
-<span class="fc" id="L35">                        .loginPage(&quot;/login&quot;)</span>
-<span class="fc" id="L36">                        .defaultSuccessUrl(&quot;/&quot;, true)</span>
-<span class="fc" id="L37">                        .userInfoEndpoint(userInfo -&gt;</span>
-<span class="fc" id="L38">                                userInfo.oidcUserService(customOidcUserService))</span>
+<span class="fc" id="L39">                .oauth2Login(oauth -&gt; oauth</span>
+<span class="fc" id="L40">                        .loginPage(&quot;/login&quot;)</span>
+<span class="fc" id="L41">                        .defaultSuccessUrl(&quot;/&quot;, true)</span>
+<span class="fc" id="L42">                        .userInfoEndpoint(userInfo -&gt;</span>
+<span class="fc" id="L43">                                userInfo.oidcUserService(customOidcUserService))</span>
                 )
 
-<span class="fc" id="L41">                .logout(logout -&gt; logout</span>
-<span class="fc" id="L42">                    .logoutSuccessUrl(&quot;/login?logout&quot;)</span>
-<span class="fc" id="L43">                    .permitAll()</span>
+<span class="fc" id="L46">                .logout(logout -&gt; logout</span>
+<span class="fc" id="L47">                    .logoutSuccessUrl(&quot;/login?logout&quot;)</span>
+<span class="fc" id="L48">                    .permitAll()</span>
                 );
 
-<span class="fc" id="L46">        return http.build();</span>
+<span class="fc" id="L51">        return http.build();</span>
     }
 
 }

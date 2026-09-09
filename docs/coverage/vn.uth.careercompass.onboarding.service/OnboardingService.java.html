@@ -34,36 +34,41 @@ public class OnboardingService {
 <span class="fc bfc" id="L34" title="All 2 branches covered.">        if (originalFilename == null) {</span>
 <span class="fc" id="L35">            throw new IllegalArgumentException(&quot;Tên file không hợp lệ.&quot;);</span>
         }
-<span class="fc" id="L37">        String ext = originalFilename.substring(originalFilename.lastIndexOf(&quot;.&quot;)).toLowerCase();</span>
-<span class="pc bpc" id="L38" title="3 of 8 branches missed.">        if (!ext.equals(&quot;.pdf&quot;) &amp;&amp; !ext.equals(&quot;.png&quot;) &amp;&amp; !ext.equals(&quot;.jpg&quot;) &amp;&amp; !ext.equals(&quot;.jpeg&quot;)) {</span>
-<span class="fc" id="L39">            throw new IllegalArgumentException(&quot;Chỉ chấp nhận file PDF, PNG hoặc JPG.&quot;);</span>
+        // DEF-011: thiếu đúng phép kiểm viTriCham &lt; 0 thì tệp không có phần mở rộng
+        // (ví dụ &quot;bangdiem&quot;) làm substring(-1) ném StringIndexOutOfBoundsException,
+        // người dùng nhận lỗi 500 thay vì thông báo 400 thân thiện. Coi &quot;không có đuôi&quot;
+        // là một đuôi không hợp lệ để rơi đúng vào nhánh báo lỗi định dạng bên dưới.
+<span class="fc" id="L41">        int viTriCham = originalFilename.lastIndexOf(&quot;.&quot;);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        String ext = viTriCham &lt; 0 ? &quot;&quot; : originalFilename.substring(viTriCham).toLowerCase();</span>
+<span class="fc bfc" id="L43" title="All 8 branches covered.">        if (!ext.equals(&quot;.pdf&quot;) &amp;&amp; !ext.equals(&quot;.png&quot;) &amp;&amp; !ext.equals(&quot;.jpg&quot;) &amp;&amp; !ext.equals(&quot;.jpeg&quot;)) {</span>
+<span class="fc" id="L44">            throw new IllegalArgumentException(&quot;Chỉ chấp nhận file PDF, PNG hoặc JPG.&quot;);</span>
         }
 
         // Kiểm tra dung lượng (tối đa 10MB)
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (file.getSize() &gt; 10 * 1024 * 1024) {</span>
-<span class="fc" id="L44">            throw new IllegalArgumentException(&quot;File vượt quá dung lượng tối đa 10MB.&quot;);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (file.getSize() &gt; 10 * 1024 * 1024) {</span>
+<span class="fc" id="L49">            throw new IllegalArgumentException(&quot;File vượt quá dung lượng tối đa 10MB.&quot;);</span>
         }
 
         // Tạo thư mục nếu chưa tồn tại
-<span class="fc" id="L48">        Path uploadPath = Paths.get(uploadDir);</span>
-<span class="fc" id="L49">        Files.createDirectories(uploadPath);</span>
+<span class="fc" id="L53">        Path uploadPath = Paths.get(uploadDir);</span>
+<span class="fc" id="L54">        Files.createDirectories(uploadPath);</span>
 
         // Tạo tên file duy nhất để tránh trùng lặp
-<span class="fc" id="L52">        String uniqueFilename = user.getId() + &quot;_&quot; + UUID.randomUUID() + ext;</span>
-<span class="fc" id="L53">        Path targetPath = uploadPath.resolve(uniqueFilename);</span>
-<span class="fc" id="L54">        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);</span>
+<span class="fc" id="L57">        String uniqueFilename = user.getId() + &quot;_&quot; + UUID.randomUUID() + ext;</span>
+<span class="fc" id="L58">        Path targetPath = uploadPath.resolve(uniqueFilename);</span>
+<span class="fc" id="L59">        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);</span>
 
-<span class="fc" id="L56">        return uploadDir + &quot;/&quot; + uniqueFilename;</span>
+<span class="fc" id="L61">        return uploadDir + &quot;/&quot; + uniqueFilename;</span>
     }
 
     /**
      * Lấy danh sách skill ID hiện có của user để đánh dấu đã chọn trên giao diện
      */
     public List&lt;Long&gt; getUserSkillIds(User user) {
-<span class="fc" id="L63">        return userSkillRepository.findByUser(user)</span>
-<span class="fc" id="L64">                .stream()</span>
-<span class="fc" id="L65">                .map(us -&gt; us.getSkill().getId())</span>
-<span class="fc" id="L66">                .toList();</span>
+<span class="fc" id="L68">        return userSkillRepository.findByUser(user)</span>
+<span class="fc" id="L69">                .stream()</span>
+<span class="fc" id="L70">                .map(us -&gt; us.getSkill().getId())</span>
+<span class="fc" id="L71">                .toList();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

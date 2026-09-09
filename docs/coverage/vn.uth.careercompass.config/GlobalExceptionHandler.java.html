@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">CareerCompass</a> &gt; <a href="index.source.html" class="el_package">vn.uth.careercompass.config</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package vn.uth.careercompass.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Map;
+
+/**
+ * Chuyển lỗi nghiệp vụ thành phản hồi có nghĩa thay vì 500.
+ *
+ * &lt;p&gt;&lt;b&gt;Vì sao cần:&lt;/b&gt; trước đây dự án không có {@code @ControllerAdvice} nào bắt ngoại lệ.
+ * Mọi {@code IllegalArgumentException} từ tầng service — kể cả những lỗi bình thường như
+ * &quot;không tìm thấy người dùng&quot; — đều rơi xuống trang lỗi mặc định và trả HTTP 500 kèm
+ * nguyên stack trace: tên package {@code vn.uth.careercompass}, tên lớp, tên method, số dòng,
+ * và cả câu {@code insert into skill_nodes ...} khi vi phạm ràng buộc khoá duy nhất.
+ * Đó là vi phạm NFR-S05.
+ *
+ * &lt;p&gt;&lt;b&gt;Cách xử lý&lt;/b&gt; tuỳ theo loại yêu cầu:
+ * &lt;ul&gt;
+ *   &lt;li&gt;{@code /api/**} — trả JSON {@code {&quot;error&quot;: &quot;...&quot;}} kèm mã trạng thái đúng ngữ nghĩa.
+ *       Hai lớp {@code RoadmapController} và {@code SkillGapController} phục vụ nhóm này.&lt;/li&gt;
+ *   &lt;li&gt;Form gửi lên từ giao diện (POST/PUT/DELETE) — chuyển hướng về đúng trang vừa thao tác
+ *       kèm {@code flash &quot;error&quot;}, giống quy ước sẵn có trong các controller.&lt;/li&gt;
+ *   &lt;li&gt;Yêu cầu GET trang HTML — trả về mã trạng thái để Spring hiển thị {@code error.html}.
+ *       KHÔNG chuyển hướng, vì chuyển hướng về chính trang đang lỗi sẽ tạo vòng lặp.&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Dùng {@code @ControllerAdvice} chứ KHÔNG dùng {@code @RestControllerAdvice}: biến thể Rest
+ * ngầm gắn {@code @ResponseBody}, khiến chuỗi {@code &quot;redirect:/…&quot;} bị trả nguyên văn ra thân
+ * phản hồi kèm mã 200 thay vì thực hiện chuyển hướng. Đã gặp đúng lỗi này khi thử lần đầu.
+ * Với {@code @ControllerAdvice}, kiểu trả về {@code Object} vẫn nhận {@code ResponseEntity}
+ * cho nhánh JSON, đồng thời hiểu {@code &quot;redirect:…&quot;} cho nhánh giao diện.
+ *
+ * &lt;p&gt;KHÔNG bắt {@code org.springframework.web.server.ResponseStatusException} — loại đó đã
+ * mang sẵn mã trạng thái do lập trình viên chọn, để Spring xử lý nguyên trạng.
+ */
+<span class="fc" id="L43">@Slf4j</span>
+@ControllerAdvice
+<span class="fc" id="L45">public class GlobalExceptionHandler {</span>
+
+    /** Dữ liệu vào không hợp lệ hoặc không tìm thấy bản ghi. */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Object xuLyThamSoKhongHopLe(IllegalArgumentException ex, HttpServletRequest req,
+                                       RedirectAttributes flash) {
+<span class="fc" id="L51">        return phanHoi(HttpStatus.BAD_REQUEST, ex, req, flash);</span>
+    }
+
+    /** Thao tác không hợp lệ với trạng thái hiện tại, ví dụ tự khoá tài khoản của chính mình. */
+    @ExceptionHandler(IllegalStateException.class)
+    public Object xuLyTrangThaiKhongHopLe(IllegalStateException ex, HttpServletRequest req,
+                                          RedirectAttributes flash) {
+<span class="fc" id="L58">        return phanHoi(HttpStatus.CONFLICT, ex, req, flash);</span>
+    }
+
+    /** Vi phạm ràng buộc CSDL, thường là khoá duy nhất khi tạo trùng bản ghi. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public Object xuLyTrungDuLieu(DataIntegrityViolationException ex, HttpServletRequest req,
+                                  RedirectAttributes flash) {
+        // Thông điệp gốc chứa nguyên câu SQL nên KHÔNG được đưa ra ngoài (NFR-S05).
+<span class="fc" id="L66">        log.warn(&quot;Vi phạm ràng buộc CSDL tại {} {}&quot;, req.getMethod(), req.getRequestURI(), ex);</span>
+<span class="fc" id="L67">        return phanHoi(HttpStatus.CONFLICT,</span>
+                &quot;Dữ liệu đã tồn tại hoặc vi phạm ràng buộc. Vui lòng kiểm tra lại.&quot;, req, flash);
+    }
+
+    // ================================================================
+    // Dựng phản hồi
+    // ================================================================
+
+    private Object phanHoi(HttpStatus status, Exception ex, HttpServletRequest req,
+                           RedirectAttributes flash) {
+<span class="fc" id="L77">        log.warn(&quot;{} tại {} {}: {}&quot;, status.value(), req.getMethod(), req.getRequestURI(),</span>
+<span class="fc" id="L78">                ex.getMessage());</span>
+<span class="fc" id="L79">        return phanHoi(status, ex.getMessage(), req, flash);</span>
+    }
+
+    private Object phanHoi(HttpStatus status, String thongDiep, HttpServletRequest req,
+                           RedirectAttributes flash) {
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (laApi(req)) {</span>
+<span class="fc" id="L85">            return ResponseEntity.status(status).body(Map.of(&quot;error&quot;, thongDiep));</span>
+        }
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (laThaoTacGhi(req)) {</span>
+<span class="fc" id="L88">            flash.addFlashAttribute(&quot;error&quot;, thongDiep);</span>
+<span class="fc" id="L89">            return &quot;redirect:&quot; + trangQuayVe(req);</span>
+        }
+        // GET trang HTML: để Spring hiển thị error.html với đúng mã trạng thái.
+<span class="fc" id="L92">        return ResponseEntity.status(status).build();</span>
+    }
+
+    private boolean laApi(HttpServletRequest req) {
+<span class="fc" id="L96">        return req.getRequestURI().startsWith(&quot;/api/&quot;);</span>
+    }
+
+    private boolean laThaoTacGhi(HttpServletRequest req) {
+<span class="fc" id="L100">        String m = req.getMethod();</span>
+<span class="fc bfc" id="L101" title="All 8 branches covered.">        return &quot;POST&quot;.equals(m) || &quot;PUT&quot;.equals(m) || &quot;PATCH&quot;.equals(m) || &quot;DELETE&quot;.equals(m);</span>
+    }
+
+    /**
+     * Trang để quay về sau khi thao tác lỗi. Ưu tiên Referer để người dùng ở lại đúng màn hình
+     * vừa bấm. Chỉ nhận Referer cùng host để tránh chuyển hướng sang trang ngoài do kẻ tấn công
+     * đặt (open redirect).
+     */
+    private String trangQuayVe(HttpServletRequest req) {
+<span class="fc" id="L110">        String referer = req.getHeader(&quot;Referer&quot;);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (referer != null) {</span>
+<span class="fc" id="L112">            String goc = req.getScheme() + &quot;://&quot; + req.getServerName();</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            if (referer.startsWith(goc)) {</span>
+<span class="fc" id="L114">                return referer;</span>
+            }
+        }
+<span class="fc" id="L117">        return &quot;/&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

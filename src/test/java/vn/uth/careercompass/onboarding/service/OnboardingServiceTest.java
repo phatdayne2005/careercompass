@@ -120,18 +120,27 @@ class OnboardingServiceTest {
         assertThat(Files.exists(Paths.get(returnedPath))).isTrue();
     }
 
+    /**
+     * DEF-011 — hồi quy.
+     *
+     * <p>Bản đầu của test này ghi đúng nguyên nhân ("BUG?: nên guard {@code lastIndexOf(".") < 0}")
+     * nhưng lại <b>chốt hành vi lỗi</b>: nó khẳng định {@code StringIndexOutOfBoundsException} là
+     * kết quả mong đợi, nên suốt thời gian đó bộ test vẫn xanh và khiếm khuyết nằm im.
+     *
+     * <p>Việc dựng bảng quyết định ở {@code TranscriptFileDecisionTableTest} buộc phải sửa: mỗi
+     * cột của bảng phải có một hành động xác định, không thể để ô "sập 500". Test này giờ khẳng
+     * định hành vi ĐÚNG — tệp không có phần mở rộng bị từ chối bằng lỗi 400 thân thiện.
+     */
     @Test
-    void saveTranscript_whenFilenameHasNoDot_throwsStringIndexOutOfBounds() throws Exception {
-        // Given: tên file không có dấu chấm nào -> lastIndexOf(".") = -1 -> substring(-1)
+    void saveTranscript_whenFilenameHasNoDot_throwsIllegalArgument() throws Exception {
+        // Given: tên file không có dấu chấm nào -> lastIndexOf(".") = -1
         when(file.getOriginalFilename()).thenReturn("bangdiemkhongduoi");
 
-        // When + Then: hiện tại code KHÔNG bắt trường hợp này nên ném StringIndexOutOfBoundsException
-        // thô thay vì IllegalArgumentException thân thiện.
-        // BUG?: filename thiếu phần mở rộng (vd "resume") làm substring(lastIndexOf(".")) với index=-1
-        //       ném StringIndexOutOfBoundsException, không phải thông báo "Tên file không hợp lệ".
-        //       Nên guard `lastIndexOf(".") < 0` để trả IllegalArgumentException cho đồng nhất.
+        // When + Then: coi như đuôi rỗng -> rơi vào nhánh báo lỗi định dạng, KHÔNG được sập.
         assertThatThrownBy(() -> onboardingService.saveTranscript(new User(), file))
-                .isInstanceOf(StringIndexOutOfBoundsException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Chỉ chấp nhận file PDF, PNG hoặc JPG.")
+                .isNotInstanceOf(StringIndexOutOfBoundsException.class);
     }
 
     // ============================================================
