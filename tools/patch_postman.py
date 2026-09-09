@@ -391,9 +391,10 @@ dn = [sec["item"].pop(0), sec["item"].pop(0)]          # TC-SEC-00a, TC-SEC-00b
 vt = vi_tri(sec, "TC-SEC-03")
 for i, it in enumerate(dn):
     sec["item"].insert(vt + i, it)
-for ma in ("TC-SEC-03", "TC-SEC-04"):
+for ma in ("TC-SEC-01", "TC-SEC-02", "TC-SEC-03", "TC-SEC-04"):
     tim(ma).setdefault("protocolProfileBehavior", {})["followRedirects"] = False
-print("  [7] chuyen buoc dang nhap STUDENT xuong truoc TC-SEC-03, tat followRedirects")
+    tim(ma).setdefault("protocolProfileBehavior", {})["disableCookies"] = True
+print("  [7] chuyen buoc dang nhap STUDENT xuong truoc TC-SEC-03, tat followRedirects va cookies")
 # Vì sao: TC-SEC-01 và TC-SEC-02 xoá cookie để mô phỏng khách. Nếu đăng nhập STUDENT ở
 # ĐẦU thư mục thì phiên đó bị chính hai case này xoá mất, nên TC-SEC-03/04 lại chạy ẩn
 # danh -> 302 sang /login -> newman đi theo redirect -> nhận 200 thay vì 403.
