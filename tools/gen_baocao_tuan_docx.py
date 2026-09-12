@@ -323,7 +323,7 @@ PHAN_CONG = [
 SAN_PHAM = [
     ("BaoCao-KiemThu-CareerCompass.xlsx", "Báo cáo kiểm thử tổng hợp, 16 bảng",
      "Nguyễn Thành Phát · Vòng Minh Quân"),
-    ("BaoCao_Moi.docx", "Bản thuyết minh kiểm chứng phần mềm, bốn phần", "Trần Tô Như Ngọc"),
+    ("BaoCao-ThuyetMinh-KiemThu.docx", "Bản thuyết minh kiểm chứng phần mềm, bốn phần", "Trần Tô Như Ngọc"),
     ("BaoCao_Whitebox.xlsx", "Báo cáo hộp trắng B1–B5", "Vòng Minh Quân"),
     ("BaoCao-PhanA-HopDen.xlsx", "Báo cáo hộp đen theo mẫu bài giảng",
      "Nguyễn Thành Phát"),
