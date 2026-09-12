@@ -327,10 +327,6 @@ SAN_PHAM = [
     ("BaoCao_Whitebox.xlsx", "Báo cáo hộp trắng B1–B5", "Vòng Minh Quân"),
     ("BaoCao-PhanA-HopDen.xlsx", "Báo cáo hộp đen theo mẫu bài giảng",
      "Nguyễn Thành Phát"),
-    ("CareerCompass_Test_Report_All_Methods.xlsx", "Bảng tổng hợp 12 kỹ thuật kiểm thử",
-     "Vòng Minh Quân"),
-    ("CareerCompass_Test_Report.xlsx", "Ma trận truy vết đặc tả và kịch bản kiểm thử",
-     "Vòng Minh Quân"),
     ("SRS-CareerCompass-v1.0.docx", "Đặc tả yêu cầu phần mềm", "Nguyễn Thành Phát"),
     ("CareerCompass.postman_collection.json", "Bộ kiểm thử API — xây dựng bởi Nguyễn "
      "Thành Phát và Vòng Minh Quân, chạy và lập báo cáo bởi Trần Tô Như Ngọc",

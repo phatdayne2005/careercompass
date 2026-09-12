@@ -37,6 +37,19 @@ python tools/cap_nhat_readme_coverage.py
 python tools/gen_baocao_tuan_docx.py
 ```
 
+### Khi dựng lại báo cáo Excel từ đầu
+
+`gen_bao_cao_tong_hop.py` dựng lại toàn bộ tệp Excel từ hai tệp nguồn
+`BaoCao-PhanA-HopDen.xlsx` và `BaoCao_Whitebox.xlsx`. Chạy nó sẽ **ghi đè B3 và B4
+bằng bản gốc chưa có dấu mốc thời gian**, làm sống lại mâu thuẫn 370 test với 399 test.
+Sau khi chạy nó, phải chạy lại bước đóng dấu:
+
+```bash
+python tools/gen_bao_cao_tong_hop.py
+python tools/dong_dau_moc_thoi_gian_whitebox.py   # BẮT BUỘC, nếu không B3/B4 lại lệch
+# rồi chạy tiếp từ bước 2 ở trên
+```
+
 Cả sáu script đều **chạy lại được nhiều lần** mà không nhân đôi nội dung: script nào
 chèn thêm dòng hoặc sheet thì đều gỡ bản cũ trước khi dựng lại.
 
@@ -82,3 +95,4 @@ python tools/gen_baocao_tuan_docx.py
 | `gen_sheet04b.py` | Sinh sheet 04b — chuyển đổi trạng thái vòng đời token |
 | `gen_bao_cao_tong_hop.py` | Dựng báo cáo Excel tổng hợp từ các báo cáo thành phần |
 | `patch_postman.py` | Vá bộ kiểm thử Postman cho chạy lại được nhiều lần |
+| `dong_dau_moc_thoi_gian_whitebox.py` | Đóng dấu ngày đo lên B3/B4 — xem cảnh báo ở trên |
