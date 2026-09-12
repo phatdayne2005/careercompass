@@ -338,6 +338,8 @@ SAN_PHAM = [
     ("e2e/", "Bộ kiểm thử giao diện đầu-cuối — xây dựng bởi Nguyễn Thành Phát, chạy và "
      "lập báo cáo bởi Trần Tô Như Ngọc", "Trần Tô Như Ngọc"),
     ("docs/coverage/", "Bản chụp báo cáo độ bao phủ JaCoCo", "Nguyễn Thành Phát"),
+    ("docs/CFG_White-box_CareerCompass.drawio", "Sơ đồ dòng điều khiển phục vụ phân "
+     "tích hộp trắng", "Vòng Minh Quân"),
     ("SoDo-ChuyenTrangThai.drawio", "Sơ đồ chuyển đổi trạng thái", "Nguyễn Thành Phát"),
 ]
 
