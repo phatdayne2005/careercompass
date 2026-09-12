@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Cập nhật sheet "00. Tong quan" và "07. Khiem khuyet" sau khi thêm ba sheet bổ sung.
+"""Cập nhật sheet "00. Tong quan" và "07. Khiem khuyet" sau khi thêm hai sheet bổ sung.
 
 Chạy sau tools/gen_sheets_bo_sung.py:
     python tools/cap_nhat_tong_quan.py
@@ -63,7 +63,6 @@ def vn(x):
 
 
 TONG = tong_so_test()
-BVA_MENTOR = so_test_lop("MentorTitleStandardBvaTest")
 DT_TEP = so_test_lop("TranscriptFileDecisionTableTest")
 ST_ONB = so_test_lop("OnboardingStateTransitionTest")
 LINE, BRANCH, CXTY, METHOD = bao_phu()
@@ -72,11 +71,17 @@ wb = openpyxl.load_workbook(XLSX)
 
 
 # ── Dựng lại sheet với các dòng chèn thêm, giữ nguyên định dạng ──────────
-def chen_dong(ws, chen):
-    """chen: dict {chèn SAU dòng gốc số mấy: [danh sách hàng giá trị]}.
+def chen_dong(ws, chen_sau, bo=None):
+    """Dựng lại sheet: bỏ những dòng `bo` chọn, rồi chèn thêm `chen_sau`.
 
-    Đọc hết sheet ra rồi ghi lại vào sheet mới, nên dải gộp và chiều cao dòng
-    được tính lại đúng theo vị trí mới thay vì bị bỏ lại phía sau.
+    chen_sau: {văn bản cột A của dòng mốc: [các hàng chèn ngay SAU nó]}.
+    bo(hang) -> True nếu dòng đó phải biến mất.
+
+    Định vị bằng VĂN BẢN chứ không bằng số hiệu dòng, và bỏ trước khi chèn, nên chạy
+    lại trên chính file đã sinh lần trước vẫn ra đúng một bản — không nhân đôi.
+
+    Đọc hết sheet ra rồi ghi lại vào sheet mới, nên dải gộp và chiều cao dòng được
+    tính lại đúng theo vị trí mới thay vì bị bỏ lại phía sau.
     """
     max_r, max_c = ws.max_row, ws.max_column
     o_cu = [[ws.cell(row=r, column=c) for c in range(1, max_c + 1)]
@@ -86,14 +91,17 @@ def chen_dong(ws, chen):
               if ws.row_dimensions[r].height}
     rong = {k: v.width for k, v in ws.column_dimensions.items()}
 
+    giu = [r for r in range(1, max_r + 1)
+           if not (bo and bo([o_cu[r - 1][c].value for c in range(max_c)]))]
+
     # dòng gốc r -> dòng mới; đồng thời gom các hàng cần chèn.
     anh_xa, hang_moi, moi = {}, {}, 0
-    for r in range(1, max_r + 1):
-        anh_xa[r] = r + moi
-        if r in chen:
-            for h in chen[r]:
+    for i, r in enumerate(giu, start=1):
+        anh_xa[r] = i + moi
+        if str(o_cu[r - 1][0].value or "").strip() in chen_sau:
+            for h in chen_sau[str(o_cu[r - 1][0].value).strip()]:
                 moi += 1
-                hang_moi[r + moi] = h
+                hang_moi[i + moi] = h
 
     ten = ws.title
     idx = wb.sheetnames.index(ten)
@@ -104,7 +112,7 @@ def chen_dong(ws, chen):
     for k, v in rong.items():
         ws.column_dimensions[k].width = v
 
-    for r_cu in range(1, max_r + 1):
+    for r_cu in giu:
         r_moi = anh_xa[r_cu]
         for c in range(1, max_c + 1):
             cu = o_cu[r_cu - 1][c - 1]
@@ -116,8 +124,9 @@ def chen_dong(ws, chen):
         if r_cu in cao_cu:
             ws.row_dimensions[r_moi].height = cao_cu[r_cu]
     for r1, c1, r2, c2 in gop_cu:
-        ws.merge_cells(start_row=anh_xa[r1], start_column=c1,
-                       end_row=anh_xa[r2], end_column=c2)
+        if r1 in anh_xa and r2 in anh_xa:
+            ws.merge_cells(start_row=anh_xa[r1], start_column=c1,
+                           end_row=anh_xa[r2], end_column=c2)
 
     # Hàng mới: sao định dạng của dòng ngay phía trên để nhìn liền mạch.
     for r_moi, hang in hang_moi.items():
@@ -141,14 +150,18 @@ def chen_dong(ws, chen):
 
 # ── 00. Tong quan ────────────────────────────────────────────────────────
 ws = wb["00. Tong quan"]
-ws = chen_dong(ws, {
-    9:  [["Giá trị biên — ngưỡng cắt tiêu đề", "Đơn vị", BVA_MENTOR, "JUnit 5",
-          f"{BVA_MENTOR} / {BVA_MENTOR}", "01c", None, None]],
-    10: [["Bảng quyết định — tệp bảng điểm", "Đơn vị", DT_TEP, "JUnit 5",
+# Cột 6 ghi tên sheet chi tiết. Mọi dòng trỏ tới 01c / 03c / 04c đều do script này
+# chèn ở lần chạy trước, nên gỡ hết rồi chèn lại — chạy bao nhiêu lần cũng ra một bản.
+# 01c là sheet BVA ngưỡng cắt đã bị bỏ, chỉ gỡ chứ không chèn lại.
+ws = chen_dong(
+    ws,
+    {"Bảng quyết định":
+        [["Bảng quyết định — tệp bảng điểm", "Đơn vị", DT_TEP, "JUnit 5",
           f"{DT_TEP} / {DT_TEP}", "03c", None, None]],
-    12: [["Chuyển đổi trạng thái — khai báo hồ sơ", "Đơn vị", ST_ONB, "JUnit 5",
-          f"{ST_ONB} / {ST_ONB}", "04c", None, None]],
-})
+     "Chuyển đổi trạng thái — vòng đời token":
+        [["Chuyển đổi trạng thái — khai báo hồ sơ", "Đơn vị", ST_ONB, "JUnit 5",
+          f"{ST_ONB} / {ST_ONB}", "04c", None, None]]},
+    bo=lambda hang: str(hang[5] or "").strip() in ("01c", "03c", "04c"))
 
 
 def tim(ws, khoa):
@@ -179,8 +192,11 @@ ws.cell(row=ws.max_row, column=1).value = (
 ws = wb["07. Khiem khuyet"]
 r_ket = tim(ws, "Cả mười")
 r_moi = r_ket - 1
-if any(ws.cell(row=r_moi, column=c).value for c in range(1, 9)):
-    raise SystemExit(f"dong {r_moi} cua sheet 07 khong trong — kiem tra lai truoc khi ghi de")
+# Chạy lại trên file đã sinh lần trước thì dòng này đang là DEF-011 — ghi đè chính nó
+# là đúng. Chỉ dừng khi gặp nội dung LẠ, để không đè nhầm lên khiếm khuyết của người khác.
+o_dau = str(ws.cell(row=r_moi, column=1).value or "").strip()
+if o_dau not in ("", "DEF-011"):
+    raise SystemExit(f"dong {r_moi} cua sheet 07 dang chua '{o_dau}' — kiem tra lai truoc khi ghi de")
 
 HANG = [
     "DEF-011", "Trung bình",

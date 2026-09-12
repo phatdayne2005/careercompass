@@ -21,7 +21,7 @@ GitHub không tự hiển thị được vì đây là trang HTML tĩnh nhiều 
 Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 test và chưa có test hộp đen nào.
 
 Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có
-**408 test**, trong đó:
+**399 test**, trong đó:
 
 | Số test | Gói | Kỹ thuật |
 |---:|---|---|
@@ -31,16 +31,15 @@ Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn d�
 | 6 | `bva.OnboardingFileSizeBvaTest` | BVA dung lượng tệp |
 | 6 | `blackbox.ProgressDecisionTableTest` | Bảng quyết định |
 | 4 | `blackbox.TokenValidityDecisionTableTest` | Bảng quyết định |
+| 9 | `blackbox.TranscriptFileDecisionTableTest` | Bảng quyết định |
 | 9 | `blackbox.ProgressStateTransitionTest` | Chuyển đổi trạng thái |
 | 7 | `blackbox.TokenStateTransitionTest` | Chuyển đổi trạng thái |
-| 9 | `blackbox.MentorTitleStandardBvaTest` | Standard + Robustness BVA |
-| 9 | `blackbox.TranscriptFileDecisionTableTest` | Bảng quyết định |
 | 12 | `blackbox.OnboardingStateTransitionTest` | Chuyển đổi trạng thái |
-| **112** | | **thuộc phạm vi báo cáo Phần A** |
+| **103** | | **thuộc phạm vi báo cáo Phần A** |
 
 ## Ý nghĩa
 
-112 test này được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp tương
+103 test này được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp tương
 đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra từ
 **đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
 
@@ -132,16 +131,15 @@ Ngược lại, những lớp mà kỹ thuật hộp đen mô hình hoá đượ
 | `PasswordResetService` | **100%** (6/6) | — |
 | `OnboardingService` | **100%** (14/14) | Bảng quyết định 8 rule + BVA dung lượng 6 biên |
 
-Và hai lớp còn hở, ghi lại để không nhận công quá tay:
+Và một lớp còn hở, ghi lại để không nhận công quá tay:
 
 | Lớp | Nhánh | Vì sao còn hở |
 |---|---|---|
-| `MentorService` | 87,5% (14/16) | BVA ngưỡng cắt tiêu đề chỉ mô hình hoá một biến. Hai nhánh còn lại thuộc khối `try/catch` gọi LLM và các phép kiểm `null` khi dựng prompt — chúng là *xử lý sự cố hạ tầng*, không phải luật nghiệp vụ suy ra được từ đặc tả |
 | `OnboardingController` | 57,5% (23/40) | Máy trạng thái phủ trọn các cạnh chuyển bước, nhưng nhánh xử lý tệp tải lên ở `POST step2` (tệp rỗng · lỗi lưu · phân tích bảng điểm trả `null`) nằm ngoài mô hình trạng thái |
 
-Cả hai đều đúng như slide 51 của chương IV: *độ bao phủ 100% không có nghĩa là 100% được
+Đúng như slide 51 của chương IV: *độ bao phủ 100% không có nghĩa là 100% được
 test*, và chiều ngược lại cũng đúng — **phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn
-mã nguồn**. Muốn đóng nốt hai dòng trên phải dùng kỹ thuật hộp trắng (mục IV.4), lần theo
+mã nguồn**. Muốn đóng nốt dòng trên phải dùng kỹ thuật hộp trắng (mục IV.4), lần theo
 từng nhánh của đồ thị dòng điều khiển.
 
 ## Bảng màu của JaCoCo

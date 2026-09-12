@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Sinh ba sheet BỔ SUNG cho phần hộp đen của BaoCao-KiemThu-CareerCompass.xlsx.
+"""Sinh hai sheet BỔ SUNG cho phần hộp đen của BaoCao-KiemThu-CareerCompass.xlsx.
 
-    01c. BVA Tieu de Mentor          <- MentorTitleStandardBvaTest
     03c. Decision Table Tep          <- TranscriptFileDecisionTableTest
     04c. State Transition Onboard <- OnboardingStateTransitionTest
 
@@ -9,7 +8,7 @@ Chạy từ thư mục gốc dự án, sau khi đã chạy test:
     mvnw test
     python tools/gen_sheets_bo_sung.py
 
-Giữ NGUYÊN bố cục, bộ màu và cách đánh số của các sheet 01 / 03b / 04b đã có, để thầy
+Giữ NGUYÊN bố cục, bộ màu và cách đánh số của các sheet 03b / 04b đã có, để thầy
 đọc ba sheet mới không phải học lại cách đọc. Mọi con số ở cột "Số test" đều được đối
 chiếu tự động với target/surefire-reports — lệch là script dừng, không cho báo cáo trôi
 qua với số bịa.
@@ -24,15 +23,13 @@ from openpyxl.utils import get_column_letter
 XLSX = "BaoCao-KiemThu-CareerCompass.xlsx"
 
 C_HDR = "1F4E79"; C_TXT = "FFFFFFFF"; C_PASS = "C6EFCE"; C_SEC = "DDEBF7"
-C_VAR = "E4DFF5"; C_DIRTY = "FBE4E4"; C_CHAN = "FBE4E4"; C_OK = "E2F0D9"
+C_DIRTY = "FBE4E4"; C_CHAN = "FBE4E4"; C_OK = "E2F0D9"
 thin = Side(style="thin", color="BFBFBF")
 BORDER = Border(left=thin, right=thin, top=thin, bottom=thin)
 SUREFIRE = Path("target/surefire-reports")
 
 # sheet -> (lớp test, số test dự kiến, đặt sau sheet nào)
 SUITE = {
-    "01c. BVA Tieu de Mentor":
-        ("MentorTitleStandardBvaTest", 9, "01. BVA + Equiv Partition"),
     "03c. Decision Table Tep":
         ("TranscriptFileDecisionTableTest", 9, "03b. Decision Table Token"),
     "04c. State Transition Onboard":
@@ -55,8 +52,16 @@ def so_test_that(cls, du_kien):
     return that
 
 
+# Sheet từng được sinh ra rồi bỏ đi — phải gỡ khỏi file cũ, nếu không nó nằm lại
+# mãi vì script chỉ dựng lại những sheet có trong SUITE.
+# "01c. BVA Tieu de Mentor": BVA ngưỡng CẮT tiêu đề phiên chat. Đã bỏ vì nó khác
+# dạng với hai bảng BVA còn lại — hai bảng kia là biên HỢP LỆ (vượt biên thì bị từ
+# chối), còn nó là biên CẮT (vượt biên thì bị rút gọn), nên cột Expected Output mang
+# nghĩa khác và không gộp chung một sheet được. Giữ lại chỉ làm báo cáo khó trình bày.
+SHEET_DA_BO = ["01c. BVA Tieu de Mentor"]
+
 wb = openpyxl.load_workbook(XLSX)
-for ten in SUITE:
+for ten in list(SUITE) + SHEET_DA_BO:
     if ten in wb.sheetnames:
         wb.remove(wb[ten])
 
@@ -115,111 +120,6 @@ def mo_dau(ws, tieu_de, mo_ta, cls, so_test, ky_thuat, tong_ket):
                      f"mvnw test -Dtest={cls}",
               fill=None, color="808080", size=9, italic=True, cao=28)
     return r + 1
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# 01c — BVA ngưỡng cắt tiêu đề phiên trò chuyện
-# ══════════════════════════════════════════════════════════════════════════
-cls, du_kien, dat_sau = SUITE["01c. BVA Tieu de Mentor"]
-n = so_test_that(cls, du_kien)
-ws = tao_sheet("01c. BVA Tieu de Mentor", dat_sau)
-
-r = mo_dau(ws, "BVA — bảng thứ hai: ngưỡng cắt tiêu đề phiên trò chuyện",
-           "MentorService.sendMessage(). Bảng thiết kế theo mẫu slide 23 và 24, "
-           "trường hợp một biến (n = 1).",
-           cls, n, "Standard + Robustness BVA · 1 biến",
-           f"TỔNG KẾT THI HÀNH — {n} test đã chạy, {n} PASS, 0 fail. "
-           "7 case thuộc bảng giá trị biên, 2 case kiểm tra bổ sung ngoài bảng.")
-
-r = thanh(ws, r, "VÌ SAO CHỌN HÀM NÀY LÀM ĐỐI TƯỢNG BVA THỨ HAI")
-for dong in [
-    "Toàn bộ ràng buộc @Size của dự án đều nằm ở RegisterFormDTO và đã phủ trọn ở sheet 01. "
-    "Muốn tìm thêm biên phải soi các NGƯỠNG CỨNG viết thẳng trong tầng service.",
-    "Ngưỡng 60 ký tự này là ngưỡng sạch nhất trong số đó: một biến duy nhất, một phép so sánh, "
-    "kết quả quan sát trực tiếp bằng chuỗi tiêu đề — không phải gọi dịch vụ ngoài, không phải "
-    "dựng tệp PDF giả như các ngưỡng 6000 / 3000 / 200 ở TranscriptAnalysisService và PortfolioService.",
-    "Giá trị của phép thử: lỗi lệch-một-đơn-vị ở substring là lỗi kinh điển. Mã nguồn dùng '>' "
-    "chứ không phải '>=', nên chuỗi dài ĐÚNG 60 ký tự phải giữ nguyên văn. Chỉ case ở đúng biên "
-    "mới phân biệt được hai cách viết đó — case nominal 30 ký tự thì cả hai đều cho cùng kết quả.",
-]:
-    r = thanh(ws, r, dong, fill=None, color="404040", size=9, italic=True, cao=30)
-r += 1
-
-r = thanh(ws, r, "BẢNG 1 — ĐỊNH NGHĨA GIÁ TRỊ BIÊN CỦA BIẾN ĐANG XÉT")
-r = tieu_de_cot(ws, r, ["Giá trị", "userText (số ký tự)", "", "", "", "", "", "Ghi chú"])
-for gt, sl, gc in [("min", 1, "câu hỏi ngắn nhất có nghĩa"),
-                   ("min+", 2, "ngay trên min"),
-                   ("nom", 30, "giá trị điển hình, giữa miền"),
-                   ("max-", 59, "ngay dưới ngưỡng cắt"),
-                   ("max", 60, "đúng ngưỡng cắt — vẫn KHÔNG bị cắt vì mã dùng '>'")]:
-    o(ws, r, 1, gt, bold=True); o(ws, r, 2, sl, center=True); o(ws, r, 8, gc)
-    for c in (3, 4, 5, 6, 7):
-        o(ws, r, c, "")
-    r += 1
-r = thanh(ws, r, "Ràng buộc gốc: session.setTitle(userText.length() > 60 ? "
-                 "userText.substring(0, 60) + '…' : userText). Đây là ngưỡng CẮT chứ không phải "
-                 "ngưỡng HỢP LỆ — vượt qua không bị từ chối, mà bị rút gọn. Vì thế cột Expected "
-                 "Output ghi hình dạng chuỗi kết quả thay vì Hợp lệ / Không hợp lệ như sheet 01.",
-          fill=None, color="808080", size=9, italic=True, cao=32)
-r += 1
-
-r = thanh(ws, r, "BẢNG 2 — STANDARD BVA TEST CASES (mẫu slide 23) · số case = 4n + 1 = 4×1 + 1 = 5")
-r = tieu_de_cot(ws, r, ["Case", "userText (ký tự)", "Biến đang xét", "Expected Output",
-                        "Độ dài tiêu đề", "Kết quả thực tế", "Status", "Method trong code"])
-for tc, dl, bien in [(1, 1, "độ dài = min"), (2, 2, "độ dài = min+"),
-                     (3, 30, "độ dài = nom"), (4, 59, "độ dài = max-"),
-                     (5, 60, "độ dài = max (đúng ngưỡng)")]:
-    hang = [tc, dl, bien, "Giữ NGUYÊN VĂN, không có dấu …", dl,
-            "Đúng như mong đợi", "PASS", "standardBva_khongCat"]
-    for j, v in enumerate(hang, start=1):
-        f = C_PASS if j == 7 else (C_VAR if j == 2 else None)
-        o(ws, r, j, v, fill=f, center=(j in (1, 2, 5, 7)))
-    r += 1
-r = thanh(ws, r, "CÁCH ĐỌC: n = 1 nên không có ô 'tất cả nominal' riêng — case 3 vừa là nom của "
-                 "biến duy nhất, vừa là ô trung tâm của bảng. Ô tô tím là giá trị đang được đẩy "
-                 "tới biên. Cả 5 case đều là clean test case: kết quả mong đợi giống nhau, chỉ "
-                 "khác nhau ở chỗ chúng ép mã nguồn chọn đúng nhánh 'không cắt'.",
-          fill=None, color="808080", size=9, italic=True, cao=32)
-r += 1
-
-r = thanh(ws, r, "BẢNG 3 — ROBUSTNESS BVA, phần BỔ SUNG (mẫu slide 24) · 6n + 1 = 6×1 + 1 = 7")
-r = tieu_de_cot(ws, r, ["Case", "userText (ký tự)", "Biến đang xét", "Expected Output",
-                        "Độ dài tiêu đề", "Kết quả thực tế", "Status", "Method trong code"])
-for tc, dl, bien, exp, dai in [
-        (6, 0, "độ dài = min- (chuỗi rỗng)", "Giữ nguyên văn — tiêu đề thành rỗng", 0),
-        (7, 61, "độ dài = max+", "BỊ CẮT: 60 ký tự đầu + dấu …", 61)]:
-    hang = [tc, dl, bien, exp, dai, "Đúng như mong đợi", "PASS", "robustnessBva_ngoaiBien"]
-    for j, v in enumerate(hang, start=1):
-        f = C_PASS if j == 7 else (C_DIRTY if j == 2 else None)
-        o(ws, r, j, v, fill=f, center=(j in (1, 2, 5, 7)))
-    r += 1
-r = thanh(ws, r, "GHI NHẬN Ở CASE 6 (min-): chuỗi rỗng làm tiêu đề thành rỗng. KHÔNG xếp là khiếm "
-                 "khuyết — chính điều kiện isBlank() ngay phía trên sẽ đặt lại tiêu đề ở tin nhắn "
-                 "kế tiếp, hệ thống tự phục hồi; ngoài ra tầng controller đã chặn tin nhắn rỗng. "
-                 "Ghi lại ở đây để người đọc báo cáo biết case này đã được cân nhắc chứ không bị bỏ sót.",
-          fill=None, color="808080", size=9, italic=True, cao=32)
-r = thanh(ws, r, "CASE 7 LÀ CASE ĐÁNG GIÁ NHẤT của bảng. Nó là case DUY NHẤT chạy vào nhánh cắt "
-                 "chuỗi. Cặp (case 5, case 7) — 60 và 61 ký tự — chính là phép thử phân biệt '>' "
-                 "với '>=': nếu ai đó sửa mã thành '>=' thì case 5 đỏ ngay, còn mọi case nominal "
-                 "vẫn xanh. Đó là lý do BVA tồn tại.",
-          fill=None, color="404040", size=9, italic=True, cao=32)
-r += 1
-
-r = thanh(ws, r, "BẢNG 4 — KIỂM TRA BỔ SUNG, nằm ngoài bảng giá trị biên")
-r = tieu_de_cot(ws, r, ["Case", "Tiêu đề phiên trước đó", "userText (ký tự)", "Expected Output",
-                        "", "Kết quả thực tế", "Status", "Method trong code"])
-for tc, dl in [(8, 60), (9, 61)]:
-    hang = [tc, "Đã có tiêu đề thật", dl, "KHÔNG ghi đè — ngưỡng 60 không còn tác dụng",
-            "", "Đúng như mong đợi", "PASS", "boSung_tieuDeDaDat_khongGhiDe"]
-    for j, v in enumerate(hang, start=1):
-        o(ws, r, j, v, fill=(C_PASS if j == 7 else None), center=(j in (1, 3, 7)))
-    r += 1
-r = thanh(ws, r, "Ngưỡng 60 chỉ áp dụng khi tiêu đề còn là mặc định 'Cuộc trò chuyện mới'. Hai case "
-                 "này chốt điều đó: phiên đã có tiêu đề thật thì tin nhắn dài bao nhiêu cũng không "
-                 "được ghi đè — nếu không, mọi câu hỏi sau đều đổi tên phiên và người dùng không "
-                 "tìm lại được cuộc trò chuyện cũ. Để ngoài bảng BVA vì chúng đổi ĐIỀU KIỆN VÀO "
-                 "nhánh, không đổi giá trị của biên.",
-          fill=None, color="808080", size=9, italic=True, cao=32)
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -491,6 +391,6 @@ for dong in [
     r = thanh(ws, r, dong, fill=None, color="404040", size=9, italic=True, cao=44)
 
 wb.save(XLSX)
-print(f"Da sinh 3 sheet bo sung vao {XLSX}")
+print(f"Da sinh 2 sheet bo sung vao {XLSX}")
 for s in wb.sheetnames:
     print("  -", s)

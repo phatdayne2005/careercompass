@@ -33,6 +33,12 @@ def so_test(cls, pkg="blackbox"):
     return int(ET.parse(p).getroot().attrib["tests"])
 
 
+def tong_so_test():
+    import glob
+    return sum(int(ET.parse(q).getroot().attrib["tests"])
+               for q in glob.glob("target/surefire-reports/TEST-*.xml"))
+
+
 def vn(x):
     return f"{x:.1f}".replace(".", ",")
 
@@ -45,15 +51,8 @@ CLS_PHU = sum(1 for r in rows if int(r["INSTRUCTION_COVERED"]) > 0)
 CLS = 100 * CLS_PHU / len(rows)
 
 ONB_C, ONB_T, ONB_P = lop("OnboardingService")
-MEN_C, MEN_T, MEN_P = lop("MentorService")
 CTL_C, CTL_T, CTL_P = lop("OnboardingController")
 
-BVA_M = so_test("MentorTitleStandardBvaTest")
-DT_T = so_test("TranscriptFileDecisionTableTest")
-ST_O = so_test("OnboardingStateTransitionTest")
-CU = 19 + 17 + 14 + 6 + 6 + 4 + 9 + 7          # các lớp hộp đen đã có từ trước
-MOI = BVA_M + DT_T + ST_O
-TONG = CU + MOI
 
 md = io.open(MD, encoding="utf-8").read()
 
@@ -69,31 +68,45 @@ md = re.sub(
 | Lớp | 75,4% | **{vn(CLS)}%** | +{vn(CLS - 75.4)} |
 """, md, count=1)
 
-md = md.replace(
-    "Cột \"Sau\" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có\n**362 test**, trong đó:",
-    "Cột \"Sau\" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có\n"
-    "**408 test**, trong đó:")
+# Dung regex chu khong phai chuoi co dinh, de chay lai nhieu lan van ra dung so.
+md = re.sub(r"\*\*\d+ test\*\*, trong đó:",
+            f"**{tong_so_test()} test**, trong đó:", md, count=1)
 
-# ── Bảng liệt kê lớp test: thêm ba lớp mới ───────────────────────────────
-md = md.replace(
-    "| 9 | `blackbox.ProgressStateTransitionTest` | Chuyển đổi trạng thái |\n"
-    f"| **75** | | **thuộc phạm vi báo cáo Phần A** |",
-    "| 9 | `blackbox.ProgressStateTransitionTest` | Chuyển đổi trạng thái |\n"
-    "| 7 | `blackbox.TokenStateTransitionTest` | Chuyển đổi trạng thái |\n"
-    f"| {BVA_M} | `blackbox.MentorTitleStandardBvaTest` | Standard + Robustness BVA |\n"
-    f"| {DT_T} | `blackbox.TranscriptFileDecisionTableTest` | Bảng quyết định |\n"
-    f"| {ST_O} | `blackbox.OnboardingStateTransitionTest` | Chuyển đổi trạng thái |\n"
-    f"| **{TONG}** | | **thuộc phạm vi báo cáo Phần A** |")
+# ── Bảng liệt kê lớp test ────────────────────────────────────────────────
+# Dựng LẠI cả bảng từ danh sách nguồn thay vì chắp vá từng dòng: chạy lại trên chính
+# file đã sinh lần trước vẫn ra đúng một bản, không để sót dòng của lớp test đã xoá.
+LOP_HOP_DEN = [
+    ("blackbox.RegisterStandardBvaTest", "Standard + Robustness BVA"),
+    ("blackbox.RegisterTagCoverageTest", "Gộp tag thành test case"),
+    ("blackbox.RegisterEquivalencePartitionTest", "Phân hoạch lớp tương đương"),
+    ("bva.OnboardingFileSizeBvaTest", "BVA dung lượng tệp"),
+    ("blackbox.ProgressDecisionTableTest", "Bảng quyết định"),
+    ("blackbox.TokenValidityDecisionTableTest", "Bảng quyết định"),
+    ("blackbox.TranscriptFileDecisionTableTest", "Bảng quyết định"),
+    ("blackbox.ProgressStateTransitionTest", "Chuyển đổi trạng thái"),
+    ("blackbox.TokenStateTransitionTest", "Chuyển đổi trạng thái"),
+    ("blackbox.OnboardingStateTransitionTest", "Chuyển đổi trạng thái"),
+]
+dong_bang, TONG = [], 0
+for ten, ky_thuat in LOP_HOP_DEN:
+    pkg, cls = ten.rsplit(".", 1)
+    n = so_test(cls, pkg)
+    TONG += n
+    dong_bang.append(f"| {n} | `{ten}` | {ky_thuat} |")
+NL = chr(10)
+BANG = (f"| Số test | Gói | Kỹ thuật |{NL}|---:|---|---|{NL}"
+        + NL.join(dong_bang)
+        + f"{NL}| **{TONG}** | | **thuộc phạm vi báo cáo Phần A** |{NL}")
+# Nuốt trọn bảng cũ rồi thay bằng bảng vừa dựng — không chắp vá từng dòng.
+md = re.sub(r"\| Số test \| Gói \| Kỹ thuật \|\n\|---:\|---\|---\|\n(?:\|.*\n)+",
+            lambda m: BANG, md, count=1)
 
-md = md.replace(
-    "Bảy mươi lăm test này được thiết kế bằng kỹ thuật **hộp đen**",
-    f"{TONG} test này được thiết kế bằng kỹ thuật **hộp đen**")
-md = md.replace(
-    "Vậy mà bao phủ nhánh tăng hơn 18 điểm phần trăm.",
-    f"Vậy mà bao phủ nhánh tăng hơn {int(BRANCH - 48.2)} điểm phần trăm.")
-md = md.replace(
-    "Nhưng vẫn còn **33,5% nhánh chưa chạm**",
-    f"Nhưng vẫn còn **{vn(100 - BRANCH)}% nhánh chưa chạm**")
+md = re.sub(r"\d+ test này được thiết kế bằng kỹ thuật",
+            f"{TONG} test này được thiết kế bằng kỹ thuật", md, count=1)
+md = re.sub(r"bao phủ nhánh tăng hơn \d+ điểm phần trăm",
+            f"bao phủ nhánh tăng hơn {int(BRANCH - 48.2)} điểm phần trăm", md, count=1)
+md = re.sub(r"Nhưng vẫn còn \*\*[\d,]+% nhánh chưa chạm\*\*",
+            f"Nhưng vẫn còn **{vn(100 - BRANCH)}% nhánh chưa chạm**", md, count=1)
 
 # ── Ví dụ cụ thể: lỗ hổng đã đóng ────────────────────────────────────────
 dau = md.index("## Ví dụ cụ thể")
@@ -179,16 +192,15 @@ Ngược lại, những lớp mà kỹ thuật hộp đen mô hình hoá đượ
 | `PasswordResetService` | **100%** (6/6) | — |
 | `OnboardingService` | **100%** ({ONB_C}/{ONB_T}) | Bảng quyết định 8 rule + BVA dung lượng 6 biên |
 
-Và hai lớp còn hở, ghi lại để không nhận công quá tay:
+Và một lớp còn hở, ghi lại để không nhận công quá tay:
 
 | Lớp | Nhánh | Vì sao còn hở |
 |---|---|---|
-| `MentorService` | {vn(MEN_P)}% ({MEN_C}/{MEN_T}) | BVA ngưỡng cắt tiêu đề chỉ mô hình hoá một biến. Hai nhánh còn lại thuộc khối `try/catch` gọi LLM và các phép kiểm `null` khi dựng prompt — chúng là *xử lý sự cố hạ tầng*, không phải luật nghiệp vụ suy ra được từ đặc tả |
 | `OnboardingController` | {vn(CTL_P)}% ({CTL_C}/{CTL_T}) | Máy trạng thái phủ trọn các cạnh chuyển bước, nhưng nhánh xử lý tệp tải lên ở `POST step2` (tệp rỗng · lỗi lưu · phân tích bảng điểm trả `null`) nằm ngoài mô hình trạng thái |
 
-Cả hai đều đúng như slide 51 của chương IV: *độ bao phủ 100% không có nghĩa là 100% được
+Đúng như slide 51 của chương IV: *độ bao phủ 100% không có nghĩa là 100% được
 test*, và chiều ngược lại cũng đúng — **phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn
-mã nguồn**. Muốn đóng nốt hai dòng trên phải dùng kỹ thuật hộp trắng (mục IV.4), lần theo
+mã nguồn**. Muốn đóng nốt dòng trên phải dùng kỹ thuật hộp trắng (mục IV.4), lần theo
 từng nhánh của đồ thị dòng điều khiển.
 
 """ + md[cuoi:]
