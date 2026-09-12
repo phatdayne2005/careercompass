@@ -35,6 +35,7 @@ GOP_TEN = {
     "PhatDepZai": "Nguyễn Thành Phát",
     "vmquan2200": "Vòng Minh Quân",
     "PHAMSONTUANKIET": "Phạm Sơn Tuấn Kiệt",
+    "NhwNgocc": "Trần Tô Như Ngọc",
 }
 
 # sheet trong báo cáo -> (nội dung, người thực hiện)
@@ -65,10 +66,10 @@ SHEET_PHAN_CONG = [
     ("B4_Coverage_Per_Class", "Độ bao phủ chi tiết theo từng lớp", "Vòng Minh Quân"),
     ("B5_Danh_Sach_Test_Whitebox", "Danh mục tệp kiểm thử thuộc phạm vi hộp trắng",
      "Vòng Minh Quân"),
-    ("05. API - Postman", "Kiểm thử API: phân bổ theo nhóm chức năng, phép kiểm, lỗi",
-     "Nguyễn Thành Phát · Vòng Minh Quân"),
-    ("06. E2E - CodeceptJS", "Kiểm thử giao diện đầu-cuối: 17 kịch bản, ma trận truy vết",
-     "Nguyễn Thành Phát"),
+    ("05. API - Postman", "Kiểm thử API: phân bổ theo nhóm chức năng, phép kiểm, lỗi. "
+     "Bộ kiểm thử do Nguyễn Thành Phát và Vòng Minh Quân xây dựng", "Trần Tô Như Ngọc"),
+    ("06. E2E - CodeceptJS", "Kiểm thử giao diện đầu-cuối: 17 kịch bản, ma trận truy "
+     "vết. Bộ kiểm thử do Nguyễn Thành Phát xây dựng", "Trần Tô Như Ngọc"),
     ("07. Khiem khuyet", "11 khiếm khuyết: mô tả, kỹ thuật phát hiện, cách khắc phục",
      "Nguyễn Thành Phát"),
 ]
@@ -82,7 +83,11 @@ NGOAI_SHEET = [
     ("Kiểm thử bộ xử lý ngoại lệ", "Đối chiếu loại ngoại lệ với mã trạng thái HTTP",
      "Vòng Minh Quân"),
     ("Bản thuyết minh bằng văn bản", "Bốn phần: đơn vị, API, giao diện, kỹ thuật dựa "
-     "trên kinh nghiệm", "NhwNgocc"),
+     "trên kinh nghiệm", "Trần Tô Như Ngọc"),
+    ("Xây dựng bộ kiểm thử API", "Tập lệnh Postman, biến môi trường, bảo đảm chạy lại "
+     "được nhiều lần", "Nguyễn Thành Phát · Vòng Minh Quân"),
+    ("Xây dựng bộ kiểm thử giao diện", "CodeceptJS và Playwright, mô hình Page Object",
+     "Nguyễn Thành Phát"),
     ("Sửa lỗi và tái cấu trúc giao diện", "Lỗi rời trang KCPMS-22, trang cố vấn AI",
      "Vòng Minh Quân"),
     ("Quy trình CI/CD và triển khai", "GitHub Actions, Docker, VPS, chặn deploy khi đỏ",
@@ -165,10 +170,11 @@ r = thanh(r, "BẢNG 1 — THÀNH VIÊN VÀ MẢNG CÔNG VIỆC CHÍNH")
 r = tieu_de_cot(r, ["Thành viên", "Mảng công việc chính", "", "Commit", "", "", "", ""])
 MO_TA = {
     "Nguyễn Thành Phát": "Kiểm thử đơn vị tầng dịch vụ · Kiểm thử hộp đen chương IV · "
-                         "Kiểm thử giao diện đầu-cuối · Khắc phục khiếm khuyết",
+                         "Xây dựng bộ kiểm thử API và giao diện · Khắc phục khiếm khuyết",
     "Vòng Minh Quân": "Kiểm thử hộp trắng · Kiểm thử tầng điều khiển · Kiểm thử giá trị "
                       "biên · Sửa lỗi giao diện · Các báo cáo dạng bảng",
-    "NhwNgocc": "Bản thuyết minh kiểm chứng phần mềm bằng văn bản, gồm bốn phần",
+    "Trần Tô Như Ngọc": "Thực hiện kiểm thử API và kiểm thử giao diện đầu-cuối, lập báo "
+                        "cáo kết quả · Bản thuyết minh kiểm chứng phần mềm bằng văn bản",
 }
 for ten, n in TV:
     o(r, 1, ten, bold=True)
@@ -199,6 +205,10 @@ for ten_sheet, nd, ai in SHEET_PHAN_CONG:
 r = thanh(r, "Năm sheet B1–B5 là phần kiểm thử hộp trắng: đồ thị dòng điều khiển, độ "
              "phức tạp Cyclomatic, đường cơ sở, ma trận tổ hợp điều kiện MC/DC và đối "
              "chiếu độ bao phủ trước–sau.",
+          fill=None, color="808080", size=9, italic=True, cao=26)
+r = thanh(r, "Với sheet 05 và 06, cột \"Người thực hiện\" ghi người CHẠY kiểm thử và "
+             "LẬP BÁO CÁO — đó mới là nội dung của hai sheet này. Người xây dựng bộ "
+             "kiểm thử ghi trong cột Nội dung và ở Bảng 3.",
           fill=None, color="808080", size=9, italic=True, cao=26)
 r += 1
 

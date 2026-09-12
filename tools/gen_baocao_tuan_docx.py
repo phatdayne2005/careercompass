@@ -45,13 +45,17 @@ XANH = RGBColor(0x1F, 0x4E, 0x79)
 XAM = RGBColor(0x59, 0x59, 0x59)
 
 # Một người commit dưới nhiều tên (tài khoản noreply của GitHub, tên hiển thị cũ).
-# Chỉ gộp những tên mà chính Git đã ghi ở dạng đầy đủ tại một commit khác — người nào
-# Git chỉ có tên tài khoản thì giữ nguyên tên tài khoản, không tự đặt họ tên đầy đủ vì
-# đó là bịa thông tin về một người thật.
+# Quy về một họ tên duy nhất để đếm cho đúng.
+#
+# Nguồn của mỗi họ tên: hoặc chính Git đã ghi ở dạng đầy đủ tại một commit khác, hoặc
+# do thành viên trong nhóm cung cấp ("NhwNgocc" -> "Trần Tô Như Ngọc"). Tuyệt đối không
+# suy ra họ tên từ tên tài khoản hay địa chỉ email — đoán sai là ghi sai tên một người
+# thật trong tài liệu dùng để chấm điểm.
 GOP_TEN = {
     "PhatDepZai": "Nguyễn Thành Phát",
     "vmquan2200": "Vòng Minh Quân",
     "PHAMSONTUANKIET": "Phạm Sơn Tuấn Kiệt",
+    "NhwNgocc": "Trần Tô Như Ngọc",
 }
 
 # ── Nội dung mô tả từng tuần — phần duy nhất viết tay ────────────────────
@@ -290,9 +294,13 @@ PHAN_CONG = [
      "giới hạn dung lượng tệp bảng điểm", "Vòng Minh Quân"),
     ("Kiểm thử bộ xử lý ngoại lệ", "Đối chiếu từng loại ngoại lệ với mã trạng thái HTTP",
      "Vòng Minh Quân"),
-    ("Kiểm thử API", "Bộ Postman: tập lệnh, biến môi trường, bảo đảm chạy lại được",
-     "Nguyễn Thành Phát · Vòng Minh Quân"),
-    ("Kiểm thử giao diện đầu-cuối", "CodeceptJS và Playwright, mô hình Page Object",
+    ("Kiểm thử API", "Chạy bộ kiểm thử Postman/Newman và lập báo cáo kết quả — 92 "
+     "trường hợp, 112 request, 358 phép kiểm", "Trần Tô Như Ngọc"),
+    ("— xây dựng bộ kiểm thử API", "Tập lệnh Postman, biến môi trường, bảo đảm chạy "
+     "lại được nhiều lần", "Nguyễn Thành Phát · Vòng Minh Quân"),
+    ("Kiểm thử giao diện đầu-cuối", "Chạy bộ kiểm thử CodeceptJS và lập báo cáo kết "
+     "quả — 17 kịch bản trên 8 nhóm chức năng", "Trần Tô Như Ngọc"),
+    ("— xây dựng bộ kiểm thử giao diện", "CodeceptJS và Playwright, mô hình Page Object",
      "Nguyễn Thành Phát"),
     ("Quy trình CI/CD", "GitHub Actions, Docker, triển khai VPS, chặn deploy khi đỏ",
      "Vòng Minh Quân · Nguyễn Thành Phát"),
@@ -303,16 +311,19 @@ PHAN_CONG = [
     ("Khắc phục khiếm khuyết ứng dụng", "11 khiếm khuyết, kèm kiểm thử hồi quy",
      "Nguyễn Thành Phát"),
     ("Bản thuyết minh bằng văn bản", "Bốn phần: đơn vị, API, giao diện, kỹ thuật dựa "
-     "trên kinh nghiệm", "NhwNgocc"),
+     "trên kinh nghiệm", "Trần Tô Như Ngọc"),
     ("Báo cáo kiểm thử dạng bảng", "Báo cáo hộp trắng, bảng 12 kỹ thuật, ma trận truy "
      "vết, báo cáo tổng hợp", "Vòng Minh Quân · Nguyễn Thành Phát"),
 ]
 
-# Sản phẩm bàn giao -> người tạo, lấy từ commit đầu tiên thêm tệp đó vào kho.
+# Sản phẩm bàn giao -> người phụ trách. Với tệp mã nguồn thì đó là người tạo (lấy từ
+# commit đầu tiên thêm tệp vào kho); với bộ kiểm thử Postman và giao diện thì đó là
+# người CHẠY kiểm thử và lập báo cáo, còn người xây dựng ghi trong cột Nội dung — vì
+# Git chỉ biết ai viết tệp, không biết ai chạy nó.
 SAN_PHAM = [
     ("BaoCao-KiemThu-CareerCompass.xlsx", "Báo cáo kiểm thử tổng hợp, 16 bảng",
      "Nguyễn Thành Phát · Vòng Minh Quân"),
-    ("BaoCao_Moi.docx", "Bản thuyết minh kiểm chứng phần mềm, bốn phần", "NhwNgocc"),
+    ("BaoCao_Moi.docx", "Bản thuyết minh kiểm chứng phần mềm, bốn phần", "Trần Tô Như Ngọc"),
     ("BaoCao_Whitebox.xlsx", "Báo cáo hộp trắng B1–B5", "Vòng Minh Quân"),
     ("BaoCao-PhanA-HopDen.xlsx", "Báo cáo hộp đen theo mẫu bài giảng",
      "Nguyễn Thành Phát"),
@@ -321,20 +332,35 @@ SAN_PHAM = [
     ("CareerCompass_Test_Report.xlsx", "Ma trận truy vết đặc tả và kịch bản kiểm thử",
      "Vòng Minh Quân"),
     ("SRS-CareerCompass-v1.0.docx", "Đặc tả yêu cầu phần mềm", "Nguyễn Thành Phát"),
-    ("CareerCompass.postman_collection.json", "Bộ kiểm thử API",
-     "Nguyễn Thành Phát · Vòng Minh Quân"),
-    ("e2e/", "Bộ kiểm thử giao diện đầu-cuối", "Nguyễn Thành Phát"),
+    ("CareerCompass.postman_collection.json", "Bộ kiểm thử API — xây dựng bởi Nguyễn "
+     "Thành Phát và Vòng Minh Quân, chạy và lập báo cáo bởi Trần Tô Như Ngọc",
+     "Trần Tô Như Ngọc"),
+    ("e2e/", "Bộ kiểm thử giao diện đầu-cuối — xây dựng bởi Nguyễn Thành Phát, chạy và "
+     "lập báo cáo bởi Trần Tô Như Ngọc", "Trần Tô Như Ngọc"),
     ("docs/coverage/", "Bản chụp báo cáo độ bao phủ JaCoCo", "Nguyễn Thành Phát"),
     ("SoDo-ChuyenTrangThai.drawio", "Sơ đồ chuyển đổi trạng thái", "Nguyễn Thành Phát"),
 ]
 
 MO_TA_TV = {
     "Nguyễn Thành Phát": "Kiểm thử đơn vị tầng dịch vụ, kiểm thử hộp đen chương IV, "
-                         "kiểm thử giao diện đầu-cuối, khắc phục khiếm khuyết",
+                         "xây dựng bộ kiểm thử API và giao diện đầu-cuối, khắc phục "
+                         "khiếm khuyết",
     "Vòng Minh Quân": "Kiểm thử hộp trắng, kiểm thử tầng điều khiển, kiểm thử giá trị "
                       "biên, sửa lỗi giao diện, các báo cáo dạng bảng",
-    "NhwNgocc": "Bản thuyết minh kiểm chứng phần mềm bằng văn bản, gồm bốn phần",
+    "Trần Tô Như Ngọc": "Thực hiện kiểm thử API và kiểm thử giao diện đầu-cuối, lập "
+                        "báo cáo kết quả; bản thuyết minh kiểm chứng phần mềm bằng "
+                        "văn bản, gồm bốn phần",
 }
+
+# Kiểm thử không phải JUnit nên không đếm được từ Surefire — phải ghi riêng, nếu không
+# bảng "khối lượng kiểm thử theo người viết" sẽ cho ra con số 0 cho người đảm nhận hai
+# mảng này và người đọc sẽ hiểu nhầm là họ không làm kiểm thử.
+KIEM_THU_KHAC = [
+    ("Kiểm thử API (Postman / Newman)",
+     "92 trường hợp thiết kế · 112 request · 358 phép kiểm · 0 lỗi", "Trần Tô Như Ngọc"),
+    ("Kiểm thử giao diện đầu-cuối (CodeceptJS)",
+     "17 kịch bản trên 8 nhóm chức năng · 0 kịch bản thất bại", "Trần Tô Như Ngọc"),
+]
 
 
 # ── Đọc số liệu từ git và surefire ───────────────────────────────────────
@@ -591,10 +617,6 @@ p("Lưu ý khi đọc bảng trên: SỐ COMMIT KHÔNG TỶ LỆ VỚI KHỐI L�
   "hơn mười commit nhỏ. Bảng phân công ở mục 2 phản ánh đóng góp chính xác hơn.",
   size=11, italic=True, color=XAM)
 
-p("Tên thành viên lấy theo tên tác giả ghi trong lịch sử Git. Dòng đang hiển thị tên "
-  "tài khoản thay vì họ tên đầy đủ là do tài khoản đó chưa khai họ tên trong cấu hình "
-  "Git — có thể điền lại thủ công khi nộp.",
-  size=11, italic=True, color=XAM)
 
 # ── 2. Phân công ─────────────────────────────────────────────────────────
 doc.add_page_break()
@@ -607,10 +629,9 @@ bang(["Mảng công việc", "Nội dung", "Thành viên phụ trách"],
      [list(x) for x in PHAN_CONG], rong=[4.4, 6.2, 4.4], co=11)
 
 p()
-tieu_de("2.1. Khối lượng kiểm thử tự động theo người viết", muc=2)
+tieu_de("2.1. Khối lượng kiểm thử JUnit theo người viết", muc=2)
 p("Số liệu lấy từ kết quả chạy Maven Surefire, đối chiếu với tác giả tạo ra từng tệp "
-  "kiểm thử. Bảng chỉ tính kiểm thử tự động — không phản ánh phần tài liệu, báo cáo và "
-  "sửa lỗi ứng dụng, vốn là những phần chiếm khối lượng lớn nhưng không sinh ra test.")
+  "kiểm thử.")
 bang(["Người viết", "Số lớp kiểm thử", "Số trường hợp kiểm thử", "Tỷ lệ"],
      [[ai, lp, n, pt(100 * n / TONG_TEST)]
       for ai, (lp, n) in sorted(TEST_TG.items(), key=lambda x: -x[1][1])]
@@ -618,8 +639,19 @@ bang(["Người viết", "Số lớp kiểm thử", "Số trường hợp kiểm
      rong=[5.4, 3.4, 4.2, 2.0], canh_giua=(1, 2, 3))
 
 p()
-tieu_de("2.2. Sản phẩm bàn giao", muc=2)
-bang(["Tệp / thư mục", "Nội dung", "Người tạo"],
+p("Bảng trên CHỈ tính kiểm thử viết bằng JUnit. Hai mảng kiểm thử còn lại chạy bằng "
+  "công cụ khác nên không xuất hiện trong kết quả Surefire, phải ghi riêng dưới đây — "
+  "nếu không, người đảm nhận hai mảng đó sẽ hiện ra với con số 0 và bị hiểu nhầm là "
+  "không tham gia kiểm thử.", size=11, italic=True, color=XAM)
+
+p()
+tieu_de("2.2. Khối lượng kiểm thử ngoài JUnit", muc=2)
+bang(["Loại kiểm thử", "Khối lượng đã chạy", "Người thực hiện"],
+     [list(x) for x in KIEM_THU_KHAC], rong=[5.0, 6.0, 4.0])
+
+p()
+tieu_de("2.3. Sản phẩm bàn giao", muc=2)
+bang(["Tệp / thư mục", "Nội dung", "Người phụ trách"],
      [list(x) for x in SAN_PHAM], rong=[5.2, 5.4, 4.4], co=11)
 
 # ── 3. Chi tiết từng tuần ────────────────────────────────────────────────
