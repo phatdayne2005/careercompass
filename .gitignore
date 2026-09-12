@@ -96,3 +96,10 @@ P2-Checklist-va-Demo.docx
 
 # File khoá tạm của Microsoft Office (tạo ra khi đang mở file)
 ~$*
+
+# Dump của công cụ soi bảng tính — không phải báo cáo, nặng hàng trăm KB mỗi tệp
+*.inspect.ndjson
+
+# Bảng tính trung gian do các script trong tools/ sinh ra rồi xoá
+_tmp.xlsx
+tmp_sheet.csv
