@@ -3346,8 +3346,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
@@ -3397,8 +3399,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
@@ -5442,8 +5446,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
@@ -5492,8 +5498,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
@@ -5756,8 +5764,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
@@ -5798,8 +5808,10 @@
                   "// Xoá cookie JSESSIONID để mô phỏng người dùng CHƯA đăng nhập. Phải xoá NGAY TRƯỚC",
                   "// khi lấy CSRF token, vì token gắn với phiên: lấy token ở phiên cũ rồi mới xoá cookie",
                   "// thì token đó vô nghĩa với phiên mới và Spring Security trả 403.",
+                  "const url = pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\");",
+                  "const domain = url.replace(/^https?:\\/\\//, '').split(':')[0];",
                   "const jar = pm.cookies.jar();",
-                  "jar.clear(pm.environment.get(\"baseUrl\") || pm.collectionVariables.get(\"baseUrl\"), function () {});"
+                  "jar.clear(domain, function () {});"
                 ]
               }
             },
