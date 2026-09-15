@@ -74,16 +74,29 @@ def rule_03c():
     return ra
 
 
+# Rút gọn tới dạng TỐI GIẢN thật sự. Bản trước dừng ở 8 rule vì tách riêng bốn đuôi
+# hợp lệ — nhưng cả bốn cho cùng hành động A1, nên theo luật rút gọn phải gộp làm một,
+# đúng như cách sheet 03 gộp "IN_PROGRESS / DONE" vào một ô. Hai rule đuôi sai (khác,
+# không có dấu chấm) cũng cùng hành động A4 nên gộp nốt. 24 rule -> 4 rule.
 RUT_GON_03C = [
-    ("R1'", ("Y", "–", "–"), "A2", "gộp R1–R12: tên tệp null thì đuôi và dung lượng vô nghĩa"),
-    ("R2'", ("N", ".pdf", "Y"), "A1", ""),
-    ("R3'", ("N", ".png", "Y"), "A1", ""),
-    ("R4'", ("N", ".jpg", "Y"), "A1", ""),
-    ("R5'", ("N", ".jpeg", "Y"), "A1", ""),
-    ("R6'", ("N", "hợp lệ", "N"), "A3", "gộp 4 rule: bốn đuôi hợp lệ khi quá dung lượng cho cùng hành động"),
-    ("R7'", ("N", "khác", "–"), "A4", "gộp 2 rule: đuôi sai thì chặn trước khi xét dung lượng"),
-    ("R8'", ("N", "không có dấu chấm", "–"), "A4", "gộp 2 rule — cột phát hiện DEF-011"),
+    ("R1'", ("Y", "–", "–"), "A2", "gộp R1–R12"),
+    ("R2'", ("N", "hợp lệ", "Y"), "A1", "gộp R13, R15, R17, R19"),
+    ("R3'", ("N", "hợp lệ", "N"), "A3", "gộp R14, R16, R18, R20"),
+    ("R4'", ("N", "không hợp lệ", "–"), "A4", "gộp R21–R24"),
 ]
+
+# Mỗi rule đã gộp được thi hành bởi nhiều test, vì mã nguồn phân biệt từng đuôi thành
+# một nhánh riêng — xem ghi chú "BẢNG RÚT GỌN NÓI ÍT HƠN" ở cuối sheet.
+TEST_THEO_RULE = {
+    "R1'": "rule1_tenTepNull_tuChoi",
+    "R2'": ("rule2_duoiPdf_luuThanhCong\n"
+             "rule3_duoiPng_luuThanhCong\n"
+             "rule4_duoiJpg_luuThanhCong\n"
+             "rule5_duoiJpeg_luuThanhCong"),
+    "R3'": "rule6_duoiHopLe_dungLuongQuaLon_tuChoi",
+    "R4'": ("rule7_duoiKhongHopLe_tuChoi\n"
+             "rule8_tenTepKhongCoDuoi_tuChoi"),
+}
 
 HANH_DONG_03C = {
     "A1": "A1 · Lưu tệp, trả đường dẫn",
@@ -92,12 +105,6 @@ HANH_DONG_03C = {
     "A4": "A4 · Lỗi \"Chỉ chấp nhận PDF, PNG hoặc JPG\"",
 }
 
-METHOD_03C = {
-    "R1'": "rule1_tenTepNull_tuChoi", "R2'": "rule2_duoiPdf_luuThanhCong",
-    "R3'": "rule3_duoiPng_luuThanhCong", "R4'": "rule4_duoiJpg_luuThanhCong",
-    "R5'": "rule5_duoiJpeg_luuThanhCong", "R6'": "rule6_duoiHopLe_dungLuongQuaLon_tuChoi",
-    "R7'": "rule7_duoiKhongHopLe_tuChoi", "R8'": "rule8_tenTepKhongCoDuoi_tuChoi",
-}
 
 # ---- Ma trận trạng thái × sự kiện cho ba sheet chuyển đổi ----------------
 MA_TRAN_04 = {
@@ -225,7 +232,7 @@ ws = moi("03c. Decision Table Tep", "03b. Decision Table Token", so_cot=14, rong
 r = dau_sheet(ws, "Decision Table Testing — bảng thứ ba: tệp bảng điểm",
               "OnboardingService.saveTranscript(). Bảng thiết kế theo mẫu slide 44: "
               "bảng đầy đủ trước, bảng rút gọn sau.",
-              "TranscriptFileDecisionTableTest", N, "Bảng quyết định · 24 rule → 8 rule",
+              "TranscriptFileDecisionTableTest", N, "Bảng quyết định · 24 rule → 4 rule",
               14, LENH.format(cls="TranscriptFileDecisionTableTest"))
 
 RULE = rule_03c()
@@ -255,7 +262,7 @@ for khoi in (0, 12):
         r += 1
     r += 1
 
-r = thanh(ws, r, "BẢNG SAU KHI RÚT GỌN — bước 6 slide 42 · 24 rule → 8 rule", 14)
+r = thanh(ws, r, "BẢNG SAU KHI RÚT GỌN — bước 6 slide 42 · 24 rule → 4 rule", 14)
 o(ws, r, 1, "Condition / Action", bold=True, fill=C_HDR, color=C_TXT, center=True)
 for j, (ma, _, _, _) in enumerate(RUT_GON_03C):
     o(ws, r, j + 2, ma, bold=True, fill=C_HDR, color=C_TXT, center=True)
@@ -269,7 +276,7 @@ GHI_CHU_HANG = {
     "C2 · Đuôi tệp": "6 giá trị — đây là lý do dùng tích số chứ không dùng 2^n",
     "C3 · Dung lượng ≤ 10MB": "2 giá trị",
     "A4 · Lỗi \"Chỉ chấp nhận PDF, PNG hoặc JPG\"":
-        "R8' là cột phát hiện khiếm khuyết DEF-011",
+        "R4' gộp cả ô đã phát hiện DEF-011 — xem ghi chú bên dưới",
 }
 
 
@@ -295,25 +302,39 @@ for ma, nhan in HANH_DONG_03C.items():
     ghi_chu(r, nhan)
     r += 1
 o(ws, r, 1, "Kết quả chạy test", bold=True)
-for j in range(8):
+for j in range(len(RUT_GON_03C)):
     o(ws, r, j + 2, "PASS", fill=C_PASS, center=True)
 r += 1
-o(ws, r, 1, "Method trong code", bold=True)
+o(ws, r, 1, "Test thi hành rule này", bold=True)
 for j, (ma, _, _, _) in enumerate(RUT_GON_03C):
-    o(ws, r, j + 2, METHOD_03C[ma], size=8)
+    o(ws, r, j + 2, TEST_THEO_RULE[ma], size=8)
+ws.row_dimensions[r].height = 56
+r += 1
+o(ws, r, 1, "Gộp từ rule nào", bold=True)
+for j, (_, _, _, gc) in enumerate(RUT_GON_03C):
+    o(ws, r, j + 2, gc, size=8, center=True, color="808080")
 r += 1
 
 r += 1
 r = thanh(ws, r, "Ô tô vàng là ô \"không quan tâm\" (–) sinh ra khi gộp rule.", 14,
           fill=None, color="808080", size=9, italic=True, cao=20)
 for dong in [
+    "BẢNG RÚT GỌN NÓI ÍT HƠN BẢNG ĐẦY ĐỦ — và đó là lý do vẫn phải giữ cả hai. Rút gọn "
+    "xong chỉ còn 4 rule, nhưng bộ kiểm thử có 8 test. Chênh lệch nằm ở chỗ: xét theo ĐẶC "
+    "TẢ thì bốn đuôi .pdf, .png, .jpg, .jpeg là MỘT lớp tương đương (cùng được chấp "
+    "nhận), nên rút gọn gộp chúng làm một ô \"hợp lệ\". Nhưng xét theo MÃ NGUỒN thì mỗi "
+    "đuôi là một nhánh riêng của chuỗi && , và báo cáo bao phủ đã chỉ đích danh ba nhánh "
+    "chưa ai chạm tới. Nếu chỉ nhìn bảng rút gọn mà viết test thì ba nhánh đó vẫn nằm im.",
+    "RÚT GỌN CÒN CHE MẤT TRƯỜNG HỢP ĐÃ TÌM RA LỖI: \"không có dấu chấm\" bị gộp vào "
+    "R4' cùng với \"đuôi khác\" vì hai bên cho cùng hành động A4. Nhưng chính ô đó mới "
+    "là ô làm lộ DEF-011 — trước khi sửa, nó không trả lỗi 400 mà ném "
+    "StringIndexOutOfBoundsException thành lỗi 500. Bảng đầy đủ giữ nó ở cột R23–R24 nên "
+    "còn nhìn thấy; bảng rút gọn thì không.",
     "VÌ SAO GỘP ĐƯỢC: mã nguồn kiểm ba điều kiện TUẦN TỰ và thoát ngay khi gặp lỗi. Khi "
     "một điều kiện phía trước đã quyết định kết quả thì điều kiện phía sau không còn ảnh "
     "hưởng, đánh dấu \"–\". R1' gộp 12 rule (tên tệp null thì đuôi và dung lượng vô "
     "nghĩa); R7' và R8' mỗi cột gộp 2 rule (đuôi sai thì chặn trước khi xét dung lượng).",
-    "R6' GỘP THEO KIỂU KHÁC: bốn đuôi hợp lệ khi vượt dung lượng đều cho cùng một hành "
-    "động, nên bốn rule con thu về một, ô C2 ghi \"hợp lệ\" thay vì một đuôi cụ thể.",
-    "KHIẾM KHUYẾT DEF-011 — cột R8'. Tệp không có dấu chấm làm lastIndexOf(\".\") trả -1, "
+    "KHIẾM KHUYẾT DEF-011 — cột R23–R24 của bảng đầy đủ. Tệp không có dấu chấm làm lastIndexOf(\".\") trả -1, "
     "kéo theo substring(-1) ném StringIndexOutOfBoundsException, người dùng nhận lỗi 500 "
     "thay vì thông báo 400. Nói rõ để không nhận công sai: test hộp trắng đã ghi đúng "
     "nguyên nhân từ trước nhưng lại CHỐT hành vi lỗi bằng một khẳng định, nên bộ test vẫn "
@@ -329,7 +350,7 @@ for dong in [
 ]:
     r = thanh(ws, r, dong, 14, fill=None, color="404040", size=9, italic=True, cao=44)
 
-print(f"  03c: {N} test, 24 rule day du + 8 rule rut gon")
+print(f"")
 
 
 # ══════════════════════════════════════════════════════════════════════════
