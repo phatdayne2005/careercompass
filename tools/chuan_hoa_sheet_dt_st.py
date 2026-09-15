@@ -55,34 +55,35 @@ def so_test(cls, pkg="blackbox"):
 # ══════════════════════════════════════════════════════════════════════════
 
 # ---- 03c · bảng quyết định tệp bảng điểm --------------------------------
-DUOI = [".pdf", ".png", ".jpg", ".jpeg", "khác", "không có dấu chấm"]
-
-
+# C2 là điều kiện NHỊ PHÂN, không phải sáu giá trị. Đặc tả nói "Chỉ chấp nhận file PDF,
+# PNG hoặc JPG" — bốn đuôi đó KHÔNG được phân biệt với nhau, cùng một hành động, nên
+# điều kiện thật là "đuôi có thuộc tập chấp nhận không". Bản trước liệt kê sáu giá trị
+# rồi ra 24 rule, nhưng lại rút gọn theo kiểu nhị phân — mâu thuẫn với chính nó.
+#
+# Việc bốn đuôi hợp lệ vẫn cần bốn test riêng là chuyện KHÁC: đó là phân hoạch lớp tương
+# đương bên trong một lớp, cộng với yêu cầu bao phủ nhánh của mã nguồn. Xem bảng
+# "GIÁ TRỊ ĐẠI DIỆN" ở cuối sheet.
 def rule_03c():
-    """Sinh trọn 24 rule: C1 (2) × C2 (6) × C3 (2). Trả về (điều kiện, hành động)."""
+    """Sinh trọn 8 rule: C1 (2) × C2 (2) × C3 (2)."""
     ra = []
     for c1 in ("Y", "N"):
-        for c2 in DUOI:
+        for c2 in ("Y", "N"):
             for c3 in ("Y", "N"):
                 if c1 == "Y":
-                    hd = "A2"                       # tên tệp null — chặn ngay từ đầu
-                elif c2 in (".pdf", ".png", ".jpg", ".jpeg"):
-                    hd = "A1" if c3 == "Y" else "A3"
+                    hd = "A2"          # tên tệp null — chặn ngay từ đầu
+                elif c2 == "N":
+                    hd = "A4"          # đuôi sai — chặn trước khi xét dung lượng
                 else:
-                    hd = "A4"                       # đuôi sai — chặn trước khi xét dung lượng
+                    hd = "A1" if c3 == "Y" else "A3"
                 ra.append(((c1, c2, c3), hd))
     return ra
 
 
-# Rút gọn tới dạng TỐI GIẢN thật sự. Bản trước dừng ở 8 rule vì tách riêng bốn đuôi
-# hợp lệ — nhưng cả bốn cho cùng hành động A1, nên theo luật rút gọn phải gộp làm một,
-# đúng như cách sheet 03 gộp "IN_PROGRESS / DONE" vào một ô. Hai rule đuôi sai (khác,
-# không có dấu chấm) cũng cùng hành động A4 nên gộp nốt. 24 rule -> 4 rule.
 RUT_GON_03C = [
-    ("R1'", ("Y", "–", "–"), "A2", "gộp R1–R12"),
-    ("R2'", ("N", "hợp lệ", "Y"), "A1", "gộp R13, R15, R17, R19"),
-    ("R3'", ("N", "hợp lệ", "N"), "A3", "gộp R14, R16, R18, R20"),
-    ("R4'", ("N", "không hợp lệ", "–"), "A4", "gộp R21–R24"),
+    ("R1'", ("Y", "–", "–"), "A2", "gộp R1–R4"),
+    ("R2'", ("N", "Y", "Y"), "A1", "chính là R5"),
+    ("R3'", ("N", "Y", "N"), "A3", "chính là R6"),
+    ("R4'", ("N", "N", "–"), "A4", "gộp R7 + R8"),
 ]
 
 # Mỗi rule đã gộp được thi hành bởi nhiều test, vì mã nguồn phân biệt từng đuôi thành
@@ -232,37 +233,37 @@ ws = moi("03c. Decision Table Tep", "03b. Decision Table Token", so_cot=14, rong
 r = dau_sheet(ws, "Decision Table Testing — bảng thứ ba: tệp bảng điểm",
               "OnboardingService.saveTranscript(). Bảng thiết kế theo mẫu slide 44: "
               "bảng đầy đủ trước, bảng rút gọn sau.",
-              "TranscriptFileDecisionTableTest", N, "Bảng quyết định · 24 rule → 4 rule",
+              "TranscriptFileDecisionTableTest", N, "Bảng quyết định · 8 rule → 4 rule",
               14, LENH.format(cls="TranscriptFileDecisionTableTest"))
 
 RULE = rule_03c()
-r = thanh(ws, r, "BẢNG QUYẾT ĐỊNH ĐẦY ĐỦ — mẫu slide 44 · 24 rule = 2 × 6 × 2", 14)
-r = thanh(ws, r, "Số rule tối đa = tích số giá trị của các điều kiện. C2 có SÁU giá trị "
-                 "chứ không nhị phân, nên dùng tích số chứ không dùng 2^n. Bảng chia "
-                 "làm hai khối 12 cột cho vừa bề ngang.",
+r = thanh(ws, r, "BẢNG QUYẾT ĐỊNH ĐẦY ĐỦ — mẫu slide 44 · 8 rule = 2 × 2 × 2", 14)
+r = thanh(ws, r, "Số rule tối đa = tích số giá trị của các điều kiện = 2 × 2 × 2 = 8. "
+                 "Cả ba điều kiện đều nhị phân nên ở bảng này công thức 2^n dùng được — "
+                 "khác bảng ProgressService ở sheet 03, nơi điều kiện trạng thái có ba "
+                 "giá trị nên phải nhân chứ không luỹ thừa.",
           14, fill=None, color="808080", size=9, italic=True, cao=26)
 
-for khoi in (0, 12):
-    cot = RULE[khoi:khoi + 12]
-    o(ws, r, 1, "Condition / Action", bold=True, fill=C_HDR, color=C_TXT, center=True)
-    for j in range(12):
-        o(ws, r, j + 2, f"R{khoi + j + 1}", bold=True, fill=C_HDR, color=C_TXT, center=True)
+o(ws, r, 1, "Condition / Action", bold=True, fill=C_HDR, color=C_TXT, center=True)
+for j in range(len(RULE)):
+    o(ws, r, j + 2, f"R{j + 1}", bold=True, fill=C_HDR, color=C_TXT, center=True)
+r += 1
+for idx, ten_dk in enumerate(["C1 · Tên tệp = null",
+                              "C2 · Đuôi tệp thuộc {.pdf, .png, .jpg, .jpeg}",
+                              "C3 · Dung lượng ≤ 10MB"]):
+    o(ws, r, 1, ten_dk)
+    for j, ((c1, c2, c3), _) in enumerate(RULE):
+        o(ws, r, j + 2, (c1, c2, c3)[idx], center=True)
     r += 1
-    for idx, ten_dk in enumerate(["C1 · Tên tệp = null", "C2 · Đuôi tệp",
-                                  "C3 · Dung lượng ≤ 10MB"]):
-        o(ws, r, 1, ten_dk)
-        for j, ((c1, c2, c3), _) in enumerate(cot):
-            o(ws, r, j + 2, (c1, c2, c3)[idx], center=True, size=9)
-        r += 1
-    for ma, nhan in HANH_DONG_03C.items():
-        o(ws, r, 1, nhan, bold=True)
-        for j, (_, hd) in enumerate(cot):
-            o(ws, r, j + 2, "X" if hd == ma else "–", center=True,
-              fill=(C_OK if hd == ma else None))
-        r += 1
+for ma, nhan in HANH_DONG_03C.items():
+    o(ws, r, 1, nhan, bold=True)
+    for j, (_, hd) in enumerate(RULE):
+        o(ws, r, j + 2, "X" if hd == ma else "–", center=True,
+          fill=(C_OK if hd == ma else None))
     r += 1
+r += 1
 
-r = thanh(ws, r, "BẢNG SAU KHI RÚT GỌN — bước 6 slide 42 · 24 rule → 4 rule", 14)
+r = thanh(ws, r, "BẢNG SAU KHI RÚT GỌN — bước 6 slide 42 · 8 rule → 4 rule", 14)
 o(ws, r, 1, "Condition / Action", bold=True, fill=C_HDR, color=C_TXT, center=True)
 for j, (ma, _, _, _) in enumerate(RUT_GON_03C):
     o(ws, r, j + 2, ma, bold=True, fill=C_HDR, color=C_TXT, center=True)
@@ -273,7 +274,7 @@ r += 1
 # 03 và 03b — không phải theo cột rule, vì rule nằm ngang.
 GHI_CHU_HANG = {
     "C1 · Tên tệp = null": "2 giá trị",
-    "C2 · Đuôi tệp": "6 giá trị — đây là lý do dùng tích số chứ không dùng 2^n",
+    "C2 · Đuôi tệp thuộc {.pdf, .png, .jpg, .jpeg}": "2 giá trị — đặc tả không phân biệt bốn đuôi với nhau",
     "C3 · Dung lượng ≤ 10MB": "2 giá trị",
     "A4 · Lỗi \"Chỉ chấp nhận PDF, PNG hoặc JPG\"":
         "R4' gộp cả ô đã phát hiện DEF-011 — xem ghi chú bên dưới",
@@ -286,7 +287,7 @@ def ghi_chu(r, ten):
         o(ws, r, 10, GHI_CHU_HANG[ten], size=9, color="808080")
 
 
-for idx, ten_dk in enumerate(["C1 · Tên tệp = null", "C2 · Đuôi tệp",
+for idx, ten_dk in enumerate(["C1 · Tên tệp = null", "C2 · Đuôi tệp thuộc {.pdf, .png, .jpg, .jpeg}",
                               "C3 · Dung lượng ≤ 10MB"]):
     o(ws, r, 1, ten_dk)
     for j, (_, dk, _, _) in enumerate(RUT_GON_03C):
@@ -316,6 +317,43 @@ for j, (_, _, _, gc) in enumerate(RUT_GON_03C):
 r += 1
 
 r += 1
+r = thanh(ws, r, "GIÁ TRỊ ĐẠI DIỆN CHO TỪNG LỚP — vì sao 4 rule mà có 8 test", 14)
+o(ws, r, 1, "Điều kiện", bold=True, fill=C_HDR, color=C_TXT, center=True)
+for j, h in enumerate(["Lớp", "Giá trị đại diện được kiểm", "", "Số test", "Lý do tách riêng"],
+                      start=2):
+    o(ws, r, j, h, bold=True, fill=C_HDR, color=C_TXT, center=True)
+ws.merge_cells(start_row=r, start_column=3, end_row=r, end_column=4)
+ws.merge_cells(start_row=r, start_column=6, end_row=r, end_column=14)
+r += 1
+for dk, lop, gt, n, ly_do in [
+    ("C2 · Đuôi tệp", "Hợp lệ (Y)", ".pdf · .png · .jpg · .jpeg", 4,
+     "Mã nguồn so sánh từng đuôi bằng một chuỗi && — bốn nhánh riêng. Báo cáo bao phủ "
+     "chỉ đích danh ba nhánh chưa ai chạm tới, nên phải kiểm đủ bốn."),
+    ("C2 · Đuôi tệp", "Không hợp lệ (N)", ".exe · tên không có dấu chấm", 2,
+     "Hai giá trị này TRƯỚC KHI SỬA cho hai kết quả khác nhau: .exe trả lỗi 400 đúng "
+     "như đặc tả, còn tên không có dấu chấm ném StringIndexOutOfBoundsException thành "
+     "lỗi 500 — chính là DEF-011. Sau khi sửa mới thật sự cùng một lớp."),
+    ("C1 · Tên tệp null", "Y", "null", 1, "Một giá trị duy nhất, không có gì để tách."),
+    ("C3 · Dung lượng", "Y và N", "1 byte · 11 MB", 1,
+     "Chỉ lấy giá trị nominal để phân biệt nhánh. Các giá trị sát biên 10 MB thuộc về "
+     "sheet 01 — kỹ thuật giá trị biên, không phải bảng quyết định."),
+]:
+    o(ws, r, 1, dk)
+    o(ws, r, 2, lop, center=True)
+    ws.merge_cells(start_row=r, start_column=3, end_row=r, end_column=4)
+    o(ws, r, 3, gt, center=True)
+    o(ws, r, 5, n, center=True, bold=True)
+    ws.merge_cells(start_row=r, start_column=6, end_row=r, end_column=14)
+    o(ws, r, 6, ly_do, size=9)
+    ws.row_dimensions[r].height = 34
+    r += 1
+r = thanh(ws, r, "Bảng quyết định trả lời \"tổ hợp điều kiện nào dẫn tới hành động nào\" "
+                 "— nó dừng ở mức LỚP. Việc chọn giá trị nào làm đại diện cho mỗi lớp là "
+                 "việc của phân hoạch lớp tương đương và bao phủ nhánh. Đó là lý do 4 "
+                 "rule sinh ra 8 test chứ không phải 4.",
+          14, fill=None, color="404040", size=9, italic=True, cao=30)
+
+r += 1
 r = thanh(ws, r, "Ô tô vàng là ô \"không quan tâm\" (–) sinh ra khi gộp rule.", 14,
           fill=None, color="808080", size=9, italic=True, cao=20)
 for dong in [
@@ -334,7 +372,7 @@ for dong in [
     "một điều kiện phía trước đã quyết định kết quả thì điều kiện phía sau không còn ảnh "
     "hưởng, đánh dấu \"–\". R1' gộp 12 rule (tên tệp null thì đuôi và dung lượng vô "
     "nghĩa); R7' và R8' mỗi cột gộp 2 rule (đuôi sai thì chặn trước khi xét dung lượng).",
-    "KHIẾM KHUYẾT DEF-011 — cột R23–R24 của bảng đầy đủ. Tệp không có dấu chấm làm lastIndexOf(\".\") trả -1, "
+    "KHIẾM KHUYẾT DEF-011 — nằm trong lớp C2 = N. Tệp không có dấu chấm làm lastIndexOf(\".\") trả -1, "
     "kéo theo substring(-1) ném StringIndexOutOfBoundsException, người dùng nhận lỗi 500 "
     "thay vì thông báo 400. Nói rõ để không nhận công sai: test hộp trắng đã ghi đúng "
     "nguyên nhân từ trước nhưng lại CHỐT hành vi lỗi bằng một khẳng định, nên bộ test vẫn "
