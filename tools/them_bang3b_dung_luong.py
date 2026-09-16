@@ -178,6 +178,18 @@ thanh(r, "CÁCH ĐỌC: ô tô tím là giá trị biên trong miền hợp lệ
          "min / min+ / nom / max− / max của một biến duy nhất.",
        fill=None, color="808080", size=9, italic=True, cao=26)
 
+# Cột "Thi hành bảng nào" của dòng OnboardingFileSizeBvaTest phải kể thêm Bảng 3b,
+# nếu không bảng tổng kết đầu sheet lại mâu thuẫn với nội dung bên dưới.
+for r in range(1, 15):
+    if str(ws.cell(row=r, column=1).value or "") == "OnboardingFileSizeBvaTest":
+        ws.cell(row=r, column=4,
+                value="Bảng 3b · case 20–25" + chr(10)
+                      + "Bảng 4 · V5, X12, B22–B27" + chr(10)
+                      + "Bảng 5 · TC18–TC23")
+        ws.row_dimensions[r].height = 44
+        print(f"  da cap nhat cot 'Thi hanh bang nao' o dong {r}")
+        break
+
 wb.save(XLSX)
 print(f"Da them BANG 3b vao sheet '{SHEET}', tu dong {bat_dau}")
 print(f"  {len(CASE)} case, {N} test trong OnboardingFileSizeBvaTest")
