@@ -194,8 +194,8 @@ Cần ứng dụng chạy bằng Docker (mục 0).
 3. Chọn environment **CareerCompass** ở góc phải trên
 4. Bấm **Run collection**
 
-→ **112 request · 358 phép kiểm · 0 thất bại**
-(trong đó 92 trường hợp kiểm thử thiết kế + 20 bước chuẩn bị)
+→ **111 request · 376 phép kiểm · 0 thất bại**
+(trong đó 94 trường hợp kiểm thử thiết kế + 17 bước chuẩn bị. Newman báo *112 lượt gửi* vì một request bị gửi lại theo chuyển hướng.)
 
 ### Đừng dùng newman cho buổi demo
 
@@ -282,7 +282,7 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 | Hộp trắng — MC/DC | `./mvnw test -Dtest='RoadmapServiceTest#lockExpression_coversConditionCombinations'` | 7 test |
 | Toàn bộ + bao phủ gộp | `./mvnw clean test` | 399 test · 78,6% · 72,5% |
 | Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 75,9% / 6,9% dòng |
-| API | Postman GUI → Run collection | 112 request · 358 phép kiểm |
+| API | Postman GUI → Run collection | 111 request · 376 phép kiểm |
 | Giao diện, chạy ngầm | `cd e2e && npm run test:all` | 17 kịch bản |
 | Giao diện, hiện trình duyệt | `cd e2e && SHOW=true npx codeceptjs run --steps` | 17 kịch bản |
 

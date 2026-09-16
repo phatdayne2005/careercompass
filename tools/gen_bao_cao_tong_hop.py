@@ -167,9 +167,11 @@ for ten in sorted(pm_folders):
     ws.merge_cells(start_row=r, start_column=5, end_row=r, end_column=8)
     ws.row_dimensions[r].height = 26
     r += 1
-# Lấy số tổng từ thống kê chính thức của newman chứ không cộng dồn từng nhóm: nhật ký
-# thực thi ghi lặp một vài mục nên cộng tay ra 362 thay vì 358.
-for i, v in enumerate(["TỔNG", pm_stats["requests"]["total"],
+# Tổng request lấy từ bảng nhóm (111 item trong bộ sưu tập) chứ không lấy
+# pm_stats["requests"] (112) — newman đếm thêm một lượt gửi lại theo chuyển hướng.
+# Tổng phép kiểm thì lấy pm_stats, và tools/cap_nhat_ket_qua_postman.py đã bảo đảm
+# bảng nhóm cộng lại đúng bằng con số đó.
+for i, v in enumerate(["TỔNG", sum(v[0] for v in pm_folders.values()),
                        pm_stats["assertions"]["total"],
                        pm_stats["assertions"]["failed"]], 1):
     o(ws, r, i, v, bold=True, fill=C_SEC, center=(i > 1))
@@ -198,11 +200,13 @@ for ma, yc, nguong, cach, kq in [
     r += 1
 r += 1
 
-r = thanh(ws, r, "Vì sao có 92 test case nhưng Postman hiện 358: Postman đếm PHÉP KIỂM chứ "
-                 "không đếm test case. Một test case có nhiều phép kiểm, cộng thêm 2 phép "
-                 "kiểm phi chức năng mà nhóm áp cho MỌI request (một ngưỡng hiệu năng và "
-                 "một kiểm tra rò rỉ thông tin). Cụ thể: 151 phép kiểm riêng + 112 × 2 = 375, "
-                 "trừ đi các nhánh if/else không chạy còn 358.",
+r = thanh(ws, r, f"Vì sao có 94 test case nhưng Postman hiện "
+                 f"{pm_stats['assertions']['total']}: Postman đếm PHÉP KIỂM chứ không đếm "
+                 "test case. Một test case có nhiều phép kiểm, cộng thêm 2 phép kiểm phi "
+                 "chức năng mà script cấp collection áp cho MỌI request (một ngưỡng hiệu "
+                 "năng và một kiểm tra rò rỉ thông tin). Cộng chính xác: 154 phép kiểm viết "
+                 f"riêng trong từng request + {sum(v[0] for v in pm_folders.values())} × 2 "
+                 f"= 222 phép kiểm phi chức năng, tổng {pm_stats['assertions']['total']}.",
            fill=None, color="595959", size=9, italic=True, cao=54)
 r = thanh(ws, r, "CÁCH CHẠY LẠI:  newman run CareerCompass.postman_collection.json "
                  "-e CareerCompass.postman_environment.json     hoặc mở Postman → Runner → "

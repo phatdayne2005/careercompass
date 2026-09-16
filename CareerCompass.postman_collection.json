@@ -1945,7 +1945,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Có đủ khối template / totalNodes / completionPercent / nodes\", function () {",
                   "    pm.expect(data).to.have.property(\"template\");",
                   "    pm.expect(data).to.have.property(\"totalNodes\");",
@@ -2077,7 +2077,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Phản hồi có skillNodeId / status / completionPercent\", function () {",
                   "    pm.expect(data).to.have.all.keys(\"skillNodeId\", \"status\", \"completionPercent\");",
                   "});",
@@ -2531,7 +2531,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Có đủ các trường thống kê\", function () {",
                   "    pm.expect(data).to.include.all.keys(",
                   "        \"template\", \"requiredSkillCount\", \"matchedSkillCount\",",
@@ -2685,7 +2685,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Báo cáo được lưu kèm id và đường dẫn PDF\", function () {",
                   "    pm.expect(data.id).to.be.a(\"number\");",
                   "    pm.expect(data.pdfPath).to.be.a(\"string\").and.not.empty;",
@@ -4941,7 +4941,7 @@
                   "",
                   "// Lấy node cuối cùng trong trình soạn để TC-CS-06 → TC-CS-10 thao tác trên",
                   "// node có thật thay vì skillNodeId = 1 cứng.",
-                  "const nids = [...pm.response.text().matchAll(/\\/counselor\\/nodes\\/(\\d+)\\/details/g)]",
+                  "var nids = [...pm.response.text().matchAll(/\\/counselor\\/nodes\\/(\\d+)\\/details/g)]",
                   "    .map(m => m[1]);",
                   "if (nids.length) { pm.collectionVariables.set(\"skillNodeId\", nids[nids.length - 1]); }"
                 ]
@@ -5039,7 +5039,7 @@
                   "pm.test(\"200 OK trả về fragment cây node\", () => pm.response.to.have.status(200));",
                   "",
                   "// Node vừa tạo có id lớn nhất — dùng cho TC-CS-10 xoá đúng node này.",
-                  "const nids = [...pm.response.text().matchAll(/\\/counselor\\/nodes\\/(\\d+)\\/details/g)]",
+                  "var nids = [...pm.response.text().matchAll(/\\/counselor\\/nodes\\/(\\d+)\\/details/g)]",
                   "    .map(m => Number(m[1]));",
                   "if (nids.length) { pm.collectionVariables.set(\"skillNodeId\", String(Math.max(...nids))); }"
                 ]

@@ -294,8 +294,8 @@ PHAN_CONG = [
      "giới hạn dung lượng tệp bảng điểm", "Vòng Minh Quân"),
     ("Kiểm thử bộ xử lý ngoại lệ", "Đối chiếu từng loại ngoại lệ với mã trạng thái HTTP",
      "Vòng Minh Quân"),
-    ("Kiểm thử API", "Chạy bộ kiểm thử Postman/Newman và lập báo cáo kết quả — 92 "
-     "trường hợp, 112 request, 358 phép kiểm", "Trần Tô Như Ngọc"),
+    ("Kiểm thử API", "Chạy bộ kiểm thử Postman/Newman và lập báo cáo kết quả — 94 "
+     "trường hợp, 111 request, 376 phép kiểm", "Trần Tô Như Ngọc"),
     ("— xây dựng bộ kiểm thử API", "Tập lệnh Postman, biến môi trường, bảo đảm chạy "
      "lại được nhiều lần", "Nguyễn Thành Phát · Vòng Minh Quân"),
     ("Kiểm thử giao diện đầu-cuối", "Chạy bộ kiểm thử CodeceptJS và lập báo cáo kết "
@@ -355,7 +355,7 @@ MO_TA_TV = {
 # mảng này và người đọc sẽ hiểu nhầm là họ không làm kiểm thử.
 KIEM_THU_KHAC = [
     ("Kiểm thử API (Postman / Newman)",
-     "92 trường hợp thiết kế · 112 request · 358 phép kiểm · 0 lỗi", "Trần Tô Như Ngọc"),
+     "94 trường hợp thiết kế · 111 request · 376 phép kiểm · 0 lỗi", "Trần Tô Như Ngọc"),
     ("Kiểm thử giao diện đầu-cuối (CodeceptJS)",
      "17 kịch bản trên 8 nhóm chức năng · 0 kịch bản thất bại", "Trần Tô Như Ngọc"),
 ]
@@ -708,7 +708,7 @@ bang(["Hạng mục", "Kết quả"], [
     ["Kiểm thử tự động (JUnit 5)",
      f"{TONG_TEST} trường hợp trên {TONG_LOP} lớp, không có trường hợp thất bại"],
     ["Kiểm thử API (Postman / Newman)",
-     "92 trường hợp kiểm thử thiết kế, 112 request, 358 phép kiểm, 0 lỗi"],
+     "94 trường hợp kiểm thử thiết kế, 111 request, 376 phép kiểm, 0 lỗi"],
     ["Kiểm thử giao diện (CodeceptJS)",
      "17 kịch bản trên 8 nhóm chức năng, không có kịch bản thất bại"],
     ["Độ bao phủ dòng lệnh (JaCoCo)", "78,6%  (trước khi kiểm thử: 60,1%)"],
