@@ -267,6 +267,27 @@ for ma, nhan in HANH_DONG_03C.items():
         o(ws, r, j + 2, "X" if hd == ma else "–", center=True,
           fill=(C_OK if hd == ma else None))
     r += 1
+
+# Hai hàng kết quả đặt ngay dưới bảng ĐẦY ĐỦ, giống sheet 03 và 03b. Bản trước đặt
+# chúng dưới bảng RÚT GỌN — ngược chỗ so với hai sheet kia, đọc liền ba sheet thấy lệch.
+# Ánh xạ test lên rule đầy đủ KHÔNG phải 1:1: R1–R4 cùng một hành động nên một test là
+# đủ; R5 cần bốn test vì mã nguồn tách bốn đuôi thành bốn nhánh; R7 và R8 dùng chung hai
+# test vì phép kiểm đuôi chặn trước khi tới phép kiểm dung lượng.
+TEST_THEO_RULE_DAY_DU = [
+    "rule1", "rule1", "rule1", "rule1",
+    "rule2\nrule3\nrule4\nrule5",
+    "rule6",
+    "rule7\nrule8", "rule7\nrule8",
+]
+o(ws, r, 1, "Kết quả chạy test", bold=True)
+for j in range(len(RULE)):
+    o(ws, r, j + 2, "PASS", fill=C_PASS, center=True)
+r += 1
+o(ws, r, 1, "Test thi hành rule này", bold=True)
+for j, t in enumerate(TEST_THEO_RULE_DAY_DU):
+    o(ws, r, j + 2, t, size=8, center=True)
+ws.row_dimensions[r].height = 46
+r += 1
 r += 1
 
 r = thanh(ws, r, "BẢNG SAU KHI RÚT GỌN — bước 6 slide 42 · 8 rule → 4 rule", 14)
