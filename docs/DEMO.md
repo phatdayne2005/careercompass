@@ -197,33 +197,53 @@ Cần ứng dụng chạy bằng Docker (mục 0).
 → **111 request · 376 phép kiểm · 0 thất bại**
 (trong đó 94 trường hợp kiểm thử thiết kế + 17 bước chuẩn bị. Newman báo *112 lượt gửi* vì một request bị gửi lại theo chuyển hướng.)
 
-### Đừng dùng newman cho buổi demo
+### Cách khác: newman (dòng lệnh)
 
 ```bash
 npx newman run CareerCompass.postman_collection.json -e CareerCompass.postman_environment.json
 ```
 
-Lệnh này báo **4–5 lỗi `SyntaxError: Identifier 'data' has already been declared`**, ở
-các request `TC-RM-02`, `TC-RM-03`, `TC-SG-01`, `TC-SG-03`.
+→ cùng ra **376 phép kiểm · 0 thất bại**, khoảng 70 giây.
 
-Nguyên nhân: năm request khai báo `const data = pm.response.json()` ở cấp cao nhất của
-script. Postman GUI tạo scope riêng cho từng request nên không sao; newman dùng chung
-một sandbox cho cả lượt chạy nên request thứ hai trở đi vấp khai báo trùng.
-
-**Đây là khác biệt giữa hai công cụ chạy, không phải lỗi ứng dụng và cũng không liên
-quan tới Docker.** Muốn dùng được newman thì phải sửa năm script đó (đổi `const data`
-thành tên khác nhau, hoặc bọc trong `(function(){ ... })()`).
+> **Một khiếm khuyết của chính bộ kiểm thử, đáng kể khi thầy hỏi.** Trước ngày 16/09,
+> lệnh trên báo `SyntaxError: Identifier 'data' has already been declared` ở bốn request
+> `TC-RM-02`, `TC-RM-03`, `TC-SG-01`, `TC-SG-03`, và chỉ đếm được **358** phép kiểm.
+>
+> Nguyên nhân: bốn request cùng khai báo `const data = pm.response.json()` ở cấp cao
+> nhất. Postman GUI cho mỗi request một scope riêng nên không sao; newman dùng CHUNG một
+> sandbox cho cả lượt chạy, nên từ request thứ hai trở đi là lỗi cú pháp và **toàn bộ
+> `pm.test` của request đó không chạy** — đúng 18 phép kiểm biến mất.
+>
+> Điều nguy hiểm: newman vẫn báo **`0 failed`**. Phép kiểm không chạy thì không tính là
+> trượt. Nếu chỉ nhìn dòng "0 failed" thì không ai biết mình vừa mất 18 phép kiểm.
+>
+> Đã sửa bằng cách đổi `const` thành `var` ở các chỗ trùng tên. Nay newman và Postman GUI
+> ra cùng một con số, demo bằng công cụ nào cũng được.
 
 ---
 
 ## 5 · Kiểm thử giao diện đầu-cuối
 
-Cần ứng dụng chạy bằng Docker (mục 0). Chạy trong thư mục `e2e/`:
+Cần ứng dụng chạy bằng Docker (mục 0).
+
+**Mọi lệnh ở mục này phải chạy TRONG thư mục `e2e/`** — tệp cấu hình
+`codecept.conf.js` nằm ở đó. Mở terminal mới là phải `cd e2e` lại.
 
 ```bash
 cd e2e
 npm install          # chỉ cần lần đầu
 ```
+
+> **Chạy nhầm ở thư mục gốc sẽ ra lỗi này:**
+>
+> ```
+> Error: Can not load config from ...\lap-trinh-java\codecept.conf.js
+> CodeceptJS is not initialized in this dir. Execute 'codeceptjs init' to start
+> ```
+>
+> **Đừng chạy `codeceptjs init`** như nó gợi ý — sẽ ghi đè cấu hình của dự án. Chỉ cần
+> `cd e2e` rồi chạy lại. Nhìn đường dẫn trong thông báo lỗi là biết: nó đang tìm tệp
+> cấu hình ở thư mục gốc chứ không phải ở `e2e/`.
 
 ### 5.1 Chạy ngầm — không mở trình duyệt
 
@@ -239,11 +259,15 @@ npm run test:all
 SHOW=true npx codeceptjs run --steps
 ```
 
-Trên PowerShell (Windows), biến môi trường đặt khác:
+Cách đặt biến môi trường khác nhau theo từng loại terminal:
 
-```powershell
-$env:SHOW="true"; npx codeceptjs run --steps
-```
+| Terminal | Lệnh |
+|---|---|
+| Git Bash | `SHOW=true npx codeceptjs run --steps` |
+| PowerShell | `$env:SHOW="true"; npx codeceptjs run --steps` |
+| cmd | `set SHOW=true && npx codeceptjs run --steps` |
+
+Cả ba đều đã chạy thử được, miễn là đang đứng trong `e2e/`.
 
 Cửa sổ Chromium sẽ mở và tự thao tác: điền form, bấm nút, chuyển trang. Cờ `--steps`
 in từng bước ra màn hình.
