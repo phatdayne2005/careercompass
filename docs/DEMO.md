@@ -149,13 +149,23 @@ tên này:
 
 → **399 test, 0 thất bại**
 
-Báo cáo JaCoCo tự sinh (goal `report` gắn vào phase `test`, không cần gõ thêm lệnh):
+Báo cáo JaCoCo tự sinh, **ba bản cùng lúc**, không cần gõ thêm lệnh:
 
-```
-target/site/jacoco/index.html
-```
+| Thư mục | Đo gì | Dòng | Nhánh |
+|---|---|---|---|
+| `target/site/jacoco/` | **Toàn bộ** — gộp cả hai bên | **78,6%** | **72,5%** |
+| `target/site/jacoco-whitebox/` | Chỉ test hộp trắng | 75,9% | 67,8% |
+| `target/site/jacoco-blackbox/` | Chỉ test hộp đen | 6,9% | 9,9% |
 
-→ **Dòng 78,6% · Nhánh 72,5%**
+Con số trong báo cáo Excel là bản **gộp** — mở `target/site/jacoco/index.html`.
+
+> **Một điểm đáng nói nếu thầy hỏi về bản tách.** Bộ kiểm thử hộp đen chạy riêng chỉ phủ
+> **6,9% dòng**. Nghe thấp nhưng đúng bản chất: kỹ thuật hộp đen suy test case từ ĐẶC TẢ,
+> không nhắm vào việc phủ mã, và phần lớn test hộp đen ở đây kiểm ràng buộc dữ liệu qua
+> thư viện Hibernate Validator chứ không chạy vào mã dự án. Đây chính là minh hoạ cho
+> slide 51: *độ bao phủ cao không đồng nghĩa test tốt, và test tốt không đồng nghĩa bao
+> phủ cao.* Hai bộ bổ sung nhau — hộp trắng gánh phần bao phủ, hộp đen gánh phần đối
+> chiếu với đặc tả và là nơi tìm ra phần lớn khiếm khuyết.
 
 > **Bẫy cần tránh khi demo.** JaCoCo chỉ đo những gì lượt chạy vừa chạm tới. Nếu chạy
 > `./mvnw clean test -Dtest=RegisterStandardBvaTest` rồi mở báo cáo bao phủ, kết quả ra
@@ -165,6 +175,11 @@ target/site/jacoco/index.html
 >
 > Lối an toàn hơn: mở bản chụp đã commit sẵn `docs/coverage/index.html` — luôn đúng số,
 > không phụ thuộc vừa chạy lệnh gì.
+
+> **Nếu `target/site/jacoco/` không tồn tại** thì đang dùng bản `pom.xml` cũ hơn bước
+> gộp. Chạy `git pull` rồi chạy lại. Hai thư mục `jacoco-whitebox` và `jacoco-blackbox`
+> không cộng lại được thành con số tổng — cùng một dòng lệnh có thể được cả hai bên phủ,
+> cộng vào là đếm hai lần. Bắt buộc phải có bước merge ở mức dữ liệu.
 
 ---
 
@@ -265,7 +280,8 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 | Ngoài bảng · BVA theo từng trường | `./mvnw test -Dtest='RegisterFormDTOBvaTest'` | 27 test |
 | Hộp trắng — đường cơ sở | `./mvnw test -Dtest='RoadmapServiceTest#...'` (mục 2.1) | 9 test |
 | Hộp trắng — MC/DC | `./mvnw test -Dtest='RoadmapServiceTest#lockExpression_coversConditionCombinations'` | 7 test |
-| Toàn bộ + bao phủ | `./mvnw clean test` | 399 test · 78,6% · 72,5% |
+| Toàn bộ + bao phủ gộp | `./mvnw clean test` | 399 test · 78,6% · 72,5% |
+| Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 75,9% / 6,9% dòng |
 | API | Postman GUI → Run collection | 112 request · 358 phép kiểm |
 | Giao diện, chạy ngầm | `cd e2e && npm run test:all` | 17 kịch bản |
 | Giao diện, hiện trình duyệt | `cd e2e && SHOW=true npx codeceptjs run --steps` | 17 kịch bản |
