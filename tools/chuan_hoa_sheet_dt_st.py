@@ -203,12 +203,15 @@ def thanh(ws, r, t, n_cot, *, fill=C_SEC, color=C_HDR, size=11, italic=False, ca
     return r + 1
 
 
-def dau_sheet(ws, tieu_de, mo_ta, cls, n, ky_thuat, n_cot, ghi_chu_lenh):
+def dau_sheet(ws, tieu_de, mo_ta, cls, n, ky_thuat, n_cot, ghi_chu_lenh, tach=""):
     x = ws.cell(row=1, column=1, value=tieu_de)
     x.font = Font(bold=True, size=13, color=C_HDR)
     ws.cell(row=2, column=1, value=mo_ta).font = Font(italic=True, size=10)
-    r = thanh(ws, 4, f"TỔNG KẾT THI HÀNH — {n} test đã chạy, {n} PASS, 0 fail.",
-              n_cot, fill=C_OK, color="375623", cao=22)
+    # Khi số test KHÁC số dòng của bảng thiết kế thì phải tách ngay tại đây, cạnh con
+    # số. Để lời giải thích tận cuối sheet là người đọc trừ ra thấy lệch rồi mới đi tìm.
+    r = thanh(ws, 4, f"TỔNG KẾT THI HÀNH — {n} test đã chạy, {n} PASS, 0 fail."
+                     + (f"  {tach}" if tach else ""),
+              n_cot, fill=C_OK, color="375623", cao=(30 if tach else 22))
     for i, h in enumerate(["Lớp test trong source", "Số test", "Kỹ thuật áp dụng"]
                           + [""] * (n_cot - 4) + ["Status"], start=1):
         o(ws, r, i, h, bold=True, fill=C_HDR, color=C_TXT, center=True)
@@ -234,7 +237,10 @@ r = dau_sheet(ws, "Decision Table Testing — bảng thứ ba: tệp bảng đi�
               "OnboardingService.saveTranscript(). Bảng thiết kế theo mẫu slide 44: "
               "bảng đầy đủ trước, bảng rút gọn sau.",
               "TranscriptFileDecisionTableTest", N, "Bảng quyết định · 8 rule → 4 rule",
-              14, LENH.format(cls="TranscriptFileDecisionTableTest"))
+              14, LENH.format(cls="TranscriptFileDecisionTableTest"),
+              tach="Gồm 8 test ứng với 8 rule của bảng đầy đủ (rule1…rule8), cộng 1 "
+                   "test kiểm tra bổ sung NGOÀI bảng (đuôi viết hoa .PDF) — xem ghi "
+                   "chú cuối sheet.")
 
 RULE = rule_03c()
 r = thanh(ws, r, "BẢNG QUYẾT ĐỊNH ĐẦY ĐỦ — mẫu slide 44 · 8 rule = 2 × 2 × 2", 14)
@@ -399,10 +405,10 @@ COT_TK = ["Test Case No.", "Start State", "Event / Input", "End State / Exp Outp
 
 
 def sheet_trang_thai(ten, dat_sau, tieu_de, mo_ta, cls, ky_thuat, so_do,
-                     ma_tran, thiet_ke, ghi_chu):
+                     ma_tran, thiet_ke, ghi_chu, tach=""):
     n = so_test(cls)
     ws = moi(ten, dat_sau, so_cot=8, rong=22)
-    r = dau_sheet(ws, tieu_de, mo_ta, cls, n, ky_thuat, 8, LENH.format(cls=cls))
+    r = dau_sheet(ws, tieu_de, mo_ta, cls, n, ky_thuat, 8, LENH.format(cls=cls), tach)
 
     r = thanh(ws, r, "SƠ ĐỒ TRẠNG THÁI", 8)
     for d in so_do:
@@ -598,7 +604,9 @@ sheet_trang_thai(
      "5 điểm vào khác nhau.",
      "ĐIỂM KHÁC HAI MÁY TRẠNG THÁI TRƯỚC: ở đây trạng thái KHÔNG nằm trong một cột enum "
      "mà là tổ hợp cờ trên bản ghi người dùng (targetRoleId, transcriptPath/githubUsername, "
-     "onboardingCompleted), nên phải tự đặt tên bốn trạng thái trước khi vẽ được sơ đồ."])
+     "onboardingCompleted), nên phải tự đặt tên bốn trạng thái trước khi vẽ được sơ đồ."],
+    tach="Bảng thiết kế có 8 dòng nhưng chạy ra 12 test: dòng 6 là test tham số hoá, "
+         "chạy 5 lần cho 5 điểm vào khác nhau.")
 
 wb.save(XLSX)
 print(f"\nDa chuan hoa xong, luu vao {XLSX}")
