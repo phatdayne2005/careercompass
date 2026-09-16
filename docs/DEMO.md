@@ -40,22 +40,42 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/login    # phải
 
 ## 1 · Kiểm thử hộp đen
 
-### 1.1 Chạy trọn bốn kỹ thuật
+### 1.1 Chạy trọn phần hộp đen
 
 ```bash
-./mvnw test -Dtest='RegisterStandardBvaTest,RegisterFormDTOBvaTest,OnboardingFileSizeBvaTest,RegisterEquivalencePartitionTest,RegisterTagCoverageTest,ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest,ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'
+./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest,ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest,ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'
 ```
 
-→ **130 test, 0 thất bại**
+→ **103 test, 0 thất bại** — đúng bằng tổng các sheet hộp đen của báo cáo.
 
-### 1.2 Chạy từng kỹ thuật một
+### 1.2 Chạy theo từng SHEET của báo cáo
 
-| Kỹ thuật | Lệnh | Kết quả |
+Gom theo sheet chứ không gom theo kỹ thuật, để mỗi con số in ra đối chiếu thẳng
+được với một sheet Excel mở bên cạnh.
+
+| Sheet | Lệnh | Kết quả |
 |---|---|---|
-| Giá trị biên | `./mvnw test -Dtest='RegisterStandardBvaTest,RegisterFormDTOBvaTest,OnboardingFileSizeBvaTest'` | **52 test** |
-| Phân hoạch lớp tương đương | `./mvnw test -Dtest='RegisterEquivalencePartitionTest,RegisterTagCoverageTest'` | **31 test** |
-| Bảng quyết định | `./mvnw test -Dtest='ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest'` | **19 test** |
-| Chuyển đổi trạng thái | `./mvnw test -Dtest='ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'` | **28 test** |
+| `01. BVA + Equiv Partition` | `./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest'` | **56 test** |
+| `03. Decision Table (PhanA)` | `./mvnw test -Dtest='ProgressDecisionTableTest'` | **6 test** |
+| `03b. Decision Table Token` | `./mvnw test -Dtest='TokenValidityDecisionTableTest'` | **4 test** |
+| `03c. Decision Table Tep` | `./mvnw test -Dtest='TranscriptFileDecisionTableTest'` | **9 test** |
+| `04. State Transition (PhanA)` | `./mvnw test -Dtest='ProgressStateTransitionTest'` | **9 test** |
+| `04b. State Transition Token` | `./mvnw test -Dtest='TokenStateTransitionTest'` | **7 test** |
+| `04c. State Transition Onboard` | `./mvnw test -Dtest='OnboardingStateTransitionTest'` | **12 test** |
+
+> **Một lớp nằm ngoài bảng — nhớ để khỏi bị hỏi bất ngờ.**
+> `RegisterFormDTOBvaTest` (**27 test**) cũng là kiểm thử giá trị biên và vẫn nằm trong
+> mã nguồn, nhưng **không xuất hiện ở sheet nào**. Lý do đã ghi trong
+> `tools/gen_sheet01.py`: nó chia mỗi trường thành một test case riêng, trong khi slide
+> 23 và 33 luôn trình bày test case là **một bộ đầu vào đầy đủ**. Các giá trị biên nó
+> kiểm đã được Bảng 2, 3, 5 của sheet 01 phủ hết.
+>
+> ```bash
+> ./mvnw test -Dtest='RegisterFormDTOBvaTest'    # 27 test
+> ```
+>
+> Cộng lại: 103 test trong các sheet + 27 test lớp này = **130 test hộp đen** trong mã
+> nguồn. Nếu thầy đếm ra số khác con số trong báo cáo thì đây là chỗ giải thích.
 
 ### 1.3 In từng trường hợp kiểm thử ra màn hình
 
@@ -238,11 +258,11 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 
 | Phần | Lệnh | Kết quả |
 |---|---|---|
-| Hộp đen, cả bốn kỹ thuật | `./mvnw test -Dtest='...'` (mục 1.1) | 130 test |
-| Giá trị biên | `./mvnw test -Dtest='RegisterStandardBvaTest,RegisterFormDTOBvaTest,OnboardingFileSizeBvaTest'` | 52 test |
-| Phân hoạch lớp tương đương | `./mvnw test -Dtest='RegisterEquivalencePartitionTest,RegisterTagCoverageTest'` | 31 test |
-| Bảng quyết định | `./mvnw test -Dtest='ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest'` | 19 test |
-| Chuyển đổi trạng thái | `./mvnw test -Dtest='ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'` | 28 test |
+| Hộp đen — toàn bộ các sheet | `./mvnw test -Dtest='...'` (mục 1.1) | 103 test |
+| Sheet 01 · BVA + phân hoạch | `./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest'` | 56 test |
+| Sheet 03 · 03b · 03c | `./mvnw test -Dtest='ProgressDecisionTableTest'` · `'TokenValidityDecisionTableTest'` · `'TranscriptFileDecisionTableTest'` | 6 · 4 · 9 |
+| Sheet 04 · 04b · 04c | `./mvnw test -Dtest='ProgressStateTransitionTest'` · `'TokenStateTransitionTest'` · `'OnboardingStateTransitionTest'` | 9 · 7 · 12 |
+| Ngoài bảng · BVA theo từng trường | `./mvnw test -Dtest='RegisterFormDTOBvaTest'` | 27 test |
 | Hộp trắng — đường cơ sở | `./mvnw test -Dtest='RoadmapServiceTest#...'` (mục 2.1) | 9 test |
 | Hộp trắng — MC/DC | `./mvnw test -Dtest='RoadmapServiceTest#lockExpression_coversConditionCombinations'` | 7 test |
 | Toàn bộ + bao phủ | `./mvnw clean test` | 399 test · 78,6% · 72,5% |
