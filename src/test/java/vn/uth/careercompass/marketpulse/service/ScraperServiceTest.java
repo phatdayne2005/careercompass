@@ -220,4 +220,54 @@ class ScraperServiceTest {
         verify(jobTrendRepository).saveAll(captor.capture());
         assertThat(captor.getValue().get(0).getJobTitle()).hasSize(255);
     }
+
+    // ============================================================
+    // BVA cho AC-4.1.4: mô tả lưu tối đa 3.900 ký tự (cột VARCHAR(4000))
+    //
+    // Biên này chưa có phép kiểm nào chạm tới. Vượt 4.000 là DataIntegrityViolation
+    // khi ghi CSDL, mà tác vụ cào chạy nền lúc 02:00 nên lỗi sẽ chỉ nằm trong log —
+    // không ai thấy cho tới khi trang Market Pulse trống trơn.
+    // ============================================================
+
+    @Test
+    void scrapeJobs_moTaDungNguong3900_giuNguyen() {
+        String moTa = "d".repeat(3900);
+        stubExchange(pageWith(List.of(item("software engineer", "Acme", moTa))), emptyPage());
+
+        scraperService.scrapeJobs();
+
+        ArgumentCaptor<List<JobTrend>> captor = ArgumentCaptor.forClass(List.class);
+        verify(jobTrendRepository).saveAll(captor.capture());
+        assertThat(captor.getValue().get(0).getRawDescription())
+                .as("đúng ngưỡng thì không bị cắt")
+                .hasSize(3900);
+    }
+
+    @Test
+    void scrapeJobs_moTaVuotNguong_biCatConDung3900() {
+        String moTa = "d".repeat(3901);
+        stubExchange(pageWith(List.of(item("software engineer", "Acme", moTa))), emptyPage());
+
+        scraperService.scrapeJobs();
+
+        ArgumentCaptor<List<JobTrend>> captor = ArgumentCaptor.forClass(List.class);
+        verify(jobTrendRepository).saveAll(captor.capture());
+        assertThat(captor.getValue().get(0).getRawDescription())
+                .as("vượt một ký tự là đã phải cắt, còn cách trần cột 100 ký tự")
+                .hasSize(3900);
+    }
+
+    @Test
+    void scrapeJobs_moTaRatDai_vanKhongTranCotCsdl() {
+        stubExchange(pageWith(List.of(
+                item("software engineer", "Acme", "d".repeat(50_000)))), emptyPage());
+
+        scraperService.scrapeJobs();
+
+        ArgumentCaptor<List<JobTrend>> captor = ArgumentCaptor.forClass(List.class);
+        verify(jobTrendRepository).saveAll(captor.capture());
+        assertThat(captor.getValue().get(0).getRawDescription().length())
+                .as("mọi mô tả dài cỡ nào cũng phải lọt trong VARCHAR(4000)")
+                .isLessThanOrEqualTo(4000);
+    }
 }

@@ -38,6 +38,10 @@ python tools/gen_sheet_phan_cong.py
 # 5b. Sinh sheet truy vết SRS (yêu cầu ↔ kiểm thử)
 python tools/gen_sheet_truy_vet_srs.py
 
+# 5c. Sinh sheet vị trí tệp kiểm thử và sheet rà soát giá trị biên
+python tools/gen_sheet_vi_tri_test.py
+python tools/gen_sheet_ra_soat_bva.py
+
 # 6. Cập nhật README của bản chụp độ bao phủ
 python tools/cap_nhat_readme_coverage.py
 
@@ -137,6 +141,8 @@ python tools/gen_baocao_tuan_docx.py
 | `dong_dau_moc_thoi_gian_whitebox.py` | Đóng dấu ngày đo lên B3/B4 — xem cảnh báo ở trên |
 | `cap_nhat_ket_qua_postman.py` | Sinh lại hai tệp kết quả Postman từ bản xuất newman |
 | `gen_sheet_truy_vet_srs.py` | Sinh sheet 08 — ma trận truy vết yêu cầu SRS ↔ kiểm thử |
+| `gen_sheet_vi_tri_test.py` | Sinh sheet 09 — đường dẫn tệp kiểm thử theo từng yêu cầu |
+| `gen_sheet_ra_soat_bva.py` | Sinh sheet 10 — kiểm kê mọi giá trị biên trong hệ thống |
 | `chuan_hoa_sheet_dt_st.py` | Chuẩn hoá bố cục sheet 03c, 04, 04b, 04c kèm bảng đầy đủ |
 | `sua_ten_method_b1.py` | Thay tên method giả ở sheet B1 bằng tên thật trong mã nguồn |
 | `them_bang3b_dung_luong.py` | Thêm BẢNG 3b — BVA dung lượng tệp vào sheet 01 |

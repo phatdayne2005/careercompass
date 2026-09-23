@@ -13,15 +13,15 @@ GitHub không tự hiển thị được vì đây là trang HTML tĩnh nhiều 
 | Chỉ số | Trước Phần A | Sau Phần A | Tăng |
 |---|---|---|---|
 | Dòng lệnh (Line) | 60,1% | **90,9%** | +30,8 |
-| Nhánh (Branch) | 48,2% | **85,5%** | +37,3 |
-| Độ phức tạp được phủ | 53,4% | **84,9%** | +31,5 |
-| Phương thức | 65,1% | **92,3%** | +27,2 |
+| Nhánh (Branch) | 48,2% | **85,9%** | +37,7 |
+| Độ phức tạp được phủ | 53,4% | **85,2%** | +31,8 |
+| Phương thức | 65,1% | **92,4%** | +27,3 |
 | Lớp | 75,4% | **98,5%** | +23,1 |
 
 Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 test và chưa có test hộp đen nào.
 
 Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có
-**510 test**, trong đó:
+**536 test**, trong đó:
 
 | Số test | Gói | Kỹ thuật |
 |---:|---|---|
@@ -29,24 +29,26 @@ Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn d�
 | 17 | `blackbox.RegisterTagCoverageTest` | Gộp tag thành test case |
 | 14 | `blackbox.RegisterEquivalencePartitionTest` | Phân hoạch lớp tương đương |
 | 6 | `bva.OnboardingFileSizeBvaTest` | BVA dung lượng tệp |
+| 15 | `bva.PasswordPolicyBvaTest` | BVA độ dài mật khẩu — ký tự và byte |
+| 8 | `bva.TokenExpiryBvaTest` | BVA hạn dùng token |
 | 6 | `blackbox.ProgressDecisionTableTest` | Bảng quyết định |
 | 4 | `blackbox.TokenValidityDecisionTableTest` | Bảng quyết định |
 | 9 | `blackbox.TranscriptFileDecisionTableTest` | Bảng quyết định |
 | 9 | `blackbox.ProgressStateTransitionTest` | Chuyển đổi trạng thái |
 | 7 | `blackbox.TokenStateTransitionTest` | Chuyển đổi trạng thái |
 | 12 | `blackbox.OnboardingStateTransitionTest` | Chuyển đổi trạng thái |
-| **103** | | **thuộc phạm vi báo cáo Phần A** |
+| **126** | | **thuộc phạm vi báo cáo Phần A** |
 
 ## Ý nghĩa
 
-103 test này được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp tương
+126 test này được thiết kế bằng kỹ thuật **hộp đen** — phân hoạch lớp tương
 đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra từ
 **đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
 
 Vậy mà bao phủ nhánh tăng hơn 37 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
 giá trị thực chất, không chỉ là bài tập vẽ bảng.
 
-Nhưng vẫn còn **14,5% nhánh chưa chạm** — đúng như slide 51 của chương IV:
+Nhưng vẫn còn **14,1% nhánh chưa chạm** — đúng như slide 51 của chương IV:
 *độ bao phủ 100% không có nghĩa là 100% được test*, và chiều ngược lại cũng đúng:
 phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn mã nguồn.
 

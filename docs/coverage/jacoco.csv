@@ -15,7 +15,7 @@ CareerCompass,vn.uth.careercompass.dashboard.dto,ActivityLogDTO,0,12,0,0,0,5,0,1
 CareerCompass,vn.uth.careercompass.admin.web,CounselorTemplateController,0,401,1,19,0,82,1,25,0,16
 CareerCompass,vn.uth.careercompass.admin.web,AdminUserController,2,79,2,6,0,16,2,6,0,4
 CareerCompass,vn.uth.careercompass.admin.web,AdminDashboardController,0,10,0,0,0,3,0,1,0,1
-CareerCompass,vn.uth.careercompass.profile.controller,ProfileController,1,148,3,9,0,38,3,9,0,6
+CareerCompass,vn.uth.careercompass.profile.controller,ProfileController,1,148,2,8,0,39,2,9,0,6
 CareerCompass,vn.uth.careercompass.roadmap.service,PdfService,16,368,2,12,5,53,2,11,0,6
 CareerCompass,vn.uth.careercompass.roadmap.service,ProgressService,0,97,0,12,0,20,0,9,0,3
 CareerCompass,vn.uth.careercompass.roadmap.service,RoadmapService,6,439,1,41,0,88,2,47,1,27
@@ -44,6 +44,7 @@ CareerCompass,vn.uth.careercompass.kernel.service,AuthenticatedUserService,2,82,
 CareerCompass,vn.uth.careercompass.kernel.service,CustomOidcUserService,86,0,0,0,13,0,4,0,4,0
 CareerCompass,vn.uth.careercompass.kernel.service,MarkdownRenderer,0,28,0,4,0,6,0,4,0,2
 CareerCompass,vn.uth.careercompass.kernel.service,ActivityLogService,0,15,0,0,0,7,0,1,0,1
+CareerCompass,vn.uth.careercompass.kernel.service,PasswordPolicy,0,38,0,10,0,9,0,8,0,3
 CareerCompass,vn.uth.careercompass.kernel.service,CustomUserDetailsService,0,20,0,0,0,2,0,2,0,2
 CareerCompass,vn.uth.careercompass.kernel.service,SmtpEmailService,0,22,0,0,0,7,0,1,0,1
 CareerCompass,vn.uth.careercompass.kernel.service,UserProfileService,0,110,0,2,0,29,0,8,0,7
@@ -52,7 +53,7 @@ CareerCompass,vn.uth.careercompass.portfolio.controller,PublicPortfolioControlle
 CareerCompass,vn.uth.careercompass.portfolio.controller,PortfolioController,0,98,0,4,0,21,0,5,0,3
 CareerCompass,vn.uth.careercompass.roadmap.dto,SkillGapReportDTO,0,34,0,0,0,12,0,1,0,1
 CareerCompass,vn.uth.careercompass.roadmap.dto,RoadmapTemplateDTO,0,15,0,0,0,6,0,1,0,1
-CareerCompass,vn.uth.careercompass.kernel.web.controller,AuthController,0,119,1,7,0,32,1,10,0,7
+CareerCompass,vn.uth.careercompass.kernel.web.controller,AuthController,7,124,1,7,2,35,1,10,0,7
 CareerCompass,vn.uth.careercompass.kernel.web.controller,HomeController,0,50,1,11,0,14,1,6,0,1
 CareerCompass,vn.uth.careercompass.portfolio.service,PortfolioService,22,504,9,35,2,99,9,33,0,20
 CareerCompass,vn.uth.careercompass,CareerCompassApplication,5,3,0,0,2,1,1,1,1,1

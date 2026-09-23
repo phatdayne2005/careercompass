@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import vn.uth.careercompass.kernel.service.PasswordPolicy;
 import vn.uth.careercompass.kernel.exception.EmailAlreadyExistsException;
 import vn.uth.careercompass.kernel.service.AuthService;
 import vn.uth.careercompass.kernel.service.PasswordResetService;
@@ -35,6 +36,15 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute("registerForm") RegisterFormDTO registerFormDTO, BindingResult result) {
         if (result.hasErrors()) {
+            return "register";
+        }
+
+        // DEF-013: @Size(max = 30) của DTO đếm KÝ TỰ, còn BCrypt giới hạn 72 BYTE. Mật
+        // khẩu 25 ký tự tiếng Việt toàn dấu là 75 byte — lọt validation rồi vỡ ở tầng mã
+        // hoá, người dùng nhận nguyên văn "password cannot be more than 72 bytes".
+        String loiMatKhau = PasswordPolicy.kiemTra(registerFormDTO.getPassword());
+        if (loiMatKhau != null) {
+            result.rejectValue("password", "error.password", loiMatKhau);
             return "register";
         }
 
@@ -87,8 +97,9 @@ public class AuthController {
         model.addAttribute("token", token);
         model.addAttribute("tokenValid", true);
 
-        if (newPassword == null || newPassword.length() < 6) {
-            model.addAttribute("error", "Mật khẩu phải từ 6 ký tự trở lên.");
+        String loiMatKhau = PasswordPolicy.kiemTra(newPassword);
+        if (loiMatKhau != null) {
+            model.addAttribute("error", loiMatKhau);
             return "reset-password";
         }
         if (!newPassword.equals(confirmPassword)) {

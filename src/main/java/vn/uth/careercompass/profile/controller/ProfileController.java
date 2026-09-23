@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import vn.uth.careercompass.kernel.service.PasswordPolicy;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.service.AuthenticatedUserService;
 import vn.uth.careercompass.profile.service.ProfileService;
@@ -61,8 +62,9 @@ public class ProfileController {
                                  Authentication authentication,
                                  RedirectAttributes ra) {
         User user = authenticatedUserService.requireCurrentUser(authentication);
-        if (newPassword == null || newPassword.length() < 6) {
-            ra.addFlashAttribute("error", "Mật khẩu mới phải từ 6 ký tự trở lên.");
+        String loiMatKhau = PasswordPolicy.kiemTra(newPassword, "Mật khẩu mới");
+        if (loiMatKhau != null) {
+            ra.addFlashAttribute("error", loiMatKhau);
             return "redirect:/profile";
         }
         if (!newPassword.equals(confirmPassword)) {

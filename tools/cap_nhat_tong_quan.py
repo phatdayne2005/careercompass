@@ -164,6 +164,14 @@ ws = chen_dong(
     bo=lambda hang: str(hang[5] or "").strip() in ("01c", "03c", "04c"))
 
 
+def tim_co(ws, khoa):
+    """Như tim() nhưng trả None thay vì dừng chương trình."""
+    for r in range(1, ws.max_row + 1):
+        if str(ws.cell(row=r, column=1).value or "").strip().startswith(khoa):
+            return r
+    return None
+
+
 def tim(ws, khoa):
     for r in range(1, ws.max_row + 1):
         if str(ws.cell(row=r, column=1).value or "").strip().startswith(khoa):
@@ -185,51 +193,86 @@ r = tim(ws, "Đơn vị (JUnit)")
 ws.cell(row=r, column=3, value=TONG)
 
 ws.cell(row=ws.max_row, column=1).value = (
-    "Mười một khiếm khuyết được phát hiện và đều đã khắc phục kèm test hồi quy. "
+    "Mười hai khiếm khuyết được phát hiện và đều đã khắc phục kèm test hồi quy. "
     "Chi tiết ở sheet 07. Khiem khuyet.")
 
 # ── 07. Khiem khuyet ─────────────────────────────────────────────────────
-ws = wb["07. Khiem khuyet"]
-r_ket = tim(ws, "Cả mười")
-r_moi = r_ket - 1
-# Chạy lại trên file đã sinh lần trước thì dòng này đang là DEF-011 — ghi đè chính nó
-# là đúng. Chỉ dừng khi gặp nội dung LẠ, để không đè nhầm lên khiếm khuyết của người khác.
-o_dau = str(ws.cell(row=r_moi, column=1).value or "").strip()
-if o_dau not in ("", "DEF-011"):
-    raise SystemExit(f"dong {r_moi} cua sheet 07 dang chua '{o_dau}' — kiem tra lai truoc khi ghi de")
-
-HANG = [
-    "DEF-011", "Trung bình",
-    "Tệp bảng điểm không có phần mở rộng (ví dụ \"bangdiem\") làm lastIndexOf(\".\") trả -1, "
-    "kéo theo substring(-1) ném StringIndexOutOfBoundsException — người dùng nhận lỗi 500 "
-    "thay vì thông báo 400 thân thiện.",
-    "Bảng quyết định — cột R8 của bảng định dạng tệp bảng điểm",
-    "Chạy test R8 trên bản mã chưa sửa: đỏ, nhận StringIndexOutOfBoundsException. Trên bản "
-    "đã sửa: xanh. Nhánh OnboardingService 75,0% (9/12) → 100,0% (14/14).",
-    "ĐÃ SỬA",
-    "Coi \"không có đuôi\" là đuôi rỗng để rơi đúng vào nhánh báo lỗi định dạng có sẵn. Test cũ "
-    "trong OnboardingServiceTest từng khoá hành vi lỗi, nay đã đổi sang khẳng định hành vi đúng.",
+# Hai khiếm khuyết tìm ra SAU khi gen_bao_cao_tong_hop.py dựng sheet này, nên phải
+# nối thêm ở đây. Dòng kết luận được viết lại theo số thật để khỏi lệch.
+DEF_THEM = [
+    [
+        "DEF-011", "Trung bình",
+        "Tệp bảng điểm không có phần mở rộng (ví dụ \"bangdiem\") làm lastIndexOf(\".\") trả -1, "
+        "kéo theo substring(-1) ném StringIndexOutOfBoundsException — người dùng nhận lỗi 500 "
+        "thay vì thông báo 400 thân thiện.",
+        "Bảng quyết định — cột R8 của bảng định dạng tệp bảng điểm",
+        "Chạy test R8 trên bản mã chưa sửa: đỏ, nhận StringIndexOutOfBoundsException. Trên bản "
+        "đã sửa: xanh. Nhánh OnboardingService 75,0% (9/12) → 100,0% (14/14).",
+        "ĐÃ SỬA",
+        "Coi \"không có đuôi\" là đuôi rỗng để rơi đúng vào nhánh báo lỗi định dạng có sẵn. Test cũ "
+        "trong OnboardingServiceTest từng khoá hành vi lỗi, nay đã đổi sang khẳng định hành vi đúng.",
+    ],
+    [
+        "DEF-013", "Trung bình",
+        "Biên độ dài mật khẩu không nhất quán giữa ba đường đặt mật khẩu, và đo sai đơn vị. "
+        "Đăng ký dựa vào @Size(min = 6, max = 30) đếm KÝ TỰ; đặt lại và đổi mật khẩu chỉ kiểm "
+        "length() < 6, KHÔNG có giới hạn trên. Trong khi đó BCrypt giới hạn 72 BYTE và ném "
+        "IllegalArgumentException khi vượt — mật khẩu 25 ký tự tiếng Việt có dấu là 75 byte, "
+        "lọt qua kiểm tra hợp lệ rồi vỡ ở tầng mã hoá.",
+        "Giá trị biên — rà soát toàn hệ thống (sheet 10)",
+        "Ba hậu quả tái hiện được: đăng ký trả 400 kèm nguyên văn tiếng Anh \"password cannot be "
+        "more than 72 bytes\" (vi phạm NFR-U01); đặt lại mật khẩu báo SAI rằng \"link đã hết hạn\" "
+        "nên người dùng xin link mới mãi không xong; đổi mật khẩu cũng lộ thông điệp tiếng Anh. "
+        "NFR-R03 vẫn đạt vì GlobalExceptionHandler đổi thành 400 chứ không phải 500.",
+        "ĐÃ SỬA",
+        "Gom cả hai biên vào PasswordPolicy dùng chung cho ba đường, trả thông điệp tiếng Việt. "
+        "PasswordPolicyBvaTest phủ 5 điểm chuẩn theo ký tự, 2 điểm Robustness, và biên 72 byte "
+        "— biên mà mọi mật khẩu ASCII đều không bao giờ chạm tới nên ẩn rất lâu.",
+    ],
 ]
-mau = r_moi - 1
-for c, v in enumerate(HANG, start=1):
-    x = ws.cell(row=r_moi, column=c, value=v)
-    m = ws.cell(row=mau, column=c)
-    x.font = copy.copy(m.font)
-    x.fill = copy.copy(m.fill)
-    x.alignment = copy.copy(m.alignment)
-    x.border = copy.copy(m.border)
-ws.merge_cells(start_row=r_moi, start_column=7, end_row=r_moi, end_column=8)
-ws.row_dimensions[r_moi].height = ws.row_dimensions[mau].height
 
-ws.cell(row=r_ket, column=1).value = (
-    "Cả mười một khiếm khuyết đã được khắc phục và có test hồi quy đi kèm. "
+ws = wb["07. Khiem khuyet"]
+# Bỏ các dòng DEF đã nối ở lần chạy trước rồi chèn lại — chạy lại vẫn ra một bản.
+ma_them = {h[0] for h in DEF_THEM}
+mau_nguon = tim(ws, "DEF-010")
+mau = [ws.cell(row=mau_nguon, column=c) for c in range(1, ws.max_column + 1)]
+dinh_dang = [(copy.copy(o.font), copy.copy(o.fill), copy.copy(o.alignment),
+              copy.copy(o.border)) for o in mau]
+cao_mau = ws.row_dimensions[mau_nguon].height
+
+ws = chen_dong(
+    ws,
+    {"DEF-010": DEF_THEM},
+    bo=lambda hang: str(hang[0] or "").strip() in ma_them,
+)
+
+for h in DEF_THEM:
+    r_moi = tim(ws, h[0])
+    for c in range(1, len(h) + 1):
+        x = ws.cell(row=r_moi, column=c)
+        x.font, x.fill, x.alignment, x.border = dinh_dang[c - 1]
+    ws.merge_cells(start_row=r_moi, start_column=7, end_row=r_moi, end_column=8)
+    ws.row_dimensions[r_moi].height = cao_mau
+
+so_def = sum(1 for r in range(1, ws.max_row + 1)
+             if str(ws.cell(row=r, column=1).value or "").strip().startswith("DEF-"))
+ws.cell(row=tim(ws, "Cả "), column=1).value = (
+    f"Cả {so_def} khiếm khuyết đã được khắc phục và có test hồi quy đi kèm. "
     "Ba khiếm khuyết DEF-001, DEF-009 và DEF-010 đều do KIỂM THỬ GIAO DIỆN tìm ra — đây là "
     "tầng duy nhất chạm tới HTML nên là tầng duy nhất thấy được chúng; suốt thời gian đó test "
     "đơn vị và test API vẫn xanh. "
     "DEF-011 đáng chú ý theo cách ngược lại: test hộp trắng đã GHI ĐÚNG nguyên nhân từ trước "
     "nhưng lại chốt luôn hành vi lỗi bằng một khẳng định, nên bộ test vẫn xanh và khiếm khuyết "
     "nằm im. Phải tới khi dựng bảng quyết định — nơi mỗi cột buộc phải có một hành động xác "
-    "định — nó mới bị buộc phải sửa.")
+    "định — nó mới bị buộc phải sửa. "
+    "DEF-013 thì cho thấy giới hạn của chính phép phân tích biên: nhóm đã áp BVA cho mật khẩu "
+    "từ đầu, nhưng đo bằng KÝ TỰ trong khi biên thật của BCrypt tính bằng BYTE. Áp đúng kỹ "
+    "thuật mà sai đơn vị đo thì vẫn lọt. "
+    "VỀ SỐ HIỆU BỊ NHẢY: DEF-012 có thật và không bị bỏ quên — AdminUserService.deleteUser chỉ "
+    "dọn 2 trong 6 bảng đang tham chiếu tới người dùng, thiếu skill_gap_reports, "
+    "user_node_progress, mentor_sessions và password_reset_tokens, nên việc xoá thất bại TRONG "
+    "IM LẶNG. Nhóm quyết định chưa sửa trong kỳ này vì phải đụng tới thứ tự xoá của bốn bảng, "
+    "và bảng này theo quy ước chỉ liệt kê khiếm khuyết ĐÃ khắc phục kèm test hồi quy.")
 
 wb.save(XLSX)
 print(f"Da cap nhat 00. Tong quan va 07. Khiem khuyet trong {XLSX}")

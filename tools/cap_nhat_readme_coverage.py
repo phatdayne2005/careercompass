@@ -80,6 +80,8 @@ LOP_HOP_DEN = [
     ("blackbox.RegisterTagCoverageTest", "Gộp tag thành test case"),
     ("blackbox.RegisterEquivalencePartitionTest", "Phân hoạch lớp tương đương"),
     ("bva.OnboardingFileSizeBvaTest", "BVA dung lượng tệp"),
+    ("bva.PasswordPolicyBvaTest", "BVA độ dài mật khẩu — ký tự và byte"),
+    ("bva.TokenExpiryBvaTest", "BVA hạn dùng token"),
     ("blackbox.ProgressDecisionTableTest", "Bảng quyết định"),
     ("blackbox.TokenValidityDecisionTableTest", "Bảng quyết định"),
     ("blackbox.TranscriptFileDecisionTableTest", "Bảng quyết định"),
