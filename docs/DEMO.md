@@ -43,10 +43,10 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/login    # phải
 ### 1.1 Chạy trọn phần hộp đen
 
 ```bash
-./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest,ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest,ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'
+./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest,PasswordPolicyBvaTest,TokenExpiryBvaTest,ProgressDecisionTableTest,TokenValidityDecisionTableTest,TranscriptFileDecisionTableTest,ProgressStateTransitionTest,TokenStateTransitionTest,OnboardingStateTransitionTest'
 ```
 
-→ **103 test, 0 thất bại** — đúng bằng tổng các sheet hộp đen của báo cáo.
+→ **126 test, 0 thất bại** — đúng bằng tổng các sheet hộp đen của báo cáo.
 
 ### 1.2 Chạy theo từng SHEET của báo cáo
 
@@ -62,6 +62,7 @@ Gom theo sheet chứ không gom theo kỹ thuật, để mỗi con số in ra đ
 | `04. State Transition (PhanA)` | `./mvnw test -Dtest='ProgressStateTransitionTest'` | **9 test** |
 | `04b. State Transition Token` | `./mvnw test -Dtest='TokenStateTransitionTest'` | **7 test** |
 | `04c. State Transition Onboard` | `./mvnw test -Dtest='OnboardingStateTransitionTest'` | **12 test** |
+| `10. Ra soat BVA` | `./mvnw test -Dtest='PasswordPolicyBvaTest,TokenExpiryBvaTest'` | **23 test** |
 
 > **Một lớp nằm ngoài bảng — nhớ để khỏi bị hỏi bất ngờ.**
 > `RegisterFormDTOBvaTest` (**27 test**) cũng là kiểm thử giá trị biên và vẫn nằm trong
@@ -74,7 +75,7 @@ Gom theo sheet chứ không gom theo kỹ thuật, để mỗi con số in ra đ
 > ./mvnw test -Dtest='RegisterFormDTOBvaTest'    # 27 test
 > ```
 >
-> Cộng lại: 103 test trong các sheet + 27 test lớp này = **130 test hộp đen** trong mã
+> Cộng lại: 126 test trong các sheet + 27 test lớp này = **153 test hộp đen** trong mã
 > nguồn. Nếu thầy đếm ra số khác con số trong báo cáo thì đây là chỗ giải thích.
 
 ### 1.3 In từng trường hợp kiểm thử ra màn hình
@@ -164,7 +165,7 @@ Báo cáo JaCoCo tự sinh, **ba bản cùng lúc**, không cần gõ thêm lệ
 Con số trong báo cáo Excel là bản **gộp** — mở `target/site/jacoco/index.html`.
 
 > **Một điểm đáng nói nếu thầy hỏi về bản tách.** Bộ kiểm thử hộp đen chạy riêng chỉ phủ
-> **6,9% dòng**. Nghe thấp nhưng đúng bản chất: kỹ thuật hộp đen suy test case từ ĐẶC TẢ,
+> **7,4% dòng**. Nghe thấp nhưng đúng bản chất: kỹ thuật hộp đen suy test case từ ĐẶC TẢ,
 > không nhắm vào việc phủ mã, và phần lớn test hộp đen ở đây kiểm ràng buộc dữ liệu qua
 > thư viện Hibernate Validator chứ không chạy vào mã dự án. Đây chính là minh hoạ cho
 > slide 51: *độ bao phủ cao không đồng nghĩa test tốt, và test tốt không đồng nghĩa bao
@@ -301,7 +302,7 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 
 | Phần | Lệnh | Kết quả |
 |---|---|---|
-| Hộp đen — toàn bộ các sheet | `./mvnw test -Dtest='...'` (mục 1.1) | 103 test |
+| Hộp đen — toàn bộ các sheet | `./mvnw test -Dtest='...'` (mục 1.1) | 126 test |
 | Sheet 01 · BVA + phân hoạch | `./mvnw test -Dtest='RegisterStandardBvaTest,RegisterTagCoverageTest,RegisterEquivalencePartitionTest,OnboardingFileSizeBvaTest'` | 56 test |
 | Sheet 03 · 03b · 03c | `./mvnw test -Dtest='ProgressDecisionTableTest'` · `'TokenValidityDecisionTableTest'` · `'TranscriptFileDecisionTableTest'` | 6 · 4 · 9 |
 | Sheet 04 · 04b · 04c | `./mvnw test -Dtest='ProgressStateTransitionTest'` · `'TokenStateTransitionTest'` · `'OnboardingStateTransitionTest'` | 9 · 7 · 12 |

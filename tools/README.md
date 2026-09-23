@@ -47,6 +47,10 @@ python tools/cap_nhat_readme_coverage.py
 
 # 7. Sinh báo cáo Word theo tuần
 python tools/gen_baocao_tuan_docx.py
+
+# 8. SOÁT KHỚP TRƯỚC KHI NỘP — bắt buộc.
+#    In ra mọi chỗ báo cáo ghi một đằng mà đo được một nẻo.
+python tools/soat_khop_bao_cao.py
 ```
 
 ### Khi dựng lại báo cáo Excel từ đầu
@@ -143,6 +147,7 @@ python tools/gen_baocao_tuan_docx.py
 | `gen_sheet_truy_vet_srs.py` | Sinh sheet 08 — ma trận truy vết yêu cầu SRS ↔ kiểm thử |
 | `gen_sheet_vi_tri_test.py` | Sinh sheet 09 — đường dẫn tệp kiểm thử theo từng yêu cầu |
 | `gen_sheet_ra_soat_bva.py` | Sinh sheet 10 — kiểm kê mọi giá trị biên trong hệ thống |
+| `soat_khop_bao_cao.py` | Đối chiếu mọi con số trong báo cáo với kết quả chạy thật |
 | `chuan_hoa_sheet_dt_st.py` | Chuẩn hoá bố cục sheet 03c, 04, 04b, 04c kèm bảng đầy đủ |
 | `sua_ten_method_b1.py` | Thay tên method giả ở sheet B1 bằng tên thật trong mã nguồn |
 | `them_bang3b_dung_luong.py` | Thêm BẢNG 3b — BVA dung lượng tệp vào sheet 01 |
