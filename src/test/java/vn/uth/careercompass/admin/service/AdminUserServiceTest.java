@@ -14,7 +14,14 @@ import vn.uth.careercompass.kernel.entity.RoleName;
 import vn.uth.careercompass.kernel.entity.User;
 import vn.uth.careercompass.kernel.repository.ActivityLogRepository;
 import vn.uth.careercompass.kernel.repository.RoleRepository;
+import vn.uth.careercompass.kernel.repository.PasswordResetTokenRepository;
 import vn.uth.careercompass.kernel.repository.UserRepository;
+import vn.uth.careercompass.mentor.repository.MentorSessionRepository;
+import vn.uth.careercompass.portfolio.entity.GitHubProfile;
+import vn.uth.careercompass.portfolio.repository.GitHubProfileRepository;
+import vn.uth.careercompass.portfolio.repository.ProjectRepositoryRepository;
+import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 
 import java.util.List;
@@ -23,6 +30,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +55,18 @@ class AdminUserServiceTest {
     private UserSkillRepository userSkillRepository;
     @Mock
     private ActivityLogRepository activityLogRepository;
+    @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Mock
+    private MentorSessionRepository mentorSessionRepository;
+    @Mock
+    private SkillGapReportRepository skillGapReportRepository;
+    @Mock
+    private UserNodeProgressRepository userNodeProgressRepository;
+    @Mock
+    private GitHubProfileRepository gitHubProfileRepository;
+    @Mock
+    private ProjectRepositoryRepository projectRepositoryRepository;
 
     @InjectMocks
     private AdminUserService adminUserService;
@@ -253,18 +273,82 @@ class AdminUserServiceTest {
     // deleteUser(userId)
     // ============================================================================
     @Test
-    void deleteUser_whenNotCurrentUser_deletesDependenciesThenUser() {
-        // Given: xóa user khác mình. Service phải dọn bảng phụ (user_skills, activity_logs)
-        // TRƯỚC khi xóa user để không vi phạm khóa ngoại.
+    void deleteUser_donDuSauBangThamChieu() {
+        // DEF-012: sáu bảng có khoá ngoại tới users. Bỏ sót một bảng là lệnh xoá vi phạm
+        // ràng buộc và thất bại TRONG IM LẶNG — quản trị viên bấm xoá, trang tải lại, người
+        // dùng vẫn nguyên trong danh sách. Trước khi sửa chỉ có hai dòng đầu.
         User user = buildUser(1L, "target@uth.edu.vn", true);
         loginAs("admin@uth.edu.vn");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.empty());
 
         adminUserService.deleteUser(1L);
 
-        // Then: đủ 3 lệnh xóa, đúng đối tượng user
         verify(userSkillRepository).deleteByUser(user);
         verify(activityLogRepository).deleteByUser(user);
+        verify(passwordResetTokenRepository).deleteByUser(user);
+        verify(mentorSessionRepository).deleteByUser(user);
+        verify(skillGapReportRepository).deleteByUser(user);
+        verify(userNodeProgressRepository).deleteByUser(user);
+        verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUser_xoaBangConTruocBangCha() {
+        // Thứ tự là phần quan trọng ngang với việc gọi đủ: mọi bảng con phải sạch TRƯỚC khi
+        // xoá dòng trong users, nếu không cơ sở dữ liệu từ chối lệnh cuối.
+        User user = buildUser(1L, "target@uth.edu.vn", true);
+        loginAs("admin@uth.edu.vn");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        adminUserService.deleteUser(1L);
+
+        var thuTu = inOrder(mentorSessionRepository, skillGapReportRepository,
+                userNodeProgressRepository, passwordResetTokenRepository,
+                userSkillRepository, activityLogRepository, userRepository);
+        thuTu.verify(mentorSessionRepository).deleteByUser(user);
+        thuTu.verify(skillGapReportRepository).deleteByUser(user);
+        thuTu.verify(userNodeProgressRepository).deleteByUser(user);
+        thuTu.verify(passwordResetTokenRepository).deleteByUser(user);
+        thuTu.verify(userSkillRepository).deleteByUser(user);
+        thuTu.verify(activityLogRepository).deleteByUser(user);
+        thuTu.verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUser_xoaLuonHoSoGitHubDeTrangCongKhaiKhongConSong() {
+        // github_profiles KHÔNG có khoá ngoại tới users (cột user_id kiểu Long), nên nó
+        // không làm lệnh xoá thất bại — nó gây hậu quả khó thấy hơn: hồ sơ thành mồ côi và
+        // /p/{slug} vẫn trả HTTP 200, phơi tên GitHub cùng toàn bộ repository của người đã
+        // bị xoá cho bất kỳ ai có đường liên kết.
+        User user = buildUser(1L, "target@uth.edu.vn", true);
+        loginAs("admin@uth.edu.vn");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        GitHubProfile hoSo = GitHubProfile.builder()
+                .id(7L).userId(1L).githubUsername("phatdayne").slug("phatdayne-abc123").build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(hoSo));
+
+        adminUserService.deleteUser(1L);
+
+        var thuTu = inOrder(projectRepositoryRepository, gitHubProfileRepository, userRepository);
+        // Danh sách repository là bảng con của github_profiles nên phải sạch trước.
+        thuTu.verify(projectRepositoryRepository).deleteByGithubProfileId(7L);
+        thuTu.verify(gitHubProfileRepository).delete(hoSo);
+        thuTu.verify(userRepository).delete(user);
+    }
+
+    @Test
+    void deleteUser_khongCoHoSoGitHub_vanXoaBinhThuong() {
+        User user = buildUser(1L, "target@uth.edu.vn", true);
+        loginAs("admin@uth.edu.vn");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.empty());
+
+        adminUserService.deleteUser(1L);
+
+        verify(projectRepositoryRepository, never()).deleteByGithubProfileId(any());
+        verify(gitHubProfileRepository, never()).delete(any());
         verify(userRepository).delete(user);
     }
 
@@ -278,9 +362,14 @@ class AdminUserServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Bạn không thể tự xóa tài khoản của chính mình!");
 
-        // Tuyệt đối không được xóa gì
+        // Tuyệt đối không được xóa gì — kiểm đủ cả sáu bảng lẫn hồ sơ GitHub.
         verify(userSkillRepository, never()).deleteByUser(any());
         verify(activityLogRepository, never()).deleteByUser(any());
+        verify(passwordResetTokenRepository, never()).deleteByUser(any());
+        verify(mentorSessionRepository, never()).deleteByUser(any());
+        verify(skillGapReportRepository, never()).deleteByUser(any());
+        verify(userNodeProgressRepository, never()).deleteByUser(any());
+        verify(gitHubProfileRepository, never()).delete(any());
         verify(userRepository, never()).delete(any());
     }
 

@@ -16,4 +16,7 @@ public interface SkillGapReportRepository extends JpaRepository<SkillGapReport, 
 
     /** Xoá mọi báo cáo skill-gap của 1 template (dùng khi P7 xoá lộ trình). */
     void deleteByTemplate_Id(Long templateId);
+
+    /** Dọn báo cáo khi xoá tài khoản (DEF-012). */
+    void deleteByUser(User user);
 }

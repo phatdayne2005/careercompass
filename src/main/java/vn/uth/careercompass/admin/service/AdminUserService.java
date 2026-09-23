@@ -14,6 +14,12 @@ import vn.uth.careercompass.kernel.repository.RoleRepository;
 import vn.uth.careercompass.kernel.repository.UserRepository;
 import vn.uth.careercompass.kernel.repository.UserSkillRepository;
 import vn.uth.careercompass.kernel.repository.ActivityLogRepository;
+import vn.uth.careercompass.kernel.repository.PasswordResetTokenRepository;
+import vn.uth.careercompass.mentor.repository.MentorSessionRepository;
+import vn.uth.careercompass.portfolio.repository.GitHubProfileRepository;
+import vn.uth.careercompass.portfolio.repository.ProjectRepositoryRepository;
+import vn.uth.careercompass.roadmap.repository.SkillGapReportRepository;
+import vn.uth.careercompass.roadmap.repository.UserNodeProgressRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +37,12 @@ public class AdminUserService {
     private final RoleRepository roleRepository;
     private final UserSkillRepository userSkillRepository;
     private final ActivityLogRepository activityLogRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final MentorSessionRepository mentorSessionRepository;
+    private final SkillGapReportRepository skillGapReportRepository;
+    private final UserNodeProgressRepository userNodeProgressRepository;
+    private final GitHubProfileRepository gitHubProfileRepository;
+    private final ProjectRepositoryRepository projectRepositoryRepository;
 
     public List<UserAdminDto> getAllUsers() {
         return userRepository.findAllWithRoleAndCareerRole().stream()
@@ -76,10 +88,36 @@ public class AdminUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng có ID: " + userId));
         requireNotCurrentUser(user, "Bạn không thể tự xóa tài khoản của chính mình!");
 
-        // Xóa các bảng liên quan trước (tránh vi phạm khoá ngoại)
+        // DEF-012: trước đây chỉ dọn users_skills và activity_logs, tức 2 trong 6 bảng có
+        // khoá ngoại tới users. Bốn bảng còn lại giữ nguyên tham chiếu nên lệnh xoá vi phạm
+        // ràng buộc và THẤT BẠI TRONG IM LẶNG — quản trị viên bấm xoá, trang tải lại, người
+        // dùng vẫn còn nguyên trong danh sách.
+        //
+        // Thứ tự dưới đây đi từ bảng con lên bảng cha; đổi thứ tự là vỡ khoá ngoại.
+        xoaHoSoGitHub(user);
+        mentorSessionRepository.deleteByUser(user);
+        skillGapReportRepository.deleteByUser(user);
+        userNodeProgressRepository.deleteByUser(user);
+        passwordResetTokenRepository.deleteByUser(user);
         userSkillRepository.deleteByUser(user);
         activityLogRepository.deleteByUser(user);
         userRepository.delete(user);
+    }
+
+    /**
+     * Dọn hồ sơ E-Portfolio và danh sách repository của nó.
+     *
+     * <p>github_profiles KHÔNG có khoá ngoại tới users — nó trỏ bằng cột user_id kiểu Long
+     * chứ không phải quan hệ @ManyToOne. Nên bảng này không làm lệnh xoá thất bại, mà gây
+     * hậu quả khó thấy hơn: hồ sơ trở thành MỒ CÔI và trang chia sẻ công khai /p/{slug} vẫn
+     * trả HTTP 200. Tên tài khoản GitHub, danh sách repository, mô tả và phần tóm tắt do AI
+     * sinh của người đã bị xoá vẫn hiển thị cho bất kỳ ai có đường liên kết.
+     */
+    private void xoaHoSoGitHub(User user) {
+        gitHubProfileRepository.findByUserId(user.getId()).ifPresent(hoSo -> {
+            projectRepositoryRepository.deleteByGithubProfileId(hoSo.getId());
+            gitHubProfileRepository.delete(hoSo);
+        });
     }
 
     /** Chặn admin thao tác lên chính tài khoản đang đăng nhập (tự khoá / tự xoá). */

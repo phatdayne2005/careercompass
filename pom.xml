@@ -344,6 +344,26 @@
 						</configuration>
 					</execution>
 				</executions>
+				<!-- Loại các lớp CHỈ gieo dữ liệu mẫu lúc khởi động khỏi phép tính bao phủ.
+				     Chúng không chứa logic nghiệp vụ nào: đọc tệp JSON rồi ghi vào CSDL, và
+				     chỉ chạy một lần khi bảng còn trống. Viết test cho chúng chỉ làm đẹp con
+				     số chứ không bắt được lỗi nào — cùng lý do mà sonar.coverage.exclusions
+				     ở đầu tệp này đã loại chúng từ trước.
+
+				     CỐ Ý KHÔNG bê nguyên cả danh sách của SonarQube sang đây. Quy tắc
+				     **/config/** của Sonar sẽ loại luôn OnboardingInterceptor (cổng chặn
+				     onboarding, FR6.3, phủ 100% nhánh bằng 26 phép kiểm), GlobalExceptionHandler
+				     (NFR-R03 và NFR-S05), SecurityConfig và WebMvcConfig. Đó là logic nghiệp vụ
+				     thật, đã kiểm thử thật, không có lý do gì giấu khỏi con số. Loại thêm 138
+				     dòng ấy cũng chỉ đổi kết quả từ 96,7% xuống 96,5% — mất nhiều, được không
+				     đáng.
+
+				     Áp ở cấp plugin nên có hiệu lực cho cả ba báo cáo lẫn bước jacoco:check. -->
+				<configuration>
+					<excludes>
+						<exclude>**/*Seeder.class</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 
 			<!-- SonarScanner for Maven: chạy phân tích ngay tại máy build rồi

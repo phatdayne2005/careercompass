@@ -193,7 +193,7 @@ r = tim(ws, "Đơn vị (JUnit)")
 ws.cell(row=r, column=3, value=TONG)
 
 ws.cell(row=ws.max_row, column=1).value = (
-    "Mười hai khiếm khuyết được phát hiện và đều đã khắc phục kèm test hồi quy. "
+    "Mười ba khiếm khuyết được phát hiện và đều đã khắc phục kèm test hồi quy. "
     "Chi tiết ở sheet 07. Khiem khuyet.")
 
 # ── 07. Khiem khuyet ─────────────────────────────────────────────────────
@@ -211,6 +211,27 @@ DEF_THEM = [
         "ĐÃ SỬA",
         "Coi \"không có đuôi\" là đuôi rỗng để rơi đúng vào nhánh báo lỗi định dạng có sẵn. Test cũ "
         "trong OnboardingServiceTest từng khoá hành vi lỗi, nay đã đổi sang khẳng định hành vi đúng.",
+    ],
+    [
+        "DEF-012", "Cao",
+        "Xoá người dùng chỉ dọn 2 trong 6 bảng có khoá ngoại tới users (users_skills và "
+        "activity_logs), bỏ sót password_reset_tokens, mentor_sessions, skill_gap_reports và "
+        "user_node_progress. Lệnh xoá vi phạm ràng buộc khoá ngoại và THẤT BẠI TRONG IM LẶNG: "
+        "quản trị viên bấm xoá, trang tải lại, người dùng vẫn nguyên trong danh sách. "
+        "Nặng hơn nữa, github_profiles trỏ tới người dùng bằng cột user_id kiểu Long chứ không "
+        "phải quan hệ @ManyToOne nên KHÔNG có khoá ngoại — hồ sơ E-Portfolio trở thành mồ côi "
+        "và trang chia sẻ công khai /p/{slug} vẫn trả HTTP 200, phơi tên tài khoản GitHub, "
+        "danh sách repository, mô tả và phần tóm tắt do AI sinh của người đã bị xoá.",
+        "Rà soát mã nguồn khi dọn tài khoản rác trên môi trường thật",
+        "Đối chiếu sáu thực thể khai @ManyToOne tới User với thân hàm deleteUser: chỉ khớp hai. "
+        "Đọc PublicPortfolioController xác nhận trang công khai vẫn dựng được khi owner đã bị "
+        "xoá — biến owner nhận null nhưng profile và repositories vẫn hiển thị.",
+        "ĐÃ SỬA",
+        "Dọn đủ tám bảng theo thứ tự đi từ bảng con lên bảng cha, kèm hồ sơ GitHub và danh sách "
+        "repository của nó. Phiên chat dùng derived delete của Spring Data — nó NẠP thực thể rồi "
+        "gọi em.remove() từng cái nên cascade khai trên chatMessages mới chạy; đổi sang @Query "
+        "xoá hàng loạt là để lại tin nhắn mồ côi. Bốn phép kiểm mới trong AdminUserServiceTest "
+        "khoá cả danh sách bảng lẫn THỨ TỰ gọi.",
     ],
     [
         "DEF-013", "Trung bình",
@@ -268,11 +289,12 @@ ws.cell(row=tim(ws, "Cả "), column=1).value = (
     "DEF-013 thì cho thấy giới hạn của chính phép phân tích biên: nhóm đã áp BVA cho mật khẩu "
     "từ đầu, nhưng đo bằng KÝ TỰ trong khi biên thật của BCrypt tính bằng BYTE. Áp đúng kỹ "
     "thuật mà sai đơn vị đo thì vẫn lọt. "
-    "VỀ SỐ HIỆU BỊ NHẢY: DEF-012 có thật và không bị bỏ quên — AdminUserService.deleteUser chỉ "
-    "dọn 2 trong 6 bảng đang tham chiếu tới người dùng, thiếu skill_gap_reports, "
-    "user_node_progress, mentor_sessions và password_reset_tokens, nên việc xoá thất bại TRONG "
-    "IM LẶNG. Nhóm quyết định chưa sửa trong kỳ này vì phải đụng tới thứ tự xoá của bốn bảng, "
-    "và bảng này theo quy ước chỉ liệt kê khiếm khuyết ĐÃ khắc phục kèm test hồi quy.")
+    "DEF-012 là khiếm khuyết duy nhất KHÔNG do một kỹ thuật kiểm thử nào tìm ra, mà lộ ra "
+    "trong lúc dọn tài khoản rác trên môi trường thật. Đáng suy nghĩ ở chỗ: bảng users_skills "
+    "và activity_logs đều đã có phép kiểm xác nhận được dọn, và phép kiểm đó vẫn xanh suốt thời "
+    "gian bốn bảng còn lại bị bỏ sót — vì nó chỉ khẳng định những gì hàm CÓ làm, không khẳng "
+    "định những gì hàm PHẢI làm. Bản sửa đối chiếu ngược từ danh sách thực thể tham chiếu tới "
+    "User thay vì từ thân hàm.")
 
 wb.save(XLSX)
 print(f"Da cap nhat 00. Tong quan va 07. Khiem khuyet trong {XLSX}")

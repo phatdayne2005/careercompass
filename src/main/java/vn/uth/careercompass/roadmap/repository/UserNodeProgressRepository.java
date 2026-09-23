@@ -26,4 +26,7 @@ public interface UserNodeProgressRepository extends JpaRepository<UserNodeProgre
 
     /** Xoá mọi tiến độ của các node thuộc 1 template (dùng khi P7 xoá lộ trình). */
     void deleteBySkillNode_Template_Id(Long templateId);
+
+    /** Dọn tiến độ học khi xoá tài khoản (DEF-012). */
+    void deleteByUser(User user);
 }

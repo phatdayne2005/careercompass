@@ -12,16 +12,16 @@ GitHub không tự hiển thị được vì đây là trang HTML tĩnh nhiều 
 
 | Chỉ số | Trước Phần A | Sau Phần A | Tăng |
 |---|---|---|---|
-| Dòng lệnh (Line) | 60,1% | **90,9%** | +30,8 |
-| Nhánh (Branch) | 48,2% | **85,9%** | +37,7 |
-| Độ phức tạp được phủ | 53,4% | **85,2%** | +31,8 |
-| Phương thức | 65,1% | **92,4%** | +27,3 |
-| Lớp | 75,4% | **98,5%** | +23,1 |
+| Dòng lệnh (Line) | 60,1% | **96,9%** | +36,8 |
+| Nhánh (Branch) | 48,2% | **90,4%** | +42,2 |
+| Độ phức tạp được phủ | 53,4% | **88,5%** | +35,1 |
+| Phương thức | 65,1% | **93,7%** | +28,6 |
+| Lớp | 75,4% | **98,4%** | +23,0 |
 
 Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 test và chưa có test hộp đen nào.
 
 Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có
-**536 test**, trong đó:
+**539 test**, trong đó:
 
 | Số test | Gói | Kỹ thuật |
 |---:|---|---|
@@ -45,10 +45,10 @@ Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn d�
 đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra từ
 **đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
 
-Vậy mà bao phủ nhánh tăng hơn 37 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
+Vậy mà bao phủ nhánh tăng hơn 42 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
 giá trị thực chất, không chỉ là bài tập vẽ bảng.
 
-Nhưng vẫn còn **14,1% nhánh chưa chạm** — đúng như slide 51 của chương IV:
+Nhưng vẫn còn **9,6% nhánh chưa chạm** — đúng như slide 51 của chương IV:
 *độ bao phủ 100% không có nghĩa là 100% được test*, và chiều ngược lại cũng đúng:
 phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn mã nguồn.
 
