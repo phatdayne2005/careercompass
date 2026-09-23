@@ -34,52 +34,52 @@ public class OnboardingInterceptor implements HandlerInterceptor {
 <span class="fc" id="L34">        String uri = request.getRequestURI();</span>
 
         // Bỏ qua các path không cần check
-<span class="pc bpc" id="L37" title="1 of 2 branches missed.">        if (shouldSkip(uri)) {</span>
-<span class="nc" id="L38">            return true;</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (shouldSkip(uri)) {</span>
+<span class="fc" id="L38">            return true;</span>
         }
 
 <span class="fc" id="L41">        Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span>
-<span class="pc bpc" id="L42" title="3 of 6 branches missed.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
+<span class="fc bfc" id="L42" title="All 6 branches covered.">        if (auth == null || !auth.isAuthenticated() || &quot;anonymousUser&quot;.equals(auth.getPrincipal())) {</span>
 <span class="fc" id="L43">            return true;  // Chưa đăng nhập → Spring Security tự xử lý</span>
         }
 
         // Chỉ áp dụng cho STUDENT
-<span class="nc" id="L47">        boolean isStudent = auth.getAuthorities().stream()</span>
-<span class="nc" id="L48">                .anyMatch(a -&gt; &quot;ROLE_STUDENT&quot;.equals(a.getAuthority()));</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (!isStudent) {</span>
-<span class="nc" id="L50">            return true;</span>
+<span class="fc" id="L47">        boolean isStudent = auth.getAuthorities().stream()</span>
+<span class="fc" id="L48">                .anyMatch(a -&gt; &quot;ROLE_STUDENT&quot;.equals(a.getAuthority()));</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (!isStudent) {</span>
+<span class="fc" id="L50">            return true;</span>
         }
 
         // Kiểm tra cờ onboardingCompleted
         try {
-<span class="nc" id="L55">            User user = authenticatedUserService.requireCurrentUser(auth);</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">            if (!Boolean.TRUE.equals(user.getOnboardingCompleted())) {</span>
-<span class="nc" id="L57">                response.sendRedirect(request.getContextPath() + &quot;/onboarding/step1&quot;);</span>
-<span class="nc" id="L58">                return false;</span>
+<span class="fc" id="L55">            User user = authenticatedUserService.requireCurrentUser(auth);</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">            if (!Boolean.TRUE.equals(user.getOnboardingCompleted())) {</span>
+<span class="fc" id="L57">                response.sendRedirect(request.getContextPath() + &quot;/onboarding/step1&quot;);</span>
+<span class="fc" id="L58">                return false;</span>
             }
-<span class="nc" id="L60">        } catch (Exception e) {</span>
+<span class="fc" id="L60">        } catch (Exception e) {</span>
             // Không thể load user → để Spring Security xử lý
-<span class="nc" id="L62">            return true;</span>
-<span class="nc" id="L63">        }</span>
+<span class="fc" id="L62">            return true;</span>
+<span class="fc" id="L63">        }</span>
 
-<span class="nc" id="L65">        return true;</span>
+<span class="fc" id="L65">        return true;</span>
     }
 
     private boolean shouldSkip(String uri) {
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">        return uri.startsWith(&quot;/onboarding&quot;)</span>
-<span class="pc bpc" id="L70" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/login&quot;)</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/logout&quot;)</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/register&quot;)</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/forgot&quot;)</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/oauth2&quot;)</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/css&quot;)</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/js&quot;)</span>
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/images&quot;)</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/uploads&quot;)</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/admin&quot;)</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/counselor&quot;)</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/error&quot;)</span>
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">                || uri.startsWith(&quot;/favicon&quot;);</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        return uri.startsWith(&quot;/onboarding&quot;)</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">                || uri.startsWith(&quot;/login&quot;)</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">                || uri.startsWith(&quot;/logout&quot;)</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">                || uri.startsWith(&quot;/register&quot;)</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">                || uri.startsWith(&quot;/forgot&quot;)</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">                || uri.startsWith(&quot;/oauth2&quot;)</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">                || uri.startsWith(&quot;/css&quot;)</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">                || uri.startsWith(&quot;/js&quot;)</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">                || uri.startsWith(&quot;/images&quot;)</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">                || uri.startsWith(&quot;/uploads&quot;)</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">                || uri.startsWith(&quot;/admin&quot;)</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">                || uri.startsWith(&quot;/counselor&quot;)</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">                || uri.startsWith(&quot;/error&quot;)</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">                || uri.startsWith(&quot;/favicon&quot;);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

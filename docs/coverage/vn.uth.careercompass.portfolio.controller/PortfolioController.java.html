@@ -49,25 +49,25 @@ public class PortfolioController {
     @PostMapping(&quot;/repos/{repoId}/toggle&quot;)
     public String toggleRepo(@org.springframework.web.bind.annotation.PathVariable Long repoId,
                              Authentication authentication) {
-<span class="nc" id="L52">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L53">        portfolioService.toggleRepoVisibility(user, repoId);</span>
-<span class="nc" id="L54">        return &quot;redirect:/portfolio/manage&quot;;</span>
+<span class="fc" id="L52">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L53">        portfolioService.toggleRepoVisibility(user, repoId);</span>
+<span class="fc" id="L54">        return &quot;redirect:/portfolio/manage&quot;;</span>
     }
 
     @PostMapping(&quot;/sync&quot;)
     public String syncPortfolio(@RequestParam(&quot;githubUsername&quot;) String githubUsername,
                                 Authentication authentication, RedirectAttributes ra) {
-<span class="nc" id="L60">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L60">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
         try {
-<span class="nc" id="L62">            List&lt;ProjectRepository&gt; repos = portfolioService.syncGithubRepositories(user, githubUsername);</span>
-<span class="nc" id="L63">            ra.addFlashAttribute(&quot;message&quot;, &quot;Đã đồng bộ &quot; + repos.size() + &quot; repository từ GitHub.&quot;);</span>
-<span class="nc" id="L64">        } catch (IllegalArgumentException | IllegalStateException e) {</span>
-<span class="nc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
-<span class="nc" id="L66">        } catch (org.springframework.dao.DataIntegrityViolationException e) {</span>
+<span class="fc" id="L62">            List&lt;ProjectRepository&gt; repos = portfolioService.syncGithubRepositories(user, githubUsername);</span>
+<span class="fc" id="L63">            ra.addFlashAttribute(&quot;message&quot;, &quot;Đã đồng bộ &quot; + repos.size() + &quot; repository từ GitHub.&quot;);</span>
+<span class="fc" id="L64">        } catch (IllegalArgumentException | IllegalStateException e) {</span>
+<span class="fc" id="L65">            ra.addFlashAttribute(&quot;error&quot;, e.getMessage());</span>
+<span class="fc" id="L66">        } catch (org.springframework.dao.DataIntegrityViolationException e) {</span>
             // Không để crash 500 khi vướng ràng buộc dữ liệu (vd DB cũ còn unique tàn dư trên github_username)
-<span class="nc" id="L68">            ra.addFlashAttribute(&quot;error&quot;, &quot;Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác.&quot;);</span>
-<span class="nc" id="L69">        }</span>
-<span class="nc" id="L70">        return &quot;redirect:/portfolio/manage&quot;;</span>
+<span class="fc" id="L68">            ra.addFlashAttribute(&quot;error&quot;, &quot;Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác.&quot;);</span>
+<span class="fc" id="L69">        }</span>
+<span class="fc" id="L70">        return &quot;redirect:/portfolio/manage&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

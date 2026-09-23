@@ -54,11 +54,11 @@ public class OnboardingController {
     @GetMapping(&quot;/step1&quot;)
     public String step1(Model model, Authentication authentication) {
 <span class="fc" id="L56">        User user = getIncompleteUser(authentication);</span>
-<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (user == null) return &quot;redirect:/&quot;;</span>
 
-<span class="nc" id="L59">        model.addAttribute(&quot;roles&quot;, careerRoleRepository.findAll());</span>
-<span class="nc" id="L60">        model.addAttribute(&quot;currentStep&quot;, 1);</span>
-<span class="nc" id="L61">        return &quot;onboarding/step1_role&quot;;</span>
+<span class="fc" id="L59">        model.addAttribute(&quot;roles&quot;, careerRoleRepository.findAll());</span>
+<span class="fc" id="L60">        model.addAttribute(&quot;currentStep&quot;, 1);</span>
+<span class="fc" id="L61">        return &quot;onboarding/step1_role&quot;;</span>
     }
 
     @PostMapping(&quot;/step1&quot;)
@@ -85,12 +85,12 @@ public class OnboardingController {
     @GetMapping(&quot;/step2&quot;)
     public String step2(Model model, Authentication authentication) {
 <span class="fc" id="L87">        User user = getIncompleteUser(authentication);</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (user == null) return &quot;redirect:/&quot;;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (user == null) return &quot;redirect:/&quot;;</span>
 
-<span class="nc" id="L90">        model.addAttribute(&quot;currentStep&quot;, 2);</span>
-<span class="nc" id="L91">        model.addAttribute(&quot;githubUsername&quot;, user.getGithubUsername());</span>
-<span class="nc bnc" id="L92" title="All 2 branches missed.">        model.addAttribute(&quot;hasTranscript&quot;, user.getTranscriptPath() != null);</span>
-<span class="nc" id="L93">        return &quot;onboarding/step2_sources&quot;;</span>
+<span class="fc" id="L90">        model.addAttribute(&quot;currentStep&quot;, 2);</span>
+<span class="fc" id="L91">        model.addAttribute(&quot;githubUsername&quot;, user.getGithubUsername());</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        model.addAttribute(&quot;hasTranscript&quot;, user.getTranscriptPath() != null);</span>
+<span class="fc" id="L93">        return &quot;onboarding/step2_sources&quot;;</span>
     }
 
     @PostMapping(&quot;/step2&quot;)
@@ -102,24 +102,24 @@ public class OnboardingController {
 <span class="fc bfc" id="L102" title="All 2 branches covered.">        if (user == null) return &quot;redirect:/&quot;;</span>
 
         // Xử lý file transcript
-<span class="pc bpc" id="L105" title="3 of 4 branches missed.">        if (transcriptFile != null &amp;&amp; !transcriptFile.isEmpty()) {</span>
+<span class="fc bfc" id="L105" title="All 4 branches covered.">        if (transcriptFile != null &amp;&amp; !transcriptFile.isEmpty()) {</span>
             try {
-<span class="nc" id="L107">                String savedPath = onboardingService.saveTranscript(user, transcriptFile);</span>
-<span class="nc" id="L108">                userProfileService.storeTranscript(user, savedPath, null);</span>
+<span class="fc" id="L107">                String savedPath = onboardingService.saveTranscript(user, transcriptFile);</span>
+<span class="fc" id="L108">                userProfileService.storeTranscript(user, savedPath, null);</span>
                 // Scan CV: AI phân tích bảng điểm (FR1.3) — không chặn upload nếu lỗi/không đọc được
-<span class="nc" id="L110">                String summary = transcriptAnalysisService.analyze(java.nio.file.Path.of(savedPath));</span>
-<span class="nc bnc" id="L111" title="All 2 branches missed.">                if (summary != null) {</span>
-<span class="nc" id="L112">                    userProfileService.storeTranscriptSummary(user, summary);</span>
+<span class="fc" id="L110">                String summary = transcriptAnalysisService.analyze(java.nio.file.Path.of(savedPath));</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">                if (summary != null) {</span>
+<span class="fc" id="L112">                    userProfileService.storeTranscriptSummary(user, summary);</span>
                 }
-<span class="nc" id="L114">            } catch (Exception e) {</span>
-<span class="nc" id="L115">                redirectAttributes.addFlashAttribute(&quot;error&quot;, &quot;Lỗi khi tải lên bảng điểm: &quot; + e.getMessage());</span>
-<span class="nc" id="L116">                return &quot;redirect:/onboarding/step2&quot;;</span>
-<span class="nc" id="L117">            }</span>
+<span class="fc" id="L114">            } catch (Exception e) {</span>
+<span class="fc" id="L115">                redirectAttributes.addFlashAttribute(&quot;error&quot;, &quot;Lỗi khi tải lên bảng điểm: &quot; + e.getMessage());</span>
+<span class="fc" id="L116">                return &quot;redirect:/onboarding/step2&quot;;</span>
+<span class="fc" id="L117">            }</span>
         }
 
         // Xử lý GitHub username
-<span class="pc bpc" id="L121" title="3 of 4 branches missed.">        if (githubUsername != null &amp;&amp; !githubUsername.isBlank()) {</span>
-<span class="nc" id="L122">            userProfileService.setGithub(user, githubUsername.trim());</span>
+<span class="fc bfc" id="L121" title="All 4 branches covered.">        if (githubUsername != null &amp;&amp; !githubUsername.isBlank()) {</span>
+<span class="fc" id="L122">            userProfileService.setGithub(user, githubUsername.trim());</span>
         }
 
 <span class="fc" id="L125">        return &quot;redirect:/onboarding/step3&quot;;</span>
@@ -146,7 +146,7 @@ public class OnboardingController {
 <span class="fc bfc" id="L146" title="All 2 branches covered.">        if (user == null) return &quot;redirect:/&quot;;</span>
 
         // Lưu kỹ năng (nếu có chọn)
-<span class="pc bpc" id="L149" title="2 of 4 branches missed.">        if (skillIds != null &amp;&amp; !skillIds.isEmpty()) {</span>
+<span class="pc bpc" id="L149" title="1 of 4 branches missed.">        if (skillIds != null &amp;&amp; !skillIds.isEmpty()) {</span>
 <span class="fc" id="L150">            userProfileService.replaceSkills(user, skillIds);</span>
         }
 
@@ -165,21 +165,21 @@ public class OnboardingController {
 
     private Map&lt;String, List&lt;Skill&gt;&gt; groupSkillsByCategory() {
 <span class="fc" id="L167">        Map&lt;String, List&lt;Skill&gt;&gt; byCategory = skillRepository.findAll().stream()</span>
-<span class="pc bnc" id="L168" title="All 2 branches missed.">                .collect(Collectors.groupingBy(s -&gt; s.getCategory() == null ? &quot;Khác&quot; : s.getCategory()));</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">                .collect(Collectors.groupingBy(s -&gt; s.getCategory() == null ? &quot;Khác&quot; : s.getCategory()));</span>
 
 <span class="fc" id="L170">        Map&lt;String, List&lt;Skill&gt;&gt; ordered = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc bfc" id="L171" title="All 2 branches covered.">        for (String category : CATEGORY_ORDER) {</span>
 <span class="fc" id="L172">            List&lt;Skill&gt; list = byCategory.remove(category);</span>
-<span class="pc bpc" id="L173" title="1 of 2 branches missed.">            if (list != null) {</span>
-<span class="nc" id="L174">                list.sort(Comparator.comparing(Skill::getName));</span>
-<span class="nc" id="L175">                ordered.put(category, list);</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">            if (list != null) {</span>
+<span class="fc" id="L174">                list.sort(Comparator.comparing(Skill::getName));</span>
+<span class="fc" id="L175">                ordered.put(category, list);</span>
             }
 <span class="fc" id="L177">        }</span>
         // Nhóm lạ (nếu có) xếp sau cùng, không bỏ sót skill nào
 <span class="fc" id="L179">        byCategory.forEach((category, list) -&gt; {</span>
-<span class="nc" id="L180">            list.sort(Comparator.comparing(Skill::getName));</span>
-<span class="nc" id="L181">            ordered.put(category, list);</span>
-<span class="nc" id="L182">        });</span>
+<span class="fc" id="L180">            list.sort(Comparator.comparing(Skill::getName));</span>
+<span class="fc" id="L181">            ordered.put(category, list);</span>
+<span class="fc" id="L182">        });</span>
 <span class="fc" id="L183">        return ordered;</span>
     }
 }

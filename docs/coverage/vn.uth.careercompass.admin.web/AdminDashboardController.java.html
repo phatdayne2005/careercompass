@@ -17,9 +17,9 @@ public class AdminDashboardController {
  
     @GetMapping
     public String dashboard(Model model) {
-<span class="nc" id="L20">        Map&lt;String, Object&gt; stats = adminDashboardService.getDashboardStats();</span>
-<span class="nc" id="L21">        model.addAllAttributes(stats);</span>
-<span class="nc" id="L22">        return &quot;admin/dashboard&quot;;</span>
+<span class="fc" id="L20">        Map&lt;String, Object&gt; stats = adminDashboardService.getDashboardStats();</span>
+<span class="fc" id="L21">        model.addAllAttributes(stats);</span>
+<span class="fc" id="L22">        return &quot;admin/dashboard&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

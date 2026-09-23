@@ -30,8 +30,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -107,5 +112,83 @@ class PortfolioControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("portfolio/public"))
                 .andExpect(model().attributeExists("profile", "owner", "ownerInfo", "repositories"));
+    }
+
+    // ===================================================================
+    // FR5.1 — Đồng bộ repository từ GitHub
+    //
+    // Ba nhánh bắt ngoại lệ của /portfolio/sync trước đây không có test nào chạm tới, mà
+    // đó lại là chỗ quyết định người dùng thấy thông báo tử tế hay thấy trang lỗi 500.
+    // Nhánh DataIntegrityViolationException đặc biệt đáng giữ: nó được thêm vì CSDL cũ
+    // còn ràng buộc unique tàn dư trên github_username.
+    // ===================================================================
+
+    @Test
+    void syncPortfolio_thanhCong_baoSoRepositoryDaDongBo() throws Exception {
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        when(authenticatedUserService.requireCurrentUser(any())).thenReturn(user);
+        when(portfolioService.syncGithubRepositories(user, "phatdayne"))
+                .thenReturn(List.of(ProjectRepository.builder().id(1L).repoName("careercompass").build(),
+                        ProjectRepository.builder().id(2L).repoName("uth-labs").build()));
+
+        mockMvc.perform(post("/portfolio/sync").param("githubUsername", "phatdayne"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/portfolio/manage"))
+                .andExpect(flash().attribute("message", "Đã đồng bộ 2 repository từ GitHub."));
+    }
+
+    @Test
+    void syncPortfolio_taiKhoanGithubKhongTonTai_hienLoiThayVi500() throws Exception {
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        when(authenticatedUserService.requireCurrentUser(any())).thenReturn(user);
+        when(portfolioService.syncGithubRepositories(any(), eq("khong-ton-tai")))
+                .thenThrow(new IllegalArgumentException("Không tìm thấy tài khoản GitHub này."));
+
+        mockMvc.perform(post("/portfolio/sync").param("githubUsername", "khong-ton-tai"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", "Không tìm thấy tài khoản GitHub này."));
+    }
+
+    @Test
+    void syncPortfolio_gitHubTamThoiLoi_hienLoiThayVi500() throws Exception {
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        when(authenticatedUserService.requireCurrentUser(any())).thenReturn(user);
+        when(portfolioService.syncGithubRepositories(any(), any()))
+                .thenThrow(new IllegalStateException("GitHub đang giới hạn số lần gọi."));
+
+        mockMvc.perform(post("/portfolio/sync").param("githubUsername", "phatdayne"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", "GitHub đang giới hạn số lần gọi."));
+    }
+
+    @Test
+    void syncPortfolio_vuongRangBuocDuLieu_hienThongBaoThanThien() throws Exception {
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        when(authenticatedUserService.requireCurrentUser(any())).thenReturn(user);
+        when(portfolioService.syncGithubRepositories(any(), any()))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException(
+                        "Duplicate entry for key 'github_username'"));
+
+        mockMvc.perform(post("/portfolio/sync").param("githubUsername", "phatdayne"))
+                .andExpect(status().is3xxRedirection())
+                // Thông điệp kỹ thuật của CSDL KHÔNG được lọt ra giao diện (NFR-S05).
+                .andExpect(flash().attribute("error",
+                        "Không thể đồng bộ GitHub này lúc này. Vui lòng thử lại hoặc dùng username khác."));
+    }
+
+    // FR5.3 — Ẩn/hiện repository trên trang công khai
+
+    @Test
+    void toggleRepo_doiTrangThaiHienThiRoiQuayLaiTrangQuanLy() throws Exception {
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        when(authenticatedUserService.requireCurrentUser(any())).thenReturn(user);
+
+        mockMvc.perform(post("/portfolio/repos/7/toggle"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/portfolio/manage"));
+
+        // Người dùng phải được truyền xuống service để nó kiểm chủ sở hữu repository —
+        // nếu không, ai cũng ẩn/hiện được repository của người khác bằng cách đổi id.
+        verify(portfolioService).toggleRepoVisibility(user, 7L);
     }
 }

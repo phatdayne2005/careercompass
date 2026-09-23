@@ -147,15 +147,19 @@ tên này:
 ./mvnw clean test
 ```
 
-→ **399 test, 0 thất bại**
+→ **510 test, 0 thất bại**
 
 Báo cáo JaCoCo tự sinh, **ba bản cùng lúc**, không cần gõ thêm lệnh:
 
 | Thư mục | Đo gì | Dòng | Nhánh |
 |---|---|---|---|
-| `target/site/jacoco/` | **Toàn bộ** — gộp cả hai bên | **78,6%** | **72,5%** |
-| `target/site/jacoco-whitebox/` | Chỉ test hộp trắng | 75,9% | 67,8% |
+| `target/site/jacoco/` | **Toàn bộ** — gộp cả hai bên | **90,9%** | **85,5%** |
+| `target/site/jacoco-whitebox/` | Chỉ test hộp trắng | 90,9% | 85,0% |
 | `target/site/jacoco-blackbox/` | Chỉ test hộp đen | 6,9% | 9,9% |
+
+> **Vì sao bản gộp và bản hộp trắng gần như bằng nhau.** Không phải lỗi cấu hình: bộ hộp
+> đen hầu như không phủ thêm dòng nào mà hộp trắng chưa phủ (chỉ thêm 3 nhánh). Điều đó
+> hợp lý — xem đoạn ngay dưới.
 
 Con số trong báo cáo Excel là bản **gộp** — mở `target/site/jacoco/index.html`.
 
@@ -304,8 +308,8 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 | Ngoài bảng · BVA theo từng trường | `./mvnw test -Dtest='RegisterFormDTOBvaTest'` | 27 test |
 | Hộp trắng — đường cơ sở | `./mvnw test -Dtest='RoadmapServiceTest#...'` (mục 2.1) | 9 test |
 | Hộp trắng — MC/DC | `./mvnw test -Dtest='RoadmapServiceTest#lockExpression_coversConditionCombinations'` | 7 test |
-| Toàn bộ + bao phủ gộp | `./mvnw clean test` | 399 test · 78,6% · 72,5% |
-| Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 75,9% / 6,9% dòng |
+| Toàn bộ + bao phủ gộp | `./mvnw clean test` | 510 test · 90,9% · 85,5% |
+| Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 90,9% / 6,9% dòng |
 | API | Postman GUI → Run collection | 111 request · 376 phép kiểm |
 | Giao diện, chạy ngầm | `cd e2e && npm run test:all` | 17 kịch bản |
 | Giao diện, hiện trình duyệt | `cd e2e && SHOW=true npx codeceptjs run --steps` | 17 kịch bản |

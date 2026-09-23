@@ -28,28 +28,28 @@ public class SkillGapController {
 
     @PostMapping(&quot;/analyze&quot;)
     public SkillGapResultDTO analyze(@RequestBody(required = false) SkillGapAnalyzeRequest request, Authentication authentication) {
-<span class="nc" id="L31">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc bnc" id="L32" title="All 2 branches missed.">        return skillGapService.analyze(user, request == null ? null : request.getTemplateId());</span>
+<span class="fc" id="L31">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        return skillGapService.analyze(user, request == null ? null : request.getTemplateId());</span>
     }
 
     @PostMapping(&quot;/reports&quot;)
     public SkillGapReportDTO createReport(@RequestBody(required = false) SkillGapAnalyzeRequest request, Authentication authentication) {
-<span class="nc" id="L37">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc bnc" id="L38" title="All 2 branches missed.">        SkillGapResultDTO result = skillGapService.analyze(user, request == null ? null : request.getTemplateId());</span>
-<span class="nc" id="L39">        String pdfPath = pdfService.generateSkillGapReport(user, result);</span>
-<span class="nc" id="L40">        return skillGapService.saveReport(user, result, pdfPath);</span>
+<span class="fc" id="L37">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        SkillGapResultDTO result = skillGapService.analyze(user, request == null ? null : request.getTemplateId());</span>
+<span class="fc" id="L39">        String pdfPath = pdfService.generateSkillGapReport(user, result);</span>
+<span class="fc" id="L40">        return skillGapService.saveReport(user, result, pdfPath);</span>
     }
 
     @GetMapping(&quot;/reports&quot;)
     public List&lt;SkillGapReportDTO&gt; reports(Authentication authentication) {
-<span class="nc" id="L45">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L46">        return skillGapService.getReports(user);</span>
+<span class="fc" id="L45">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L46">        return skillGapService.getReports(user);</span>
     }
 
     @GetMapping(&quot;/reports/{id}&quot;)
     public SkillGapReportDTO report(@PathVariable Long id, Authentication authentication) {
-<span class="nc" id="L51">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L52">        return skillGapService.getReport(user, id);</span>
+<span class="fc" id="L51">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L52">        return skillGapService.getReport(user, id);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -5,15 +5,15 @@ import vn.uth.careercompass.kernel.entity.User;
  
 <span class="nc" id="L6">public class UserAdminMapper {</span>
     public static UserAdminDto toDto(User user) {
-<span class="pc bpc" id="L8" title="1 of 2 branches missed.">        if (user == null) {</span>
-<span class="nc" id="L9">            return null;</span>
+<span class="fc bfc" id="L8" title="All 2 branches covered.">        if (user == null) {</span>
+<span class="fc" id="L9">            return null;</span>
         }
 <span class="fc" id="L11">        return UserAdminDto.builder()</span>
 <span class="fc" id="L12">                .id(user.getId())</span>
 <span class="fc" id="L13">                .fullName(user.getFullName())</span>
 <span class="fc" id="L14">                .email(user.getEmail())</span>
-<span class="pc bpc" id="L15" title="1 of 2 branches missed.">                .roleName(user.getRole() != null ? user.getRole().getName().name() : null)</span>
-<span class="pc bpc" id="L16" title="1 of 2 branches missed.">                .careerRoleName(user.getCareerRole() != null ? user.getCareerRole().getName() : null)</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">                .roleName(user.getRole() != null ? user.getRole().getName().name() : null)</span>
+<span class="fc bfc" id="L16" title="All 2 branches covered.">                .careerRoleName(user.getCareerRole() != null ? user.getCareerRole().getName() : null)</span>
 <span class="fc" id="L17">                .enabled(user.getEnabled())</span>
 <span class="fc" id="L18">                .createdAt(user.getCreatedAt())</span>
 <span class="fc" id="L19">                .build();</span>

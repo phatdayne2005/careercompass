@@ -12,16 +12,16 @@ GitHub không tự hiển thị được vì đây là trang HTML tĩnh nhiều 
 
 | Chỉ số | Trước Phần A | Sau Phần A | Tăng |
 |---|---|---|---|
-| Dòng lệnh (Line) | 60,1% | **78,6%** | +18,5 |
-| Nhánh (Branch) | 48,2% | **72,5%** | +24,3 |
-| Độ phức tạp được phủ | 53,4% | **71,0%** | +17,6 |
-| Phương thức | 65,1% | **81,2%** | +16,1 |
-| Lớp | 75,4% | **89,4%** | +14,0 |
+| Dòng lệnh (Line) | 60,1% | **90,9%** | +30,8 |
+| Nhánh (Branch) | 48,2% | **85,5%** | +37,3 |
+| Độ phức tạp được phủ | 53,4% | **84,9%** | +31,5 |
+| Phương thức | 65,1% | **92,3%** | +27,2 |
+| Lớp | 75,4% | **98,5%** | +23,1 |
 
 Cột "Trước" đo ngày 19/08/2026, khi dự án có 198 test và chưa có test hộp đen nào.
 
 Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn dự án hiện có
-**399 test**, trong đó:
+**510 test**, trong đó:
 
 | Số test | Gói | Kỹ thuật |
 |---:|---|---|
@@ -43,10 +43,10 @@ Cột "Sau" đo sau khi bổ sung các test hộp đen của Phần A. Toàn d�
 đương, phân tích giá trị biên, bảng quyết định, chuyển đổi trạng thái. Chúng suy ra từ
 **đặc tả**, hoàn toàn không nhắm vào việc phủ mã nguồn.
 
-Vậy mà bao phủ nhánh tăng hơn 24 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
+Vậy mà bao phủ nhánh tăng hơn 37 điểm phần trăm. Điều này cho thấy kỹ thuật hộp đen có
 giá trị thực chất, không chỉ là bài tập vẽ bảng.
 
-Nhưng vẫn còn **27,5% nhánh chưa chạm** — đúng như slide 51 của chương IV:
+Nhưng vẫn còn **14,5% nhánh chưa chạm** — đúng như slide 51 của chương IV:
 *độ bao phủ 100% không có nghĩa là 100% được test*, và chiều ngược lại cũng đúng:
 phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn mã nguồn.
 
@@ -135,7 +135,7 @@ Và một lớp còn hở, ghi lại để không nhận công quá tay:
 
 | Lớp | Nhánh | Vì sao còn hở |
 |---|---|---|
-| `OnboardingController` | 57,5% (23/40) | Máy trạng thái phủ trọn các cạnh chuyển bước, nhưng nhánh xử lý tệp tải lên ở `POST step2` (tệp rỗng · lỗi lưu · phân tích bảng điểm trả `null`) nằm ngoài mô hình trạng thái |
+| `OnboardingController` | 97,5% (39/40) | Máy trạng thái phủ trọn các cạnh chuyển bước, nhưng nhánh xử lý tệp tải lên ở `POST step2` (tệp rỗng · lỗi lưu · phân tích bảng điểm trả `null`) nằm ngoài mô hình trạng thái |
 
 Đúng như slide 51 của chương IV: *độ bao phủ 100% không có nghĩa là 100% được
 test*, và chiều ngược lại cũng đúng — **phủ trọn tiêu chí hộp đen không có nghĩa phủ trọn

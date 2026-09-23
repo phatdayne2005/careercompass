@@ -30,27 +30,27 @@ public class RoadmapController {
 
     @GetMapping(&quot;/templates&quot;)
     public List&lt;RoadmapTemplateDTO&gt; templates() {
-<span class="nc" id="L33">        return roadmapService.getActiveTemplates();</span>
+<span class="fc" id="L33">        return roadmapService.getActiveTemplates();</span>
     }
 
     @GetMapping
     public RoadmapViewDTO roadmap(@RequestParam(required = false) Long templateId, Authentication authentication) {
-<span class="nc" id="L38">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L39">        return roadmapService.getRoadmap(user, templateId);</span>
+<span class="fc" id="L38">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L39">        return roadmapService.getRoadmap(user, templateId);</span>
     }
 
     @PostMapping(&quot;/progress&quot;)
     public ProgressUpdateResponse updateProgress(@RequestBody ProgressUpdateRequest request, Authentication authentication) {
-<span class="nc" id="L44">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L45">        UserNodeProgress progress = progressService.updateProgress(user, request.getSkillNodeId(), request.getStatus());</span>
-<span class="nc" id="L46">        Long templateId = progress.getSkillNode().getTemplate().getId();</span>
-<span class="nc" id="L47">        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, templateId);</span>
+<span class="fc" id="L44">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L45">        UserNodeProgress progress = progressService.updateProgress(user, request.getSkillNodeId(), request.getStatus());</span>
+<span class="fc" id="L46">        Long templateId = progress.getSkillNode().getTemplate().getId();</span>
+<span class="fc" id="L47">        RoadmapViewDTO roadmap = roadmapService.getRoadmap(user, templateId);</span>
 
-<span class="nc" id="L49">        return ProgressUpdateResponse.builder()</span>
-<span class="nc" id="L50">                .skillNodeId(progress.getSkillNode().getId())</span>
-<span class="nc" id="L51">                .status(progress.getStatus())</span>
-<span class="nc" id="L52">                .completionPercent(roadmap.getCompletionPercent())</span>
-<span class="nc" id="L53">                .build();</span>
+<span class="fc" id="L49">        return ProgressUpdateResponse.builder()</span>
+<span class="fc" id="L50">                .skillNodeId(progress.getSkillNode().getId())</span>
+<span class="fc" id="L51">                .status(progress.getStatus())</span>
+<span class="fc" id="L52">                .completionPercent(roadmap.getCompletionPercent())</span>
+<span class="fc" id="L53">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

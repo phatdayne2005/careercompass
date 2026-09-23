@@ -35,6 +35,9 @@ python tools/cap_nhat_tong_quan.py
 # 5. Sinh sheet phân công nhóm
 python tools/gen_sheet_phan_cong.py
 
+# 5b. Sinh sheet truy vết SRS (yêu cầu ↔ kiểm thử)
+python tools/gen_sheet_truy_vet_srs.py
+
 # 6. Cập nhật README của bản chụp độ bao phủ
 python tools/cap_nhat_readme_coverage.py
 
@@ -133,6 +136,7 @@ python tools/gen_baocao_tuan_docx.py
 | `patch_postman.py` | Vá bộ kiểm thử Postman cho chạy lại được nhiều lần |
 | `dong_dau_moc_thoi_gian_whitebox.py` | Đóng dấu ngày đo lên B3/B4 — xem cảnh báo ở trên |
 | `cap_nhat_ket_qua_postman.py` | Sinh lại hai tệp kết quả Postman từ bản xuất newman |
+| `gen_sheet_truy_vet_srs.py` | Sinh sheet 08 — ma trận truy vết yêu cầu SRS ↔ kiểm thử |
 | `chuan_hoa_sheet_dt_st.py` | Chuẩn hoá bố cục sheet 03c, 04, 04b, 04c kèm bảng đầy đủ |
 | `sua_ten_method_b1.py` | Thay tên method giả ở sheet B1 bằng tên thật trong mã nguồn |
 | `them_bang3b_dung_luong.py` | Thêm BẢNG 3b — BVA dung lượng tệp vào sheet 01 |

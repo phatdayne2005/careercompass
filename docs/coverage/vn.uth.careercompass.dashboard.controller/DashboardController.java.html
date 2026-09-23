@@ -18,10 +18,10 @@ public class DashboardController {
 
     @GetMapping(&quot;/dashboard&quot;)
     public String dashboardPage(Authentication authentication, Model model) {
-<span class="nc" id="L21">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L22">        model.addAttribute(&quot;activeNav&quot;, &quot;dashboard&quot;);</span>
-<span class="nc" id="L23">        model.addAttribute(&quot;dashboard&quot;, dashboardService.getDashboard(user));</span>
-<span class="nc" id="L24">        return &quot;dashboard/home&quot;;</span>
+<span class="fc" id="L21">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L22">        model.addAttribute(&quot;activeNav&quot;, &quot;dashboard&quot;);</span>
+<span class="fc" id="L23">        model.addAttribute(&quot;dashboard&quot;, dashboardService.getDashboard(user));</span>
+<span class="fc" id="L24">        return &quot;dashboard/home&quot;;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
