@@ -32,15 +32,15 @@ public class MentorController {
 
         // Chọn session theo param nếu hợp lệ, không thì lấy cuộc mới nhất, nếu chưa có thì tự động tạo cuộc trò chuyện đầu tiên
 <span class="fc" id="L34">        MentorSession current = null;</span>
-<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (sessionId != null) {</span>
-<span class="nc" id="L36">            current = sessions.stream().filter(s -&gt; s.getId().equals(sessionId)).findFirst().orElse(null);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (sessionId != null) {</span>
+<span class="fc" id="L36">            current = sessions.stream().filter(s -&gt; s.getId().equals(sessionId)).findFirst().orElse(null);</span>
         }
-<span class="pc bpc" id="L38" title="2 of 4 branches missed.">        if (current == null &amp;&amp; !sessions.isEmpty()) {</span>
+<span class="pc bpc" id="L38" title="1 of 4 branches missed.">        if (current == null &amp;&amp; !sessions.isEmpty()) {</span>
 <span class="fc" id="L39">            current = sessions.get(0);</span>
         }
-<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (current == null) {</span>
-<span class="nc" id="L42">            current = mentorService.createSession(user);</span>
-<span class="nc" id="L43">            sessions = mentorService.getSessionsForUser(user);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (current == null) {</span>
+<span class="fc" id="L42">            current = mentorService.createSession(user);</span>
+<span class="fc" id="L43">            sessions = mentorService.getSessionsForUser(user);</span>
         }
 
 <span class="fc" id="L46">        model.addAttribute(&quot;sessions&quot;, sessions);</span>
@@ -51,9 +51,9 @@ public class MentorController {
 
     @PostMapping(&quot;/new&quot;)
     public String createSession(Authentication authentication) {
-<span class="nc" id="L54">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
-<span class="nc" id="L55">        MentorSession session = mentorService.createSession(user);</span>
-<span class="nc" id="L56">        return &quot;redirect:/mentor?session=&quot; + session.getId();</span>
+<span class="fc" id="L54">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
+<span class="fc" id="L55">        MentorSession session = mentorService.createSession(user);</span>
+<span class="fc" id="L56">        return &quot;redirect:/mentor?session=&quot; + session.getId();</span>
     }
 
     @PostMapping(&quot;/send&quot;)
@@ -64,14 +64,14 @@ public class MentorController {
 <span class="fc" id="L64">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
 
 <span class="fc" id="L66">        MentorSession session = null;</span>
-<span class="pc bpc" id="L67" title="1 of 2 branches missed.">        if (sessionId != null) {</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        if (sessionId != null) {</span>
 <span class="fc" id="L68">            session = mentorService.getSessionsForUser(user).stream()</span>
 <span class="fc" id="L69">                    .filter(s -&gt; s.getId().equals(sessionId))</span>
 <span class="fc" id="L70">                    .findFirst()</span>
 <span class="fc" id="L71">                    .orElse(null);</span>
         }
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        if (session == null) {</span>
-<span class="nc" id="L74">            session = mentorService.createSession(user);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (session == null) {</span>
+<span class="fc" id="L74">            session = mentorService.createSession(user);</span>
         }
 
 <span class="fc" id="L77">        mentorService.sendMessage(user, session, content);</span>

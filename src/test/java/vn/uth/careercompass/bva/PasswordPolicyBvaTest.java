@@ -41,6 +41,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("BVA — Độ dài mật khẩu (DEF-013)")
 class PasswordPolicyBvaTest {
 
+    /**
+     * Mật khẩu có hợp lệ không.
+     *
+     * <p>Trợ giúp riêng của lớp kiểm thử chứ không gọi sang mã sản phẩm: PasswordPolicy
+     * từng có phương thức hopLe() nhưng không controller nào dùng tới — ba đường đặt mật
+     * khẩu đều cần THÔNG ĐIỆP lỗi chứ không chỉ cần đúng/sai. Giữ một phương thức công
+     * khai chỉ để phục vụ test là để mã chết nằm trong sản phẩm.
+     */
+    private static boolean hopLe(String matKhau) {
+        return PasswordPolicy.kiemTra(matKhau) == null;
+    }
+
     /** Chữ cái tiếng Việt có dấu: 3 byte UTF-8 mỗi ký tự. */
     private static final String CHU_CO_DAU = "ậ";
 
@@ -63,7 +75,7 @@ class PasswordPolicyBvaTest {
     void standardBva_trongMien(int soKyTu, String nhan, boolean mongDoi) {
         String matKhau = "p".repeat(soKyTu);
 
-        assertThat(PasswordPolicy.hopLe(matKhau))
+        assertThat(hopLe(matKhau))
                 .as("%d ký tự (%s)", soKyTu, nhan)
                 .isEqualTo(mongDoi);
     }
@@ -105,7 +117,7 @@ class PasswordPolicyBvaTest {
 
         assertThat(matKhau.getBytes(StandardCharsets.UTF_8)).hasSize(72);
         assertThat(matKhau.length()).as("vẫn nằm trong 30 ký tự").isEqualTo(24);
-        assertThat(PasswordPolicy.hopLe(matKhau)).isTrue();
+        assertThat(hopLe(matKhau)).isTrue();
     }
 
     @Test
@@ -132,7 +144,7 @@ class PasswordPolicyBvaTest {
         String toiDa = BIEU_TUONG.repeat(15);
         assertThat(toiDa.length()).isEqualTo(30);
         assertThat(toiDa.getBytes(StandardCharsets.UTF_8)).hasSize(60);
-        assertThat(PasswordPolicy.hopLe(toiDa)).isTrue();
+        assertThat(hopLe(toiDa)).isTrue();
 
         String qua = BIEU_TUONG.repeat(16);
         assertThat(qua.length()).isEqualTo(32);
@@ -152,7 +164,7 @@ class PasswordPolicyBvaTest {
             String matKhau = CHU_CO_DAU.repeat(soKyTu);
             boolean quaByte = matKhau.getBytes(StandardCharsets.UTF_8).length
                     > PasswordPolicy.SO_BYTE_TOI_DA;
-            assertThat(PasswordPolicy.hopLe(matKhau))
+            assertThat(hopLe(matKhau))
                     .as("%d ký tự tiếng Việt = %d byte", soKyTu,
                             matKhau.getBytes(StandardCharsets.UTF_8).length)
                     .isEqualTo(!quaByte);
@@ -198,7 +210,7 @@ class PasswordPolicyBvaTest {
                 "p".repeat(6), "p".repeat(30),
                 CHU_CO_DAU.repeat(24), BIEU_TUONG.repeat(15),
                 "MậtKhẩuCủaTôi123", "Pa$$w0rd!"}) {
-            assertThat(PasswordPolicy.hopLe(matKhau))
+            assertThat(hopLe(matKhau))
                     .as("mật khẩu %d ký tự / %d byte phải hợp lệ",
                             matKhau.length(), matKhau.getBytes(StandardCharsets.UTF_8).length)
                     .isTrue();

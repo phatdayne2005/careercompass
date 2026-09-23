@@ -129,4 +129,26 @@ class LlmClientTest {
         // Đúng bốn lần thử, không nhiều hơn không ít hơn.
         server.verify();
     }
+
+    @org.junit.jupiter.api.Test
+    @DisplayName("Luồng bị ngắt giữa lúc chờ backoff thì dừng lịch sự, không nuốt tín hiệu ngắt")
+    void biNgatGiuaLucChoBackoff_giuLaiCoNgat() {
+        // Khi ứng dụng tắt, Spring ngắt các luồng đang chờ. sleepQuietly bắt
+        // InterruptedException rồi ĐẶT LẠI cờ ngắt — nuốt cờ đi là luồng không bao giờ
+        // dừng được và quá trình tắt máy treo.
+        server.expect(times(4), requestTo(DUONG_DAN))
+                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        Thread.currentThread().interrupt();
+        try {
+            assertThatThrownBy(() -> llmClient.ask("Em nên học gì?"))
+                    .isInstanceOf(org.springframework.web.client.HttpServerErrorException.class);
+
+            assertThat(Thread.currentThread().isInterrupted())
+                    .as("cờ ngắt phải được đặt lại sau khi bắt InterruptedException")
+                    .isTrue();
+        } finally {
+            // Dọn cờ để không ảnh hưởng phép kiểm chạy sau trên cùng luồng.
+            Thread.interrupted();
+        }
+    }
 }

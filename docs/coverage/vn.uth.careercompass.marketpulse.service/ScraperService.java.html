@@ -54,8 +54,8 @@ public class ScraperService {
     /** Chạy mỗi ngày lúc 02:00 sáng. */
     @Scheduled(cron = &quot;0 0 2 * * *&quot;)
     public void scrapeDaily() {
-<span class="nc" id="L57">        scrapeJobs();</span>
-<span class="nc" id="L58">    }</span>
+<span class="fc" id="L57">        scrapeJobs();</span>
+<span class="fc" id="L58">    }</span>
 
     /** Cào The Muse, thay toàn bộ job_trends bằng dữ liệu mới. Trả số bản ghi đã lưu (0 nếu lỗi/rỗng). */
     @Transactional
@@ -76,8 +76,8 @@ public class ScraperService {
 <span class="fc" id="L76">                        .build().toUri();</span>
 <span class="fc" id="L77">                ResponseEntity&lt;Map&gt; response = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);</span>
 <span class="fc" id="L78">                Map&lt;String, Object&gt; body = response.getBody();</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                if (body == null) {</span>
-<span class="nc" id="L80">                    continue;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">                if (body == null) {</span>
+<span class="fc" id="L80">                    continue;</span>
                 }
 <span class="fc" id="L82">                List&lt;Map&lt;String, Object&gt;&gt; results = (List&lt;Map&lt;String, Object&gt;&gt;) body.get(&quot;results&quot;);</span>
 <span class="fc bfc" id="L83" title="All 2 branches covered.">                if (results == null) {</span>

@@ -23,7 +23,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection&lt;? extends GrantedAuthority&gt; getAuthorities() {
-<span class="nc" id="L26">        return List.of(new SimpleGrantedAuthority(&quot;ROLE_&quot; + user.getRole().getName().name()));</span>
+<span class="fc" id="L26">        return List.of(new SimpleGrantedAuthority(&quot;ROLE_&quot; + user.getRole().getName().name()));</span>
     }
 
     @Override
@@ -38,22 +38,22 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-<span class="nc" id="L41">        return true;</span>
+<span class="fc" id="L41">        return true;</span>
     }
 
     @Override
     public boolean isAccountNonLocked() {
-<span class="nc" id="L46">        return true;</span>
+<span class="fc" id="L46">        return true;</span>
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-<span class="nc" id="L51">        return true;</span>
+<span class="fc" id="L51">        return true;</span>
     }
 
     @Override
     public boolean isEnabled() {
-<span class="nc" id="L56">        return user.getEnabled();</span>
+<span class="fc" id="L56">        return user.getEnabled();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

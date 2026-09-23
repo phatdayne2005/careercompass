@@ -42,8 +42,8 @@ public class AuthenticatedUserService {
 <span class="fc bfc" id="L42" title="All 2 branches covered.">        if (principal instanceof UserDetails userDetails) {</span>
 <span class="fc" id="L43">            return userDetails.getUsername();</span>
         }
-<span class="pc bpc" id="L45" title="2 of 4 branches missed.">        if (principal instanceof String value &amp;&amp; !&quot;anonymousUser&quot;.equals(value)) {</span>
-<span class="nc" id="L46">            return value;</span>
+<span class="pc bpc" id="L45" title="1 of 4 branches missed.">        if (principal instanceof String value &amp;&amp; !&quot;anonymousUser&quot;.equals(value)) {</span>
+<span class="fc" id="L46">            return value;</span>
         }
 <span class="fc" id="L48">        return null;</span>
     }

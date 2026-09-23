@@ -43,9 +43,9 @@ public class AuthController {
         // khẩu 25 ký tự tiếng Việt toàn dấu là 75 byte — lọt validation rồi vỡ ở tầng mã
         // hoá, người dùng nhận nguyên văn &quot;password cannot be more than 72 bytes&quot;.
 <span class="fc" id="L45">        String loiMatKhau = PasswordPolicy.kiemTra(registerFormDTO.getPassword());</span>
-<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (loiMatKhau != null) {</span>
-<span class="nc" id="L47">            result.rejectValue(&quot;password&quot;, &quot;error.password&quot;, loiMatKhau);</span>
-<span class="nc" id="L48">            return &quot;register&quot;;</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (loiMatKhau != null) {</span>
+<span class="fc" id="L47">            result.rejectValue(&quot;password&quot;, &quot;error.password&quot;, loiMatKhau);</span>
+<span class="fc" id="L48">            return &quot;register&quot;;</span>
         }
 
         try {

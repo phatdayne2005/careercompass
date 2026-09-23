@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -123,5 +125,31 @@ class AuthenticatedUserServiceTest {
         assertThatThrownBy(() -> authenticatedUserService.requireCurrentUser(auth))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Không tìm thấy người dùng");
+    }
+
+    @Test
+    void principalLaChuoiEmail_thiTraCuuDuocNguoiDung() {
+        // Xác thực bằng form login để principal là chính chuỗi email, không phải UserDetails.
+        User user = User.builder().id(1L).email("student@uth.edu.vn").build();
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                "student@uth.edu.vn", "n/a", java.util.List.of());
+        when(userRepository.findByEmailWithRole("student@uth.edu.vn")).thenReturn(Optional.of(user));
+
+        assertThat(authenticatedUserService.requireCurrentUser(auth)).isSameAs(user);
+    }
+
+    @Test
+    void principalLaChuoiAnonymousUser_thiTuChoi() {
+        // Chuỗi "anonymousUser" là người chưa đăng nhập — KHÔNG được coi là email và đem
+        // đi tra cứu, nếu không thì bất kỳ ai cũng thành người dùng hợp lệ nếu CSDL lỡ có
+        // một bản ghi mang email đó.
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                "anonymousUser", "n/a", java.util.List.of());
+
+        assertThatThrownBy(() -> authenticatedUserService.requireCurrentUser(auth))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+
+        verify(userRepository, org.mockito.Mockito.never())
+                .findByEmailWithRole(org.mockito.ArgumentMatchers.anyString());
     }
 }

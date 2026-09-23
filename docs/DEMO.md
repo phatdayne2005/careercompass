@@ -148,15 +148,15 @@ tên này:
 ./mvnw clean test
 ```
 
-→ **539 test, 0 thất bại**
+→ **572 test, 0 thất bại**
 
 Báo cáo JaCoCo tự sinh, **ba bản cùng lúc**, không cần gõ thêm lệnh:
 
 | Thư mục | Đo gì | Dòng | Nhánh |
 |---|---|---|---|
-| `target/site/jacoco/` | **Toàn bộ** — gộp cả hai bên | **96,9%** | **90,4%** |
-| `target/site/jacoco-whitebox/` | Chỉ test hộp trắng | 96,7% | 88,9% |
-| `target/site/jacoco-blackbox/` | Chỉ test hộp đen | 7,9% | 12,5% |
+| `target/site/jacoco/` | **Toàn bộ** — gộp cả hai bên | **98,7%** | **94,8%** |
+| `target/site/jacoco-whitebox/` | Chỉ test hộp trắng | 98,7% | 94,0% |
+| `target/site/jacoco-blackbox/` | Chỉ test hộp đen | 7,9% | 12,2% |
 
 > **Vì sao bản gộp và bản hộp trắng gần như bằng nhau.** Không phải lỗi cấu hình: bộ hộp
 > đen hầu như không phủ thêm dòng nào mà hộp trắng chưa phủ (chỉ thêm 3 nhánh). Điều đó
@@ -168,7 +168,7 @@ Con số trong báo cáo Excel là bản **gộp** — mở `target/site/jacoco/
 > `<exclude>**/*Seeder.class</exclude>` cho JaCoCo. Đó là các lớp chỉ đọc tệp JSON rồi
 > gieo dữ liệu mẫu lúc khởi động, chạy đúng một lần khi bảng còn trống, không chứa logic
 > nghiệp vụ nào — `sonar.coverage.exclusions` đã loại chúng từ trước, nay JaCoCo áp cùng
-> quy tắc. Không loại thì con số là 90,7% / 84,5%; 138 dòng gieo dữ liệu kéo tụt gần sáu
+> quy tắc. Không loại thì con số là 92,8% / 89,2%; 138 dòng gieo dữ liệu kéo tụt gần sáu
 > điểm mà không nói lên điều gì về chất lượng kiểm thử.
 
 > **Một điểm đáng nói nếu thầy hỏi về bản tách.** Bộ kiểm thử hộp đen chạy riêng chỉ phủ
@@ -316,8 +316,8 @@ SHOW=true npx codeceptjs run --grep "TC-ADM-003" --steps
 | Ngoài bảng · BVA theo từng trường | `./mvnw test -Dtest='RegisterFormDTOBvaTest'` | 27 test |
 | Hộp trắng — đường cơ sở | `./mvnw test -Dtest='RoadmapServiceTest#...'` (mục 2.1) | 9 test |
 | Hộp trắng — MC/DC | `./mvnw test -Dtest='RoadmapServiceTest#lockExpression_coversConditionCombinations'` | 7 test |
-| Toàn bộ + bao phủ gộp | `./mvnw clean test` | 539 test · 96,9% · 90,4% |
-| Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 96,7% / 7,9% dòng |
+| Toàn bộ + bao phủ gộp | `./mvnw clean test` | 572 test · 98,7% · 94,8% |
+| Bao phủ riêng hộp trắng / hộp đen | `target/site/jacoco-whitebox/` · `jacoco-blackbox/` | 98,7% / 7,9% dòng |
 | API | Postman GUI → Run collection | 111 request · 376 phép kiểm |
 | Giao diện, chạy ngầm | `cd e2e && npm run test:all` | 17 kịch bản |
 | Giao diện, hiện trình duyệt | `cd e2e && SHOW=true npx codeceptjs run --steps` | 17 kịch bản |

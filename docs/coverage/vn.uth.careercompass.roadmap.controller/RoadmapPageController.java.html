@@ -96,35 +96,35 @@ public class RoadmapPageController {
 <span class="fc" id="L96">        return nodes.stream()</span>
 <span class="fc" id="L97">                .filter(node -&gt; ProgressStatus.IN_PROGRESS.equals(node.getStatus()))</span>
 <span class="fc" id="L98">                .findFirst()</span>
-<span class="pc bnc" id="L99" title="All 2 branches missed.">                .or(() -&gt; nodes.stream().filter(node -&gt; !ProgressStatus.DONE.equals(node.getStatus())).findFirst())</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">                .or(() -&gt; nodes.stream().filter(node -&gt; !ProgressStatus.DONE.equals(node.getStatus())).findFirst())</span>
 <span class="fc" id="L100">                .orElse(nodes.get(0));</span>
     }
 
     private List&lt;RoadmapNodeDTO&gt; filterByTier(List&lt;RoadmapNodeDTO&gt; nodes, int tier) {
 <span class="fc" id="L104">        return nodes.stream()</span>
-<span class="pc bpc" id="L105" title="1 of 4 branches missed.">                .filter(node -&gt; node.getTier() != null &amp;&amp; node.getTier() == tier)</span>
+<span class="fc bfc" id="L105" title="All 4 branches covered.">                .filter(node -&gt; node.getTier() != null &amp;&amp; node.getTier() == tier)</span>
 <span class="fc" id="L106">                .toList();</span>
     }
 
     private String prerequisiteFor(RoadmapNodeDTO selectedNode) {
-<span class="pc bpc" id="L110" title="1 of 4 branches missed.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
+<span class="fc bfc" id="L110" title="All 4 branches covered.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
 <span class="fc" id="L111">            return &quot;Không có&quot;;</span>
         }
-<span class="pc bpc" id="L113" title="1 of 3 branches missed.">        return switch (selectedNode.getTier()) {</span>
+<span class="fc bfc" id="L113" title="All 3 branches covered.">        return switch (selectedNode.getTier()) {</span>
 <span class="fc" id="L114">            case 1 -&gt; &quot;Không có&quot;;</span>
 <span class="fc" id="L115">            case 2 -&gt; &quot;Hoàn thành tầng Nền tảng&quot;;</span>
-<span class="nc" id="L116">            default -&gt; &quot;Hoàn thành tầng Nền tảng + Cốt lõi&quot;;</span>
+<span class="fc" id="L116">            default -&gt; &quot;Hoàn thành tầng Nền tảng + Cốt lõi&quot;;</span>
         };
     }
 
     private String estimateFor(RoadmapNodeDTO selectedNode) {
-<span class="pc bpc" id="L121" title="1 of 4 branches missed.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
+<span class="fc bfc" id="L121" title="All 4 branches covered.">        if (selectedNode == null || selectedNode.getTier() == null) {</span>
 <span class="fc" id="L122">            return &quot;~1 tuần&quot;;</span>
         }
-<span class="pc bpc" id="L124" title="1 of 3 branches missed.">        return switch (selectedNode.getTier()) {</span>
+<span class="fc bfc" id="L124" title="All 3 branches covered.">        return switch (selectedNode.getTier()) {</span>
 <span class="fc" id="L125">            case 1 -&gt; &quot;~1 tuần&quot;;</span>
 <span class="fc" id="L126">            case 2 -&gt; &quot;~3 tuần&quot;;</span>
-<span class="nc" id="L127">            default -&gt; &quot;~4 tuần&quot;;</span>
+<span class="fc" id="L127">            default -&gt; &quot;~4 tuần&quot;;</span>
         };
     }
 }

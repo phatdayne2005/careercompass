@@ -113,8 +113,8 @@ public class PortfolioService {
 <span class="fc" id="L113">                        .slug(generateSlug(username))</span>
 <span class="fc" id="L114">                        .build());</span>
 <span class="fc" id="L115">        profile.setGithubUsername(username);</span>
-<span class="pc bpc" id="L116" title="1 of 2 branches missed.">        if (profile.getSlug() == null) {</span>
-<span class="nc" id="L117">            profile.setSlug(generateSlug(username));</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (profile.getSlug() == null) {</span>
+<span class="fc" id="L117">            profile.setSlug(generateSlug(username));</span>
         }
 <span class="fc" id="L119">        profile = gitHubProfileRepository.save(profile);</span>
 
@@ -134,7 +134,7 @@ public class PortfolioService {
 <span class="fc" id="L134">            String htmlUrl = (String) repoData.get(&quot;html_url&quot;);</span>
 <span class="fc" id="L135">            String description = (String) repoData.get(&quot;description&quot;);</span>
 <span class="fc" id="L136">            Object starsRaw = repoData.get(&quot;stargazers_count&quot;);</span>
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">            int stars = (starsRaw instanceof Number number) ? number.intValue() : 0;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">            int stars = (starsRaw instanceof Number number) ? number.intValue() : 0;</span>
 
 <span class="fc" id="L139">            String aiSummary = tomTat.get(repoName);</span>
 
@@ -223,12 +223,12 @@ public class PortfolioService {
 <span class="fc" id="L223">                String content = restTemplate.getForObject(</span>
                         &quot;https://raw.githubusercontent.com/&quot; + username + &quot;/&quot; + repoName + &quot;/&quot; + branch + &quot;/README.md&quot;,
                         String.class);
-<span class="pc bpc" id="L226" title="2 of 4 branches missed.">                if (content != null &amp;&amp; !content.isBlank()) {</span>
+<span class="fc bfc" id="L226" title="All 4 branches covered.">                if (content != null &amp;&amp; !content.isBlank()) {</span>
 <span class="fc" id="L227">                    return content;</span>
                 }
 <span class="fc" id="L229">            } catch (RestClientException ignored) {</span>
                 // thử branch tiếp theo
-<span class="nc" id="L231">            }</span>
+<span class="fc" id="L231">            }</span>
         }
 <span class="fc" id="L233">        return &quot;&quot;;</span>
     }
@@ -236,7 +236,7 @@ public class PortfolioService {
     private String generateAiSummary(String repoName, String readmeContent, String description) {
 <span class="pc bpc" id="L237" title="1 of 4 branches missed.">        String context = (readmeContent != null &amp;&amp; !readmeContent.isBlank())</span>
 <span class="fc" id="L238">                ? readmeContent</span>
-<span class="pc bpc" id="L239" title="1 of 2 branches missed.">                : (description != null ? description : &quot;&quot;);</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">                : (description != null ? description : &quot;&quot;);</span>
 <span class="fc bfc" id="L240" title="All 2 branches covered.">        if (context.isBlank()) {</span>
 <span class="fc" id="L241">            return &quot;Dự án chưa có README/mô tả để AI tóm tắt.&quot;;</span>
         }

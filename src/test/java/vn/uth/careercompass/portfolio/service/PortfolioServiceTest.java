@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -558,5 +559,158 @@ class PortfolioServiceTest {
     private UserNodeProgress progressWithSkill(String skillName) {
         SkillNode node = SkillNode.builder().skill(Skill.builder().name(skillName).build()).build();
         return UserNodeProgress.builder().skillNode(node).build();
+    }
+
+    // ================================================================
+    // Các nhánh còn lại của đồng bộ và tóm tắt (FR5.1, FR5.2, FR5.3)
+    // ================================================================
+
+    @Test
+    void toggleRepoVisibility_repoThuocVeMinh_thiDaoTrangThai() {
+        User user = User.builder().id(1L).build();
+        GitHubProfile profile = GitHubProfile.builder().id(5L).userId(1L).build();
+        ProjectRepository repo = ProjectRepository.builder()
+                .id(7L).repoName("Hello-World").githubProfile(profile).isPublic(true).build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(projectRepositoryRepository.findById(7L)).thenReturn(Optional.of(repo));
+
+        portfolioService.toggleRepoVisibility(user, 7L);
+
+        assertThat(repo.isIsPublic()).isFalse();
+        verify(projectRepositoryRepository).save(repo);
+    }
+
+    @Test
+    void toggleRepoVisibility_repoCuaNguoiKhac_thiKhongDoiGiCa() {
+        // Kiểm tra chủ sở hữu: đổi repoId trên URL không được phép ẩn/hiện repo người khác.
+        User user = User.builder().id(1L).build();
+        GitHubProfile cuaMinh = GitHubProfile.builder().id(5L).userId(1L).build();
+        GitHubProfile cuaNguoiKhac = GitHubProfile.builder().id(9L).userId(2L).build();
+        ProjectRepository repo = ProjectRepository.builder()
+                .id(7L).githubProfile(cuaNguoiKhac).isPublic(true).build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(cuaMinh));
+        when(projectRepositoryRepository.findById(7L)).thenReturn(Optional.of(repo));
+
+        portfolioService.toggleRepoVisibility(user, 7L);
+
+        assertThat(repo.isIsPublic()).as("giữ nguyên").isTrue();
+        verify(projectRepositoryRepository, never()).save(any());
+    }
+
+    @Test
+    void syncGithubRepositories_hoSoCuChuaCoSlug_thiSinhSlugMoi() {
+        // Hồ sơ tạo từ phiên bản cũ có thể chưa có slug; không sinh thì /p/{slug} vỡ.
+        User user = User.builder().id(1L).build();
+        GitHubProfile khongSlug = GitHubProfile.builder().id(5L).userId(1L).slug(null).build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(khongSlug));
+        when(gitHubProfileRepository.save(any(GitHubProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.getForObject(
+                "https://api.github.com/users/octocat/repos?per_page=100&sort=updated", List.class))
+                .thenReturn(List.of());
+
+        portfolioService.syncGithubRepositories(user, "octocat");
+
+        assertThat(khongSlug.getSlug()).isNotNull().startsWith("octocat-");
+    }
+
+    @Test
+    void syncGithubRepositories_readmeChiCoOBranchMaster_thiVanLayDuoc() {
+        User user = User.builder().id(1L).build();
+        GitHubProfile profile = GitHubProfile.builder().id(5L).userId(1L).slug("octocat").build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(gitHubProfileRepository.save(any(GitHubProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.getForObject(
+                "https://api.github.com/users/octocat/repos?per_page=100&sort=updated", List.class))
+                .thenReturn(List.of(repoMap("Hello-World", "https://github.com/octocat/Hello-World", "Mô tả", 1)));
+        // Kho cũ dùng branch master: gọi main ném lỗi, phải thử tiếp master.
+        when(restTemplate.getForObject(
+                "https://raw.githubusercontent.com/octocat/Hello-World/main/README.md", String.class))
+                .thenThrow(new org.springframework.web.client.RestClientException("404"));
+        when(restTemplate.getForObject(
+                "https://raw.githubusercontent.com/octocat/Hello-World/master/README.md", String.class))
+                .thenReturn("# Hello");
+        when(llmClient.ask(anyString())).thenReturn("Tóm tắt.");
+        when(projectRepositoryRepository.save(any(ProjectRepository.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        portfolioService.syncGithubRepositories(user, "octocat");
+
+        verify(restTemplate).getForObject(
+                "https://raw.githubusercontent.com/octocat/Hello-World/master/README.md", String.class);
+    }
+
+    @Test
+    void syncGithubRepositories_khongCoReadmeLanMoTa_thiBaoRoLaChuaCoGiDeTomTat() {
+        User user = User.builder().id(1L).build();
+        GitHubProfile profile = GitHubProfile.builder().id(5L).userId(1L).slug("octocat").build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(gitHubProfileRepository.save(any(GitHubProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.getForObject(
+                "https://api.github.com/users/octocat/repos?per_page=100&sort=updated", List.class))
+                .thenReturn(List.of(repoMap("Trong", "https://github.com/octocat/Trong", null, 0)));
+        // Cả hai branch đều trả chuỗi trắng nên fetchReadmeContent trả chuỗi rỗng.
+        when(restTemplate.getForObject(org.mockito.ArgumentMatchers.contains("README.md"), eq(String.class)))
+                .thenReturn("   ");
+        when(projectRepositoryRepository.save(any(ProjectRepository.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        portfolioService.syncGithubRepositories(user, "octocat");
+
+        ArgumentCaptor<ProjectRepository> captor = ArgumentCaptor.forClass(ProjectRepository.class);
+        verify(projectRepositoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getAiSummary())
+                .isEqualTo("Dự án chưa có README/mô tả để AI tóm tắt.");
+        verify(llmClient, never()).ask(anyString());
+    }
+
+    @Test
+    void syncGithubRepositories_llmLoi_thiDungTomTatCoBanChuKhongChanDongBo() {
+        // NFR-R01: dịch vụ ngoài hỏng không được làm hỏng nghiệp vụ chính.
+        User user = User.builder().id(1L).build();
+        GitHubProfile profile = GitHubProfile.builder().id(5L).userId(1L).slug("octocat").build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(gitHubProfileRepository.save(any(GitHubProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(restTemplate.getForObject(
+                "https://api.github.com/users/octocat/repos?per_page=100&sort=updated", List.class))
+                .thenReturn(List.of(repoMap("Hello-World", "https://github.com/octocat/Hello-World",
+                        "Mô tả   nhiều    khoảng trắng", 0)));
+        when(restTemplate.getForObject(org.mockito.ArgumentMatchers.contains("README.md"), eq(String.class)))
+                .thenReturn(null);
+        when(llmClient.ask(anyString())).thenThrow(new IllegalStateException("API down"));
+        when(projectRepositoryRepository.save(any(ProjectRepository.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        portfolioService.syncGithubRepositories(user, "octocat");
+
+        ArgumentCaptor<ProjectRepository> captor = ArgumentCaptor.forClass(ProjectRepository.class);
+        verify(projectRepositoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getAiSummary())
+                .as("khoảng trắng thừa bị gom lại")
+                .startsWith("[Tóm tắt cơ bản] Hello-World — ")
+                .doesNotContain("   ");
+    }
+
+    @Test
+    void syncGithubRepositories_soSaoKhongPhaiKieuSo_thiCoiNhuKhong() {
+        User user = User.builder().id(1L).build();
+        GitHubProfile profile = GitHubProfile.builder().id(5L).userId(1L).slug("octocat").build();
+        when(gitHubProfileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        when(gitHubProfileRepository.save(any(GitHubProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        java.util.Map<String, Object> repo = repoMap("Hello-World", "https://github.com/x/y", "Mô tả", 0);
+        repo.put("stargazers_count", null);          // GitHub thỉnh thoảng bỏ trường này
+        when(restTemplate.getForObject(
+                "https://api.github.com/users/octocat/repos?per_page=100&sort=updated", List.class))
+                .thenReturn(List.of(repo));
+        when(restTemplate.getForObject(org.mockito.ArgumentMatchers.contains("README.md"), eq(String.class)))
+                .thenReturn(null);
+        when(llmClient.ask(anyString())).thenReturn("Tóm tắt.");
+        when(projectRepositoryRepository.save(any(ProjectRepository.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        portfolioService.syncGithubRepositories(user, "octocat");
+
+        ArgumentCaptor<ProjectRepository> captor = ArgumentCaptor.forClass(ProjectRepository.class);
+        verify(projectRepositoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getStars()).isZero();
     }
 }

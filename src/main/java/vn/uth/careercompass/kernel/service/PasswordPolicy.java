@@ -67,9 +67,4 @@ public final class PasswordPolicy {
         }
         return null;
     }
-
-    /** Đúng khi mật khẩu thoả mọi ràng buộc độ dài. */
-    public static boolean hopLe(String matKhau) {
-        return kiemTra(matKhau) == null;
-    }
 }

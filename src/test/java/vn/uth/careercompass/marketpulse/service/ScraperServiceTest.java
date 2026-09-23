@@ -270,4 +270,36 @@ class ScraperServiceTest {
                 .as("mọi mô tả dài cỡ nào cũng phải lọt trong VARCHAR(4000)")
                 .isLessThanOrEqualTo(4000);
     }
+
+    // ============================================================
+    // Ba nhánh còn lại của luồng cào
+    // ============================================================
+
+    @Test
+    void scrapeDaily_uyQuyenThangChoScrapeJobs() {
+        // Hàm hẹn giờ @Scheduled chạy lúc 02:00 — không ai gọi tay nên rất dễ hỏng âm thầm.
+        stubExchange(pageWith(List.of(item("software engineer", "Acme", "desc"))), emptyPage());
+
+        scraperService.scrapeDaily();
+
+        verify(jobTrendRepository).saveAll(any());
+    }
+
+    @Test
+    void scrapeJobs_phanHoiKhongCoThan_boQuaTrangDoChuKhongVoLuong() {
+        // The Muse thỉnh thoảng trả 200 với thân rỗng. Nhánh này bỏ qua trang đó và đi tiếp
+        // chứ không được ném NullPointerException giữa vòng lặp bốn trang.
+        when(restTemplate.exchange(any(java.net.URI.class), eq(HttpMethod.GET), any(), eq(Map.class)))
+                .thenReturn(ResponseEntity.ok(null));
+
+        int luu = scraperService.scrapeJobs();
+
+        assertThat(luu).isZero();
+        verify(jobTrendRepository, never()).saveAll(any());
+    }
+
+    // KHÔNG có phép kiểm cho nhánh cap(value == null): nó không tới được từ scrapeJobs.
+    // rawDescription ghép từ title và contents qua String.valueOf nên cùng lắm ra chuỗi
+    // "null" chứ không bao giờ là null; company cũng vậy. Đây là mã phòng vệ thuần tuý —
+    // ghi lại ở đây để người sau không tưởng là test bị bỏ sót.
 }

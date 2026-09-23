@@ -72,7 +72,7 @@ public class SkillGapPageController {
         User user = authenticatedUserService.requireCurrentUser(authentication);
         Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);
         skillGapService.addAcquiredSkill(user, skillId, selectedTemplateId);
-        return redirectSkillGap(selectedTemplateId, false);
+        return redirectSkillGap(selectedTemplateId);
     }
 
     @PostMapping("/skill-gap/reports")
@@ -109,17 +109,18 @@ public class SkillGapPageController {
                 .body(resource);
     }
 
-    private String redirectSkillGap(Long templateId, boolean reportCreated) {
-        String redirect = "redirect:/skill-gap";
-        boolean hasQuery = false;
-        if (templateId != null) {
-            redirect += "?templateId=" + templateId;
-            hasQuery = true;
-        }
-        if (reportCreated) {
-            redirect += hasQuery ? "&reportCreated=true" : "?reportCreated=true";
-        }
-        return redirect;
+    /**
+     * Quay lại trang khoảng trống kỹ năng, giữ lộ trình đang chọn trên thanh địa chỉ.
+     *
+     * <p>Trước đây hàm này còn một tham số {@code reportCreated} để gắn thêm
+     * {@code &reportCreated=true}, nhưng chỗ gọi duy nhất luôn truyền {@code false} nên
+     * nhánh đó chưa từng chạy lần nào. Đã bỏ cả tham số lẫn nhánh: giữ lại chỉ là để mã
+     * chết nằm trong sản phẩm và làm người đọc tưởng có một luồng khác tồn tại.
+     */
+    private String redirectSkillGap(Long templateId) {
+        return templateId != null
+                ? "redirect:/skill-gap?templateId=" + templateId
+                : "redirect:/skill-gap";
     }
 
     private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {

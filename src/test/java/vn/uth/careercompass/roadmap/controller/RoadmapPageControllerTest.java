@@ -167,6 +167,73 @@ class RoadmapPageControllerTest {
         verify(progressService).updateProgress(userAccount, 7L, ProgressStatus.IN_PROGRESS);
     }
 
+    // ================================================================
+    // Các nhánh chọn node và sinh văn bản gợi ý còn lại (FR2.2, FR2.3)
+    // ================================================================
+
+    // KHÔNG có phép kiểm cho nhánh nodes == null trong selectNode: không tới được.
+    // RoadmapService.getRoadmap dựng danh sách bằng nodes.stream()...toList() từ kết quả
+    // repository, mà findBy... của Spring Data trả danh sách RỖNG chứ không trả null. Đó
+    // cũng là lý do filterByTier ngay bên cạnh gọi thẳng nodes.stream() mà không phòng
+    // null — hai hàm không nhất quán, nhưng cả hai đều đúng với dữ liệu thật.
+
+    @Test
+    void roadmapPage_khongCoNodeDangHoc_chonNodeChuaHoanThanhDauTien() throws Exception {
+        // Không node nào IN_PROGRESS -> rơi vào nhánh .or(...): lấy node chưa DONE đầu tiên.
+        RoadmapNodeDTO daXong = node(1L, 1, ProgressStatus.DONE);
+        RoadmapNodeDTO chuaHoc = node(2L, 2, ProgressStatus.NOT_STARTED);
+        givenRoadmap(roadmap(daXong, chuaHoc));
+
+        mockMvc.perform(get("/roadmap").param("templateId", "10")
+                        .with(user("student@uth.edu.vn").roles("STUDENT")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedNode",
+                        org.hamcrest.Matchers.hasProperty("id", org.hamcrest.Matchers.is(2L))));
+    }
+
+    @Test
+    void roadmapPage_hoanThanhHetMoiNode_quayVeNodeDauTien() throws Exception {
+        // Mọi node đều DONE: cả hai bộ lọc đều rỗng -> orElse(nodes.get(0)).
+        givenRoadmap(roadmap(node(1L, 1, ProgressStatus.DONE), node(2L, 2, ProgressStatus.DONE)));
+
+        mockMvc.perform(get("/roadmap").param("templateId", "10")
+                        .with(user("student@uth.edu.vn").roles("STUDENT")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("selectedNode",
+                        org.hamcrest.Matchers.hasProperty("id", org.hamcrest.Matchers.is(1L))));
+    }
+
+    @Test
+    void roadmapPage_nodeTang3_hienDieuKienVaThoiLuongCuaTangCaoNhat() throws Exception {
+        RoadmapNodeDTO tang3 = node(3L, 3, ProgressStatus.NOT_STARTED);
+        givenRoadmap(roadmap(tang3));
+
+        mockMvc.perform(get("/roadmap").param("templateId", "10").param("nodeId", "3")
+                        .with(user("student@uth.edu.vn").roles("STUDENT")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("prerequisiteText", "Hoàn thành tầng Nền tảng + Cốt lõi"))
+                .andExpect(model().attribute("estimateText", "~4 tuần"))
+                .andExpect(model().attribute("tier3Nodes", org.hamcrest.Matchers.hasSize(1)));
+    }
+
+    @Test
+    void roadmapPage_nodeKhongKhaiTang_dungVanBanMacDinhVaKhongLotVaoNhomNao() throws Exception {
+        // tier null xảy ra với node do cố vấn tạo mà quên đặt tầng. Ba bộ lọc tierN đều
+        // phải bỏ qua nó thay vì ném NullPointerException khi so sánh tier == n.
+        RoadmapNodeDTO khongTang = RoadmapNodeDTO.builder()
+                .id(9L).title("Node lạ").tier(null).status(ProgressStatus.NOT_STARTED).build();
+        givenRoadmap(roadmap(khongTang));
+
+        mockMvc.perform(get("/roadmap").param("templateId", "10")
+                        .with(user("student@uth.edu.vn").roles("STUDENT")))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("prerequisiteText", "Không có"))
+                .andExpect(model().attribute("estimateText", "~1 tuần"))
+                .andExpect(model().attribute("tier1Nodes", org.hamcrest.Matchers.hasSize(0)))
+                .andExpect(model().attribute("tier2Nodes", org.hamcrest.Matchers.hasSize(0)))
+                .andExpect(model().attribute("tier3Nodes", org.hamcrest.Matchers.hasSize(0)));
+    }
+
     private void givenRoadmap(RoadmapViewDTO roadmap) {
         when(authenticatedUserService.requireCurrentUser(nullable(Authentication.class))).thenReturn(userAccount);
         when(roadmapService.getRoadmap(userAccount, 10L)).thenReturn(roadmap);

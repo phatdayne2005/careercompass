@@ -72,7 +72,7 @@ public class SkillGapPageController {
 <span class="fc" id="L72">        User user = authenticatedUserService.requireCurrentUser(authentication);</span>
 <span class="fc" id="L73">        Long selectedTemplateId = resolveSelectedTemplateId(templateId, session);</span>
 <span class="fc" id="L74">        skillGapService.addAcquiredSkill(user, skillId, selectedTemplateId);</span>
-<span class="fc" id="L75">        return redirectSkillGap(selectedTemplateId, false);</span>
+<span class="fc" id="L75">        return redirectSkillGap(selectedTemplateId);</span>
     }
 
     @PostMapping(&quot;/skill-gap/reports&quot;)
@@ -109,26 +109,27 @@ public class SkillGapPageController {
 <span class="fc" id="L109">                .body(resource);</span>
     }
 
-    private String redirectSkillGap(Long templateId, boolean reportCreated) {
-<span class="fc" id="L113">        String redirect = &quot;redirect:/skill-gap&quot;;</span>
-<span class="fc" id="L114">        boolean hasQuery = false;</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (templateId != null) {</span>
-<span class="fc" id="L116">            redirect += &quot;?templateId=&quot; + templateId;</span>
-<span class="fc" id="L117">            hasQuery = true;</span>
-        }
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">        if (reportCreated) {</span>
-<span class="nc bnc" id="L120" title="All 2 branches missed.">            redirect += hasQuery ? &quot;&amp;reportCreated=true&quot; : &quot;?reportCreated=true&quot;;</span>
-        }
-<span class="fc" id="L122">        return redirect;</span>
+    /**
+     * Quay lại trang khoảng trống kỹ năng, giữ lộ trình đang chọn trên thanh địa chỉ.
+     *
+     * &lt;p&gt;Trước đây hàm này còn một tham số {@code reportCreated} để gắn thêm
+     * {@code &amp;reportCreated=true}, nhưng chỗ gọi duy nhất luôn truyền {@code false} nên
+     * nhánh đó chưa từng chạy lần nào. Đã bỏ cả tham số lẫn nhánh: giữ lại chỉ là để mã
+     * chết nằm trong sản phẩm và làm người đọc tưởng có một luồng khác tồn tại.
+     */
+    private String redirectSkillGap(Long templateId) {
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        return templateId != null</span>
+<span class="fc" id="L122">                ? &quot;redirect:/skill-gap?templateId=&quot; + templateId</span>
+<span class="fc" id="L123">                : &quot;redirect:/skill-gap&quot;;</span>
     }
 
     private Long resolveSelectedTemplateId(Long templateId, HttpSession session) {
-<span class="fc bfc" id="L126" title="All 2 branches covered.">        if (templateId != null) {</span>
-<span class="fc" id="L127">            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);</span>
-<span class="fc" id="L128">            return templateId;</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (templateId != null) {</span>
+<span class="fc" id="L128">            session.setAttribute(SELECTED_TEMPLATE_SESSION_KEY, templateId);</span>
+<span class="fc" id="L129">            return templateId;</span>
         }
-<span class="fc" id="L130">        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);</span>
-<span class="fc bfc" id="L131" title="All 2 branches covered.">        return selected instanceof Long id ? id : null;</span>
+<span class="fc" id="L131">        Object selected = session.getAttribute(SELECTED_TEMPLATE_SESSION_KEY);</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        return selected instanceof Long id ? id : null;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
